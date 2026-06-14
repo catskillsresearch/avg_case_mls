@@ -8,7 +8,7 @@ To make this feasible, researchers sought to enrich Floyd-Hoare verification too
 
 However, worst-case complexity analysis posed a major roadblock: the decision problems for MLS and EMLS are NP-complete, and extensions involving Presburger arithmetic exhibit exponential or double-exponential worst-case bounds. To bypass this, researchers pointed to early optimistic results by Goldberg [Gol79], which suggested that the Davis-Putnam procedure and resolution-based SAT solvers could perform exceptionally well on "average" inputs.
 
-In their 1995 New York University Courant Institute Technical Report, *"The average case complexity of multilevel syllogistic"* (TR1995-711), Jim Cox, Lars Ericson, and Bud Mishra set out to evaluate this optimism rigorously. They sought to marry the mathematical foundations of **average-case complexity (AvCom)** with set-theoretic decision procedures to determine whether a typical instance of these verification problems is truly tractable.
+In their 1995 Courant Institute Technical Report, *"The average case complexity of multilevel syllogistic"* (TR1995-711), Jim Cox, Lars Ericson, and Bud Mishra analyze the average-case tractability of decidable sublanguages of set theory and arithmetic—such as Multilevel Syllogistic (MLS), Elementary Multilevel Syllogistic (EMLS), and Fractional Programming/Linear Programming (FP/LP). Because these languages are NP-complete in the worst case, the authors turn to the formal framework of **average-case complexity (AvCom)** to evaluate whether heuristic decision procedures could perform well on average. They marry the mathematical foundations of AvCom with set-theoretic decision procedures to determine whether a typical instance of these verification problems is truly tractable.
 
 ---
 
@@ -43,12 +43,20 @@ In the mid-1990s, structural average-case complexity was a young, highly mathema
 ### Why Naive Averaging Fails
 Prior to Leonid Levin’s 1986 breakthrough [Lev86], researchers measured average running time naively:
 $$\text{Time}_M^{\mu}(n) = \sum_{|x|=n} \mu_n(x) \text{time}_M(x)$$
-As noted by Ben-David et al. [BDCGL89], this formulation is deeply flawed:
+As noted by Ben-David et al. [BDCGL89] and Gurevich, this formulation is deeply flawed:
+*   **Model-dependent and encoding-dependent:** Slight changes in the binary representation of inputs radically alter the average complexity.
 *   **Not closed under functional composition:** An algorithm that runs in average $O(n)$ time can yield an average-case exponential runtime when composed with a polynomial-time pre-processing step.
-*   **Encoding-dependent:** Slight changes in the binary representation of inputs radically alter the average complexity.
 
-### Levin's and Reischuk-Schindelhauer's Robust Classes
-Levin solved this by defining average-case polynomial time using a power-weighted expectation. In 1993, Reischuk and Schindelhauer [RS93] streamlined this theory by introducing **ranking functions** to capture the distribution profile.
+Simply taking the expected running time of an algorithm weighted over all inputs of size $n$ is therefore inadequate as a robust complexity measure.
+
+### Levin's Robust Formulation
+Levin solved these issues with a robust notion of "polynomial time on average." Under this framework, a running time $T(x)$ is average-polynomial under a distribution $\mu$ if there is a constant $c > 0$ such that the expected value of $T(x)^{1/c} / |x|$ is finite:
+$$\sum_{x} \mu(x) \frac{T(x)^{1/c}}{|x|} < \infty$$
+
+Rather than analyzing a language in isolation, average-case complexity pairs a language $L$ (a decision problem) with a probability distribution $\mu$ on its instances, denoted as the distributional problem $(L, \mu)$.
+
+### Reischuk-Schindelhauer's Precise Classes
+In 1993, Reischuk and Schindelhauer [RS93] streamlined Levin's theory by introducing **ranking functions** to capture the distribution profile. Cox, Ericson, and Mishra rely primarily on the average-case analogues of $\text{P}$ and $\text{NP}$ under both Levin's traditional definitions and this precise average-case framework.
 
 Let $\mu$ be a probability distribution on $\Sigma^*$. The **rank** of an instance $x$ under $\mu$ is:
 $$\text{rank}_{\mu}(x) = |\{ z \in \Sigma^* : \mu(z) \geq \mu(x) \}|$$
@@ -58,8 +66,18 @@ Under this framework, Cox, Ericson, and Mishra utilize several precise complexit
 *   **$\text{POL-rankable}$ Distributions:** A distribution $\mu$ is polynomial-time rankable if its rank function $\text{rank}_{\mu}(x)$ can be computed in binary in deterministic polynomial time.
 *   **$\text{Av}(T)$ (Average Time $T$):** A running time function $f : \Sigma^* \to \mathbb{N}$ is in $\text{Av}(T)$ under distribution $\mu$ if, for all integers $\ell \geq 1$:
     $$\sum_{\text{rank}_{\mu}(x) \leq \ell} \frac{T^{-1}(f(x))}{|x|} \leq \ell$$
-*   **$\text{AvP}$ (Average Polynomial Time):** The set of distributional problems $(L, \mu)$ solvable on average in polynomial time over $\text{POL-rankable}$ distributions.
-*   **$\text{distNP}$:** The class of distributional problems $(L, \mu)$ where $L \in \text{NP}$ and $\mu \in \text{POL-rankable}$.
+*   **$\text{AvP}$ (Average Polynomial Time):** Defined by the authors as $\text{DistTime}(\text{POL}, \text{POL-rankable})$—the class of distributional problems $(L, \mu)$ that are efficiently solvable on average over $\text{POL-rankable}$ distributions.
+*   **$\text{distNP}$ (Distributional NP):** The class of distributional problems $(L, \mu)$ where $L \in \text{NP}$ and the distribution $\mu$ is well-behaved (such as $\text{P}$-computable or $\text{POL-rankable}$).
+
+### Distributional Reductions and NP-Average Completeness
+To transfer hardness results between average-case problems, the paper utilizes **distributional reductions**. A reduction from $(L_1, \mu_1)$ to $(L_2, \mu_2)$ must satisfy a classical polynomial-time reduction requirement ($x \in L_1 \iff f(x) \in L_2$) alongside a **domination condition**. Using ranking functions ($p_1, p_2$), the domination condition is stated as:
+$$p_2(f(x)) \leq c_0 |x|^{c_1} p_1(x)$$
+for constants $c_0, c_1 > 0$. This condition guarantees that if $(L_2, \mu_2)$ is solvable in average polynomial time, the tractability is preserved for $(L_1, \mu_1)$.
+
+A distributional problem is **$\text{NP}$-average complete** (also called $\text{NP}$-distributional complete) if it lies in $\text{distNP}$ and every other problem in $\text{distNP}$ can be distributionally reduced to it.
+
+### Application and Findings
+Cox, Ericson, and Mishra apply this structure to show that program-verification sublanguages cannot be easily bypassed using typical average-case heuristics. They prove that **EMLS, MLS, and FP/LP are $\text{NP}$-average complete**. This implies there are simple, rankable distributions that will frustrate any decision algorithm for these problems, forcing super-polynomial average-case running times unless deterministic and nondeterministic exponential time are equal ($\text{NEXP} = \text{EXP}$).
 
 ### The Concept of "The Nose"
 The paper features a key visualization of the average-case landscape of NP-complete languages (Figure 1, page 13).
@@ -93,25 +111,52 @@ In this diagram, languages $L_i$ are mapped based on their worst-case complexity
 
 ---
 
-## 4. Legacy and Citations of TR1995-711
+## 4. Historical Context, Terminology, and Reception of TR1995-711
 
-The technical report TR1995-711 remains a highly specialized document:
-*   **Citations:** The report has very low academic citation rates. It exists primarily as a archival Courant Institute technical report. Its memory is preserved largely through references on the Wikipedia page for "Average-case complexity," where it is cited as an example of an applied average-case completeness proof.
-*   **Practical Impact:** Martin Davis famously requested that the authors provide a more pragmatic, empirical demonstration of their results before publishing in *Communications on Pure and Applied Mathematics* (CPAM). The authors could not deliver this; their concrete heuristics were weak, and the empirical machinery to test these algorithms on large datasets did not yet exist. As a result, the paper was never published in CPAM.
-*   **Pursuit of MLS + AvCom:** The specific application of AvCom to MLS was largely abandoned. The theorem-proving community realized that proving average-case hardness under mathematically simple, rankable distributions (such as those analyzed in the paper) did not reflect the highly structured formulas generated by real-world compilers.
+Reviewer Martin Davis asked the authors to give a more pragmatic demonstration of their results before accepting the work into *Communications on Pure and Applied Mathematics* (CPAM). That demonstration never materialized; the concrete heuristics were weak, and the empirical machinery to test these algorithms on large datasets did not yet exist. The paper was never published in CPAM.
+
+That outcome is not the whole story, however. The report's deeper aim was to supply a **language for describing how hard a typical instance of a verification problem might be**—not to ship a production solver. This historical episode highlights a common turning point in computer science during the mid-1990s: the tension between elegant, highly formal mathematical complexity theory and the messy, empirical reality of practical software engineering.
+
+Three natural questions follow: Were the terms used in the paper invented there, or taken from existing literature? Was the technical report ever referenced? And what became of average-case complexity—and of this particular application to set-theoretic decision procedures—in the intervening thirty years?
+
+### Were the Terms Invented in This Paper?
+**No—the core definitions and terms were not invented in TR1995-711.** The authors drew entirely upon the existing complexity literature of the late 1980s and early 1990s:
+
+*   **The foundations ($\text{AvP}$, $\text{distNP}$, and the domination condition):** Pioneered by Leonid Levin in his 1986 paper *"Average case complete problems"* [Lev86] and further formalized by Yuri Gurevich [Gur91] and Ben-David, Chor, Goldreich, and Luby [BDCGL89].
+*   **The precise formulations ($\text{POL}$, $\text{POL-rankable}$, precise average-case complexity):** Taken directly from Rüdiger Reischuk and Christian Schindelhauer's 1993 paper, *"Precise average case complexity"* [RS93].
+
+The report's contribution was not structural novelty in complexity theory itself, but rather its **application**: importing these rigorous, newly developed tools from structural complexity theory and applying them to automated theorem proving and program verification—specifically, showing that set-theoretic fragments such as EMLS and MLS are average-case complete.
+
+### Was This Technical Report Ever Referenced?
+In terms of direct scientific citations, **TR1995-711 has been almost entirely overlooked.** It has virtually zero standard citations in academic journals and did not spawn a direct lineage of follow-up papers in automated theorem proving.
+
+It has nevertheless been kept alive in a specific way: it is cited as a notable applied example on the **Wikipedia page for "Average-case complexity"** (and its translations). Because Wikipedia editors documented it as one of the few explicit applications of Levin's theory to set-theoretic decision procedures, it remains a known historical reference point in the literature of the field.
 
 ---
 
-## 5. Development of Average-Case Complexity to Date (2026)
+## 5. Thirty Years of Average-Case Complexity (1995–2026)
 
-In the three decades since 1995, average-case complexity has evolved into a cornerstone of computer science, though its focus has shifted:
+Rather than dying, the field of average-case complexity underwent a massive evolution. Its center of gravity migrated away from traditional decision-procedure analysis and became foundational to other, highly successful domains.
 
-1.  **Lattice Cryptography and Worst-to-Average Reductions:** 
-    Following Miklós Ajtai's seminal work in 1996 [Ajt96] and Oded Regev's introduction of Learning With Errors (LWE) in 2005 [Reg05], researchers found ways to prove average-case hardness by reducing *worst-case* lattice problems to them. This forms the mathematical basis for post-quantum cryptography standards.
-2.  **Smoothed Analysis:**
-    Introduced by Spielman and Teng in 2001 [ST01], smoothed analysis measures the performance of algorithms under slight random perturbations of worst-case inputs. This successfully bridged the gap between theory and practice, explaining why algorithms like Simplex or local search run efficiently in the real world.
-3.  **The Shift in Formal Verification (SMT Solvers):**
-    The program verification community moved away from decidable set-theoretic fragments like MLS. Instead, they embraced **Satisfiability Modulo Theories (SMT)** solvers (such as Z3 and CVC5) [deM08]. Powered by Conflict-Driven Clause Learning (CDCL) and heuristic-based solvers, modern verification tools solve massive formulas with millions of variables in practice, bypassing theoretical worst-case and average-case limits.
+### Cryptography and Worst-Case-to-Average-Case Reductions
+In the late 1990s—beginning with Miklós Ajtai's landmark 1996 work [Ajt96]—theorists discovered how to prove mathematically that certain average-case problems are hard *assuming only that their worst-case versions are hard*. This paved the way for **lattice-based cryptography** and Oded Regev's **Learning With Errors (LWE)** framework (2005) [Reg05]. Because cryptography requires that *almost all* generated keys are hard to break (average-case hardness), these frameworks are now the basis for modern post-quantum cryptography standards.
+
+### Smoothed Analysis
+In 2001, Daniel Spielman and Shang-Hua Teng introduced **smoothed analysis** [ST01]. They argued that analyzing an algorithm under a purely random, mathematically convenient distribution (the "average case") is often unrealistic and overly pessimistic. Instead, they measured performance under *slight random perturbations of worst-case inputs*. This successfully explained why algorithms like the Simplex method for linear programming run in polynomial time in practice despite worst-case exponential complexity—bridging the gap between theory and practical heuristics in a way that Levin-style rankable distributions alone could not.
+
+### Statistical Inference and Machine Learning
+In the 2010s and 2020s, average-case complexity found a major new home in high-dimensional statistics and machine learning. Researchers now study the **information–computation gap**—situations where an estimation problem (such as the Planted Clique problem or Tensor PCA) is theoretically solvable given infinite time, but computationally intractable on average for any polynomial-time algorithm.
+
+### What Happened to This Specific Use Case (Set-Theoretic Decision Procedures)?
+Martin Davis's skepticism was vindicated by the path the automated theorem proving community took. The attempt to build program verification tools around highly specialized, decidable, average-case-analyzed set-theoretic sublanguages (such as EMLS or MLS) largely became a dead end. The community pivoted instead toward **SMT (Satisfiability Modulo Theories) solvers** (such as Z3 and CVC5) [deM08] and modern **SAT solvers**.
+
+This transition succeeded for several reasons:
+
+*   **The structure of real-world code:** Theoretical average-case complexity assumes random inputs under simple mathematical distributions (such as the linear-time rankable distributions in Cox et al.'s paper). Real-world software verification problems, however, are highly structured and logical; they are not random.
+*   **The triumph of CDCL and heuristics:** Modern SMT/SAT solvers utilize Conflict-Driven Clause Learning (CDCL) and highly engineered heuristics. Empirically, these tools routinely solve industrial-scale verification formulas with millions of variables, bypassing theoretical worst-case or average-case intractability.
+*   **Empirical benchmarks over proofs:** Rather than proving mathematical average-case tractability, the community created massive, standardized libraries of real-world problem benchmarks (such as SMT-LIB). Solver progress is now measured empirically—a far more pragmatic and successful path than the one Davis requested for CPAM.
+
+The specific marriage of AvCom to MLS decision procedures was largely abandoned for the same reason: proving average-case hardness under mathematically simple, rankable distributions did not reflect the highly structured formulas generated by real-world compilers.
 
 ---
 
@@ -345,9 +390,11 @@ Building on this integration of automated theorem proving and structural complex
 *   **[Ajt96]** Ajtai, M. (1996). Generating hard instances of lattice problems. *STOC*.
 *   **[BDCGL89]** Ben-David, S., Chor, B., Goldreich, O., & Luby, M. (1989). On the theory of average case complexity. *STOC*.
 *   **[deM08]** de Moura, L., & Bjørner, N. (2008). Z3: An efficient SMT solver. *TACAS*.
+*   **[CEM95]** Cox, J., Ericson, L., & Mishra, B. (1995). The average case complexity of multilevel syllogistic. *NYU Courant Institute Technical Report TR1995-711*.
 *   **[DS77]** Davis, M., & Schwartz, J. T. (1977). Metamathematical extensibility for theorem verifiers. *NYU Technical Report*.
 *   **[FOS80]** Ferro, A., Omodeo, E. G., & Schwartz, J. T. (1980). Decision procedures for elementary sublanguages of set theory. *CPAM*.
 *   **[Gol79]** Goldberg, A. T. (1979). On the complexity of the satisfiability problem. *NYU PhD Thesis*.
+*   **[Gur91]** Gurevich, Y. (1991). Average case completeness. *Journal of Computer and System Sciences*.
 *   **[Lev86]** Levin, L. (1986). Average case complete problems. *SIAM Journal on Computing*.
 *   **[Reg05]** Regev, O. (2005). On lattices, learning with errors, and cryptography. *STOC*.
 *   **[RS93]** Reischuk, R., & Schindelhauer, C. (1993). Precise average case complexity. *STOC*.

@@ -24,7 +24,7 @@ namespace AvgCaseMls.Tests
 
 open MLS AvCom
 
-/-! ### MLS embedding (§3) -/
+/-! ### MLS embedding (§6) -/
 
 example : decideMLS (Formula.rel (Relation.eq Term.empty Term.empty)) = true := rfl
 
@@ -32,7 +32,7 @@ example : decideMLS (Formula.rel (Relation.neq Term.empty Term.empty)) = false :
 
 example : decideMLS (Formula.rel (Relation.mem Term.empty Term.empty)) = false := rfl
 
-/-! ### AvCom helpers (§2) -/
+/-! ### AvCom helpers (§5) -/
 
 example : len ([] : Bitstring) = 0 := rfl
 

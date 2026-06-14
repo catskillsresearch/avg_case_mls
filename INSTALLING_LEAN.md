@@ -79,7 +79,7 @@ Build completed successfully.
 
 ## 5. Check the Lean formalization
 
-This repo extracts Lean 4 code from [`arxiv.md`](arxiv.md) (§§2–3 paired with math; §§6–8 for strategy, decision procedures, and hardness). Most theorem proofs are still `sorry`; the current tests focus on definitions that compile and a few decidable examples.
+This repo extracts Lean 4 code from [`arxiv.md`](arxiv.md) (§§5–6 paired with math; §4 strategy; §§7–8 decision procedures and hardness). Most theorem proofs are still `sorry`; the current tests focus on definitions that compile and a few decidable examples.
 
 ```bash
 chmod +x run_lean_check.sh run_lean_tests.sh
@@ -123,9 +123,9 @@ If you see a multi-gigabyte `.lake/` folder after setup, that is normal. It is i
 
 | `arxiv.md` section | Module | Status |
 |--------------------|--------|--------|
-| §2 AvCom (math + Lean encoding) | [`AvgCaseMls/AvCom.lean`](AvgCaseMls/AvCom.lean) | `rank`, `T_inv` still `sorry` |
-| §3 MLS (math + Lean encoding) | [`AvgCaseMls/MLS.lean`](AvgCaseMls/MLS.lean) | Phase 2A complete; no `sorry` |
-| §6 Lean strategy | (prose in [`arxiv.md`](arxiv.md)) | Roadmap, Mathlib gap, design table |
+| §2–4 Context and Lean strategy | (prose in [`arxiv.md`](arxiv.md)) | Historical background, field evolution, roadmap |
+| §5 AvCom (math + Lean encoding) | [`AvgCaseMls/AvCom.lean`](AvgCaseMls/AvCom.lean) | `rank`, `T_inv` still `sorry` |
+| §6 MLS (math + Lean encoding) | [`AvgCaseMls/MLS.lean`](AvgCaseMls/MLS.lean) | Phase 2A complete; no `sorry` |
 | §7 Decision procedure | [`AvgCaseMls/DecideMLS.lean`](AvgCaseMls/DecideMLS.lean) | Mock `decideMLS`; proofs are `sorry` |
 | §8 Average-case hardness | [`AvgCaseMls/AverageHardness.lean`](AvgCaseMls/AverageHardness.lean) | Theorem statement; proof is `sorry` |
 | Smoke tests | [`AvgCaseMls/Tests.lean`](AvgCaseMls/Tests.lean) | `native_decide` / `#eval` on decidable fragments |

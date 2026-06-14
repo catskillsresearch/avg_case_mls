@@ -1,7 +1,6 @@
 # Revisiting average case complexity of multilevel syllogistic: From the 1995 Courant Technical Report to Lean 4 Formalization
 
 ## 1. Introduction: The Vision of AvCom in Program Verification
-
 In the late 1970s and throughout the 1980s, the "Correct Program Technology" (CPT) movement, spearheaded by figures such as Martin Davis and Jacob T. Schwartz, envisioned a software development pipeline where programmers wrote code alongside mathematical specifications [DS77]. A compiler, integrated with an automated theorem prover, would then verify that the program met its specification. 
 
 To make this feasible, researchers sought to enrich Floyd-Hoare verification tools with decision procedures for decidable sublanguages of set theory and arithmetic. These logic fragments—such as Multilevel Syllogistic (MLS) and Elementary Multilevel Syllogistic (EMLS)—modeled the set-theoretic operations typical of high-level programming languages like SETL [Sny90a].
@@ -35,7 +34,7 @@ Our Lean development should eventually either prove these statements from formal
 
 ### Phased plan
 
-Phases 1 and 2 appear in document order: **§2** is AvCom (Phase 1), **§3** is MLS (Phase 2). Hardness and completeness (Phases 4–5) need both layers. Subphases track progress within each phase; §9 is the report card.
+Context and Lean infrastructure appear in **§§2–4**; Phase 1 (AvCom) is **§5**, Phase 2 (MLS) is **§6**. Hardness and completeness (Phases 4–5) need both layers. Subphases track progress within each phase; §9 is the report card.
 
 **Phase 0 — Infrastructure.** Lake project, smoke tests, paper synced to this document. *Status: complete.*
 
@@ -43,7 +42,7 @@ Phases 1 and 2 appear in document order: **§2** is AvCom (Phase 1), **§3** is 
 
 | Subphase | Goal | Lean target |
 |----------|------|-------------|
-| **1A** | Inputs and distributions (§2) | `Bitstring`, `len`, `Distribution`, `DistributionalProblem`, `IsPolynomial` |
+| **1A** | Inputs and distributions (§5) | `Bitstring`, `len`, `Distribution`, `DistributionalProblem`, `IsPolynomial` |
 | **1B** | Rank and inverse bounds | `rank`, `T_inv` (no `sorry`; finite-support or explicit fork) |
 | **1C** | Average time and dist-time classes | `IsAvTime`, `DistTime`, `AvDTime` |
 | **1D** | Classes, reductions, completeness | `AvP`, `InDistNP`, `DistributionalReduction`, `IsNPAverageComplete` |
@@ -54,8 +53,8 @@ Phases 1 and 2 appear in document order: **§2** is AvCom (Phase 1), **§3** is 
 
 | Subphase | Goal | Lean / doc |
 |----------|------|------------|
-| **2A** | MLS syntax + axiomatic semantics | §3, [`MLS.lean`](AvgCaseMls/MLS.lean)—`Term`, `Relation`, `Formula`, `evalTerm`, `evalFormula` |
-| **2B** | EMLS surface language | `EMLS.Literal`, `toMLS`, normalization to elementary conjuncts (§3 planned block) |
+| **2A** | MLS syntax + axiomatic semantics | §6, [`MLS.lean`](AvgCaseMls/MLS.lean)—`Term`, `Relation`, `Formula`, `evalTerm`, `evalFormula` |
+| **2B** | EMLS surface language | `EMLS.Literal`, `toMLS`, normalization to elementary conjuncts (§6 planned block) |
 | **2C** | Decision procedure for **satisfiability** | §7, [`DecideMLS.lean`](AvgCaseMls/DecideMLS.lean)—`decideMLSSat`, soundness/completeness on implemented fragment |
 | **2D** | Problem encoding and step count | `serializeFormula`, `SatMLS`, `stepsMLS` (remove axioms in §8) |
 
@@ -95,11 +94,87 @@ Phases 1 and 2 appear in document order: **§2** is AvCom (Phase 1), **§3** is 
 4. **Fork log** — if we must choose (finite support, encoding, POL-rankable vs P-computable), record in `DEFINITION_FORKS.md`.
 5. **CI** — `./run_lean_check.sh` must pass; new sorries require a comment `-- Phase Nx, issue #…`.
 
-We grind on Phases 1→5 in dependency order (subphases may be implemented out of order when independent). §§2–3 pair mathematics with Lean encodings; §§6–8 cover strategy, decision procedures, and hardness theorems; §9 grades each subphase; §10 lists further directions.
+We grind on Phases 1→5 in dependency order (subphases may be implemented out of order when independent). §§5–6 pair mathematics with Lean encodings; §4 covers Lean strategy; §§7–8 cover decision procedures and hardness theorems; §9 grades each subphase; §10 lists further directions.
 
 ---
 
-## 2. Average-Case Complexity (AvCom): Theory, Classes, and Lean Encoding
+## 2. Historical Context, Terminology, and Reception of TR1995-711
+
+Reviewer Martin Davis asked the authors to give a more pragmatic demonstration of their results before accepting the work into *Communications on Pure and Applied Mathematics* (CPAM). That demonstration never materialized; the concrete heuristics were weak, and the empirical machinery to test these algorithms on large datasets did not yet exist. The paper was never published in CPAM.
+
+That outcome is not the whole story, however. The report's deeper aim was to supply a **language for describing how hard a typical instance of a verification problem might be**—not to ship a production solver. This historical episode highlights a common turning point in computer science during the mid-1990s: the tension between elegant, highly formal mathematical complexity theory and the messy, empirical reality of practical software engineering.
+
+Three natural questions follow: Were the terms used in the paper invented there, or taken from existing literature? Was the technical report ever referenced? And what became of average-case complexity—and of this particular application to set-theoretic decision procedures—in the intervening thirty years?
+
+### Were the Terms Invented in This Paper?
+**No—the core definitions and terms were not invented in TR1995-711.** The authors drew entirely upon the existing complexity literature of the late 1980s and early 1990s:
+
+*   **The foundations ($`\text{AvP}`$, $`\text{distNP}`$, and the domination condition):** Pioneered by Leonid Levin in his 1986 paper *"Average case complete problems"* [Lev86] and further formalized by Yuri Gurevich [Gur91] and Ben-David, Chor, Goldreich, and Luby [BDCGL89].
+*   **The precise formulations ($`\text{POL}`$, $`\text{POL-rankable}`$, precise average-case complexity):** Taken directly from Rüdiger Reischuk and Christian Schindelhauer's 1993 paper, *"Precise average case complexity"* [RS93].
+
+The report's contribution was not structural novelty in complexity theory itself, but rather its **application**: importing these rigorous, newly developed tools from structural complexity theory and applying them to automated theorem proving and program verification—specifically, showing that set-theoretic fragments such as EMLS and MLS are average-case complete.
+
+### Was This Technical Report Ever Referenced?
+In terms of direct scientific citations, **TR1995-711 has been almost entirely overlooked.** It has virtually zero standard citations in academic journals and did not spawn a direct lineage of follow-up papers in automated theorem proving.
+
+It has nevertheless been kept alive in a specific way: it is cited as a notable applied example on the **Wikipedia page for "Average-case complexity"** (and its translations). Because Wikipedia editors documented it as one of the few explicit applications of Levin's theory to set-theoretic decision procedures, it remains a known historical reference point in the literature of the field.
+
+---
+
+## 3. Thirty Years of Average-Case Complexity (1995–2026)
+
+Rather than dying, the field of average-case complexity underwent a massive evolution. Its center of gravity migrated away from traditional decision-procedure analysis and became foundational to other, highly successful domains.
+
+### Cryptography and Worst-Case-to-Average-Case Reductions
+In the late 1990s—beginning with Miklós Ajtai's landmark 1996 work [Ajt96]—theorists discovered how to prove mathematically that certain average-case problems are hard *assuming only that their worst-case versions are hard*. This paved the way for **lattice-based cryptography** and Oded Regev's **Learning With Errors (LWE)** framework (2005) [Reg05]. Because cryptography requires that *almost all* generated keys are hard to break (average-case hardness), these frameworks are now the basis for modern post-quantum cryptography standards.
+
+### Smoothed Analysis
+In 2001, Daniel Spielman and Shang-Hua Teng introduced **smoothed analysis** [ST01]. They argued that analyzing an algorithm under a purely random, mathematically convenient distribution (the "average case") is often unrealistic and overly pessimistic. Instead, they measured performance under *slight random perturbations of worst-case inputs*. This successfully explained why algorithms like the Simplex method for linear programming run in polynomial time in practice despite worst-case exponential complexity—bridging the gap between theory and practical heuristics in a way that Levin-style rankable distributions alone could not.
+
+### Statistical Inference and Machine Learning
+In the 2010s and 2020s, average-case complexity found a major new home in high-dimensional statistics and machine learning. Researchers now study the **information–computation gap**—situations where an estimation problem (such as the Planted Clique problem or Tensor PCA) is theoretically solvable given infinite time, but computationally intractable on average for any polynomial-time algorithm.
+
+### What Happened to This Specific Use Case (Set-Theoretic Decision Procedures)?
+Martin Davis's skepticism was vindicated by the path the automated theorem proving community took. The attempt to build program verification tools around highly specialized, decidable, average-case-analyzed set-theoretic sublanguages (such as EMLS or MLS) largely became a dead end. The community pivoted instead toward **SMT (Satisfiability Modulo Theories) solvers** (such as Z3 and CVC5) [deM08] and modern **SAT solvers**.
+
+This transition succeeded for several reasons:
+
+*   **The structure of real-world code:** Theoretical average-case complexity assumes random inputs under simple mathematical distributions (such as the linear-time rankable distributions in Cox et al.'s paper). Real-world software verification problems, however, are highly structured and logical; they are not random.
+*   **The triumph of CDCL and heuristics:** Modern SMT/SAT solvers utilize Conflict-Driven Clause Learning (CDCL) and highly engineered heuristics. Empirically, these tools routinely solve industrial-scale verification formulas with millions of variables, bypassing theoretical worst-case or average-case intractability.
+*   **Empirical benchmarks over proofs:** Rather than proving mathematical average-case tractability, the community created massive, standardized libraries of real-world problem benchmarks (such as SMT-LIB). Solver progress is now measured empirically—a far more pragmatic and successful path than the one Davis requested for CPAM.
+
+The specific marriage of AvCom to MLS decision procedures was largely abandoned for the same reason: proving average-case hardness under mathematically simple, rankable distributions did not reflect the highly structured formulas generated by real-world compilers.
+
+The specific marriage of AvCom to MLS decision procedures was largely abandoned for the same reason: proving average-case hardness under mathematicically simple, rankable distributions did not reflect the highly structured formulas generated by real-world compilers.
+
+---
+
+## 4. Lean 4 Formalization Strategy
+
+§§5–6 pair the mathematical definitions with their Lean modules. This section summarizes project infrastructure and design choices. The live code lives in [`AvgCaseMls/`](AvgCaseMls/) and is checked by `./run_lean_check.sh` and `./run_lean_tests.sh` (see [`INSTALLING_LEAN.md`](INSTALLING_LEAN.md)).
+
+### Mathlib and the Complexity-Theory Gap
+Through 2025–2026, Mathlib4 has begun to host **worst-case** complexity infrastructure (polynomial-time Turing machines, $`\text{P}`$, $`\text{NP}`$, and related material under active development). **Average-case complexity—distributional problems, rank functions, $`\text{Av}(T)`$, $`\text{DistTime}`$, distributional reductions, and $`\text{AvP}`$—is not yet a standard Mathlib layer.** TR1995-711 is therefore a natural stress test: it requires both a deep embedding of set-theoretic syntax *and* a bespoke AvCom library built on [RS93].
+
+Our approach mirrors [icon2lean](https://github.com/catskillsresearch/icon2lean):
+1. **Definitions first** — encode $`\text{rank}`$, $`\text{Av}(T)`$, $`\text{DistTime}(T)`$, $`\text{AvP}`$, and $`\text{distNP}`$ alongside the AvCom definitions in §5.
+2. **Deep embedding of MLS/EMLS** — inductive syntax + semantic evaluation in §6.
+3. **Decision procedure skeleton** — a computable `decideMLS` with stated soundness/completeness for **satisfiability**, plus a future **step-counting** function to relate the model-graph algorithm to $`\text{Av}(T)`$ (§7).
+4. **Hardness statements** — structural theorems such as `SatMLS_average_hard` with explicit `sorry` placeholders until reductions from TR1995-711 are formalized (§8).
+
+### Design Choices for Executable vs. Proof Layer
+| Concept | Lean representation | Rationale |
+|---------|---------------------|-----------|
+| Inputs | `Bitstring := List Bool`, `len` | Matches $`\Sigma = \{0,1\}`$ encodings in the report |
+| Distributions | `structure Distribution` with `Finset` sums $`\leq 1`$ | Avoids infinite sums; enough for rank-based definitions |
+| Rank | `noncomputable def rank` | Cardinality over all strings is not computable |
+| Set semantics | Axiomatic `MLS.ZFSet` + `noncomputable evalTerm` | Supports nested sets without committing to full ZF in Mathlib; `Mathlib.Data.ZFC.Basic` is an alternative for a future refactor |
+| EMLS | Elementary literals in §6 grammar; optional separate `EMLS.Literal` inductive (planned) | EMLS is the normal form the model-graph algorithm consumes |
+| Tests | `#eval` + `native_decide` on decidable fragments | Same regression pattern as `Icon2lean/Tests.lean` |
+
+---
+
+## 5. Average-Case Complexity (AvCom): Theory, Classes, and Lean Encoding
 
 The formal definitions in this section follow TR1995-711 §3.2 ([`TR1995-711.pdf`](TR1995-711.pdf)). In the mid-1990s, structural average-case complexity was a young, highly mathematical field. Each mathematical definition below is paired with its Lean counterpart in [`AvgCaseMls/AvCom.lean`](AvgCaseMls/AvCom.lean) where it exists today. 
 
@@ -293,7 +368,7 @@ In this diagram, languages $`L_i`$ are mapped based on their worst-case complexi
 
 ---
 
-## 3. Multilevel Syllogistic (MLS): Grammar, Decision Procedures, and Lean Encoding
+## 6. Multilevel Syllogistic (MLS): Grammar, Decision Procedures, and Lean Encoding
 
 ### Syntax of MLS and EMLS
 Multilevel Syllogistic (MLS) is a decidable fragment of Zermelo-Fraenkel set theory. Its syntax allows set variables, the empty set ($`\emptyset`$), binary set operators (union $`\cup`$, intersection $`\cap`$, set difference $`\setminus`$), binary set relations (membership $`\in`$, non-membership $`\notin`$, equality $`=`$, inequality $`\neq`$), and standard propositional connectives.
@@ -409,85 +484,8 @@ with a translation `EMLS.toMLS : Literal → MLS.Formula` and a normalization fu
 
 ---
 
-## 4. Historical Context, Terminology, and Reception of TR1995-711
-
-Reviewer Martin Davis asked the authors to give a more pragmatic demonstration of their results before accepting the work into *Communications on Pure and Applied Mathematics* (CPAM). That demonstration never materialized; the concrete heuristics were weak, and the empirical machinery to test these algorithms on large datasets did not yet exist. The paper was never published in CPAM.
-
-That outcome is not the whole story, however. The report's deeper aim was to supply a **language for describing how hard a typical instance of a verification problem might be**—not to ship a production solver. This historical episode highlights a common turning point in computer science during the mid-1990s: the tension between elegant, highly formal mathematical complexity theory and the messy, empirical reality of practical software engineering.
-
-Three natural questions follow: Were the terms used in the paper invented there, or taken from existing literature? Was the technical report ever referenced? And what became of average-case complexity—and of this particular application to set-theoretic decision procedures—in the intervening thirty years?
-
-### Were the Terms Invented in This Paper?
-**No—the core definitions and terms were not invented in TR1995-711.** The authors drew entirely upon the existing complexity literature of the late 1980s and early 1990s:
-
-*   **The foundations ($`\text{AvP}`$, $`\text{distNP}`$, and the domination condition):** Pioneered by Leonid Levin in his 1986 paper *"Average case complete problems"* [Lev86] and further formalized by Yuri Gurevich [Gur91] and Ben-David, Chor, Goldreich, and Luby [BDCGL89].
-*   **The precise formulations ($`\text{POL}`$, $`\text{POL-rankable}`$, precise average-case complexity):** Taken directly from Rüdiger Reischuk and Christian Schindelhauer's 1993 paper, *"Precise average case complexity"* [RS93].
-
-The report's contribution was not structural novelty in complexity theory itself, but rather its **application**: importing these rigorous, newly developed tools from structural complexity theory and applying them to automated theorem proving and program verification—specifically, showing that set-theoretic fragments such as EMLS and MLS are average-case complete.
-
-### Was This Technical Report Ever Referenced?
-In terms of direct scientific citations, **TR1995-711 has been almost entirely overlooked.** It has virtually zero standard citations in academic journals and did not spawn a direct lineage of follow-up papers in automated theorem proving.
-
-It has nevertheless been kept alive in a specific way: it is cited as a notable applied example on the **Wikipedia page for "Average-case complexity"** (and its translations). Because Wikipedia editors documented it as one of the few explicit applications of Levin's theory to set-theoretic decision procedures, it remains a known historical reference point in the literature of the field.
-
----
-
-## 5. Thirty Years of Average-Case Complexity (1995–2026)
-
-Rather than dying, the field of average-case complexity underwent a massive evolution. Its center of gravity migrated away from traditional decision-procedure analysis and became foundational to other, highly successful domains.
-
-### Cryptography and Worst-Case-to-Average-Case Reductions
-In the late 1990s—beginning with Miklós Ajtai's landmark 1996 work [Ajt96]—theorists discovered how to prove mathematically that certain average-case problems are hard *assuming only that their worst-case versions are hard*. This paved the way for **lattice-based cryptography** and Oded Regev's **Learning With Errors (LWE)** framework (2005) [Reg05]. Because cryptography requires that *almost all* generated keys are hard to break (average-case hardness), these frameworks are now the basis for modern post-quantum cryptography standards.
-
-### Smoothed Analysis
-In 2001, Daniel Spielman and Shang-Hua Teng introduced **smoothed analysis** [ST01]. They argued that analyzing an algorithm under a purely random, mathematically convenient distribution (the "average case") is often unrealistic and overly pessimistic. Instead, they measured performance under *slight random perturbations of worst-case inputs*. This successfully explained why algorithms like the Simplex method for linear programming run in polynomial time in practice despite worst-case exponential complexity—bridging the gap between theory and practical heuristics in a way that Levin-style rankable distributions alone could not.
-
-### Statistical Inference and Machine Learning
-In the 2010s and 2020s, average-case complexity found a major new home in high-dimensional statistics and machine learning. Researchers now study the **information–computation gap**—situations where an estimation problem (such as the Planted Clique problem or Tensor PCA) is theoretically solvable given infinite time, but computationally intractable on average for any polynomial-time algorithm.
-
-### What Happened to This Specific Use Case (Set-Theoretic Decision Procedures)?
-Martin Davis's skepticism was vindicated by the path the automated theorem proving community took. The attempt to build program verification tools around highly specialized, decidable, average-case-analyzed set-theoretic sublanguages (such as EMLS or MLS) largely became a dead end. The community pivoted instead toward **SMT (Satisfiability Modulo Theories) solvers** (such as Z3 and CVC5) [deM08] and modern **SAT solvers**.
-
-This transition succeeded for several reasons:
-
-*   **The structure of real-world code:** Theoretical average-case complexity assumes random inputs under simple mathematical distributions (such as the linear-time rankable distributions in Cox et al.'s paper). Real-world software verification problems, however, are highly structured and logical; they are not random.
-*   **The triumph of CDCL and heuristics:** Modern SMT/SAT solvers utilize Conflict-Driven Clause Learning (CDCL) and highly engineered heuristics. Empirically, these tools routinely solve industrial-scale verification formulas with millions of variables, bypassing theoretical worst-case or average-case intractability.
-*   **Empirical benchmarks over proofs:** Rather than proving mathematical average-case tractability, the community created massive, standardized libraries of real-world problem benchmarks (such as SMT-LIB). Solver progress is now measured empirically—a far more pragmatic and successful path than the one Davis requested for CPAM.
-
-The specific marriage of AvCom to MLS decision procedures was largely abandoned for the same reason: proving average-case hardness under mathematically simple, rankable distributions did not reflect the highly structured formulas generated by real-world compilers.
-
-The specific marriage of AvCom to MLS decision procedures was largely abandoned for the same reason: proving average-case hardness under mathematicically simple, rankable distributions did not reflect the highly structured formulas generated by real-world compilers.
-
----
-
-## 6. Lean 4 Formalization Strategy
-
-§§2–3 pair the mathematical definitions with their Lean modules. This section summarizes project infrastructure and design choices. The live code lives in [`AvgCaseMls/`](AvgCaseMls/) and is checked by `./run_lean_check.sh` and `./run_lean_tests.sh` (see [`INSTALLING_LEAN.md`](INSTALLING_LEAN.md)).
-
-### Mathlib and the Complexity-Theory Gap
-Through 2025–2026, Mathlib4 has begun to host **worst-case** complexity infrastructure (polynomial-time Turing machines, $`\text{P}`$, $`\text{NP}`$, and related material under active development). **Average-case complexity—distributional problems, rank functions, $`\text{Av}(T)`$, $`\text{DistTime}`$, distributional reductions, and $`\text{AvP}`$—is not yet a standard Mathlib layer.** TR1995-711 is therefore a natural stress test: it requires both a deep embedding of set-theoretic syntax *and* a bespoke AvCom library built on [RS93].
-
-Our approach mirrors [icon2lean](https://github.com/catskillsresearch/icon2lean):
-1. **Definitions first** — encode $`\text{rank}`$, $`\text{Av}(T)`$, $`\text{DistTime}(T)`$, $`\text{AvP}`$, and $`\text{distNP}`$ alongside the AvCom definitions in §2.
-2. **Deep embedding of MLS/EMLS** — inductive syntax + semantic evaluation in §3.
-3. **Decision procedure skeleton** — a computable `decideMLS` with stated soundness/completeness for **satisfiability**, plus a future **step-counting** function to relate the model-graph algorithm to $`\text{Av}(T)`$ (§7).
-4. **Hardness statements** — structural theorems such as `SatMLS_average_hard` with explicit `sorry` placeholders until reductions from TR1995-711 are formalized (§8).
-
-### Design Choices for Executable vs. Proof Layer
-| Concept | Lean representation | Rationale |
-|---------|---------------------|-----------|
-| Inputs | `Bitstring := List Bool`, `len` | Matches $`\Sigma = \{0,1\}`$ encodings in the report |
-| Distributions | `structure Distribution` with `Finset` sums $`\leq 1`$ | Avoids infinite sums; enough for rank-based definitions |
-| Rank | `noncomputable def rank` | Cardinality over all strings is not computable |
-| Set semantics | Axiomatic `MLS.ZFSet` + `noncomputable evalTerm` | Supports nested sets without committing to full ZF in Mathlib; `Mathlib.Data.ZFC.Basic` is an alternative for a future refactor |
-| EMLS | Elementary literals in §3 grammar; optional separate `EMLS.Literal` inductive (planned) | EMLS is the normal form the model-graph algorithm consumes |
-| Tests | `#eval` + `native_decide` on decidable fragments | Same regression pattern as `Icon2lean/Tests.lean` |
-
----
-
 ## 7. Coding the Decision Procedures for MLS in Lean 4
-
-Phase **2C.** The model-graph algorithm is described mathematically in §3; here we implement a Lean decision procedure skeleton. The full procedure from [FOS80]—normalization to elementary literals, graph construction, and refinement—is not yet executable; instead we define `decideMLS : Formula → Bool` and state **soundness** and **completeness** theorems for **satisfiability**:
+Phase **2C.** The model-graph algorithm is described mathematically in §6; here we implement a Lean decision procedure skeleton. The full procedure from [FOS80]—normalization to elementary literals, graph construction, and refinement—is not yet executable; instead we define `decideMLS : Formula → Bool` and state **soundness** and **completeness** theorems for **satisfiability**:
 
 * **Soundness:** if `decideMLS φ = true`, then $`\varphi`$ is satisfiable ($`\exists env,\ \text{evalFormula}\ env\ \varphi`$).
 * **Completeness:** if $`\varphi`$ is satisfiable, then `decideMLS φ = true`.
@@ -540,8 +538,7 @@ end MLS
 ---
 
 ## 8. Lean 4 Verification: Proving Average-Case Hardness Properties
-
-Phase **2D** (encoding) and **5B** (hardness theorem). The AvCom classes are defined in §2; MLS syntax is in §3. The 1995 paper proves that the satisfiability of MLS formulas is **NP-average complete**. Under the defined AvCom classes, this implies that MLS cannot belong to $`\text{AvP}`$ under certain rankable distributions unless the nondeterministic and deterministic exponential-time hierarchies collapse.
+Phase **2D** (encoding) and **5B** (hardness theorem). The AvCom classes are defined in §5; MLS syntax is in §6. The 1995 paper proves that the satisfiability of MLS formulas is **NP-average complete**. Under the defined AvCom classes, this implies that MLS cannot belong to $`\text{AvP}`$ under certain rankable distributions unless the nondeterministic and deterministic exponential-time hierarchies collapse.
 
 We can represent this theorem structurally in Lean 4:
 
@@ -574,7 +571,6 @@ theorem SatMLS_average_hard (μ : Distribution) (h_rank : ∃ T, IsPolynomial T 
 ---
 
 ## 9. Results
-
 §9 is the **report card** for the proof program. Each row is a **subphase** from §1. **Outcome** is **TBD** while work is in progress, or one of the four accepted outcomes (*Proofs check*; *Lean is not expressive enough (yet)*; *Paper proofs are wrong*; *Field definitions are not solid*). Phase 0 (infrastructure) is complete and not graded here.
 
 | Phase | Phase goal | Outcome |
@@ -583,8 +579,8 @@ theorem SatMLS_average_hard (μ : Distribution) (h_rank : ∃ T, IsPolynomial T 
 | **1B** | `rank`, `T_inv` without `sorry`; finite-support convention or fork documented | TBD |
 | **1C** | `IsAvTime`, `DistTime`, `AvDTime` | TBD |
 | **1D** | `AvP`, `InDistNP`, `DistributionalReduction`, `IsNPAverageComplete` | TBD |
-| **2A** | MLS syntax + axiomatic semantics (§3, [`MLS.lean`](AvgCaseMls/MLS.lean)) | Proofs check |
-| **2B** | EMLS literals, `toMLS`, normalization (§3 planned block) | TBD |
+| **2A** | MLS syntax + axiomatic semantics (§6, [`MLS.lean`](AvgCaseMls/MLS.lean)) | Proofs check |
+| **2B** | EMLS literals, `toMLS`, normalization (§6 planned block) | TBD |
 | **2C** | `decideMLSSat`, model-graph skeleton, soundness/completeness (§7) | TBD |
 | **2D** | `serializeFormula`, `SatMLS`, `stepsMLS` (§8 axioms removed) | TBD |
 | **3A** | `SatMLS ∈ NP` or Mathlib blocker | TBD |
@@ -600,7 +596,6 @@ theorem SatMLS_average_hard (μ : Distribution) (h_rank : ∃ T, IsPolynomial T 
 ---
 
 ## 10. Suggestions for Future Work
-
 Building on this integration of automated theorem proving and structural complexity, several avenues for future work emerge:
 
 1.  **Formalizing Smoothed Analysis in Lean 4:**
@@ -610,7 +605,7 @@ Building on this integration of automated theorem proving and structural complex
 3.  **Extending Mathlib's Complexity Library:**
     The current complexity theory developments in Mathlib4 are focused on worst-case bounds. Standardizing Levin's structural average-case reductions, the domination condition, $`\text{DistTime}`$, $`\text{AvDTime}`$, and $`\text{AvP}`$ in Mathlib would provide a robust framework for certifying post-quantum security and for revisiting TR1995-711-style applied completeness proofs.
 4.  **Step-counting the model-graph procedure:**
-    Instrument `decideMLS` (or the full model-graph search) with a monadic step counter and prove `(stepsMLS, μ) ∈ Av(T)` for the rankable distributions used in the report—closing the loop between §2 complexity classes and §3 decision procedures.
+    Instrument `decideMLS` (or the full model-graph search) with a monadic step counter and prove `(stepsMLS, μ) ∈ Av(T)` for the rankable distributions used in the report—closing the loop between §5 complexity classes and §6 decision procedures.
 
 ---
 

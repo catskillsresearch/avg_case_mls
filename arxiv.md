@@ -10,6 +10,71 @@ However, worst-case complexity analysis posed a major roadblock: the decision pr
 
 In their 1995 Courant Institute Technical Report, *"The average case complexity of multilevel syllogistic"* (TR1995-711), Jim Cox, Lars Ericson, and Bud Mishra analyze the average-case tractability of decidable sublanguages of set theory and arithmetic—such as Multilevel Syllogistic (MLS), Elementary Multilevel Syllogistic (EMLS), and Fractional Programming/Linear Programming (FP/LP). Because these languages are NP-complete in the worst case, the authors turn to the formal framework of **average-case complexity (AvCom)** to evaluate whether heuristic decision procedures could perform well on average. They marry the mathematical foundations of AvCom with set-theoretic decision procedures to determine whether a typical instance of these verification problems is truly tractable.
 
+This note revisits that report in light of modern proof assistants. Our **proof program** is to establish the AvCom terms and concepts from the literature in Lean 4, formalize MLS and its decision procedures, and then grind out the TR1995-711 theorems—or document honestly where the effort stops. The goal is not to defend the 1995 report; it is to see what survives contact with a proof assistant.
+
+### Proof program: outcomes we accept
+
+| Outcome | What it means |
+|---------|----------------|
+| **Proofs check** | Definitions match the literature; TR1995-711 theorems are formalized and proved (possibly with explicitly stated hypotheses). |
+| **Lean is not expressive enough (yet)** | We hit a clear blocker: missing Mathlib infrastructure, noncomputability, or encoding issues. Document the gap precisely. |
+| **Paper proofs are wrong** | A step in TR1995-711 does not follow from definitions, or a reduction/domination bound fails. Document the counterexample or missing lemma. |
+| **Field definitions are not solid** | Levin/RS93/distNP/AvP formulations are ambiguous, inconsistent, or not formalizable without arbitrary choices. Document the choice we had to make and what breaks. |
+
+We do not treat `sorry` or axioms as success. Axioms are temporary scaffolding with a ticket to remove them.
+
+### What TR1995-711 claims (targets)
+
+The report **states proofs**, not conjectures, for:
+
+- **NP-average completeness** of MLS satisfiability (Corollary 5.1), EMLS, FP/LP, and related fragments.
+- **Distributional reductions** with domination, from bounded halting (NBH) and other distNP-complete cores.
+- **Corollaries** tying average completeness to absence of AvP on simple POL-rankable distributions (conditional on standard collapse hypotheses such as NEXP $`\neq`$ EXP).
+
+Our Lean development should eventually either prove these statements from formal definitions or refute a specific step. §11 summarizes progress toward these targets.
+
+### Phased plan
+
+**Phase 0 — Infrastructure (current → near term).** Lake project, smoke tests, and paper synced to this document. Remaining work: no `sorry` in **definitions** we claim are final (`rank`, `T_inv`, finite-support `Distribution`, etc.); each theorem `sorry` tagged with its phase.
+
+**Phase 1 — AvCom vocabulary (literature → Lean).** Formalize in `AvgCaseMls/` without theorem sorries:
+
+| Concept | Literature | Lean target |
+|---------|------------|-------------|
+| Distributional problem | $`(L, \mu)`$ | `DistributionalProblem` |
+| Rank | $`\mathrm{rank}_{\mu}(x)`$ | `rank` (finite support or explicit convention) |
+| $`T^{-1}`$, $`\mathrm{Av}(T)`$ | RS93 rank-sum | `T_inv`, `IsAvTime` |
+| $`\mathrm{DistTime}`$, $`\mathrm{AvDTime}`$ | RS93 / TR1995-711 §3.2 | new modules |
+| $`\mathrm{AvP}`$, $`\mathrm{distNP}`$ | TR1995-711 | `AvP`, `InDistNP` |
+| Distributional reduction + domination | Levin, RS93 | `DistributionalReduction` |
+| NP-average complete | TR1995-711 | `IsNPAverageComplete` |
+
+*Exit criterion:* definitions compile; basic lemmas (monotonicity, closure under notation); tests on toy distributions. Document any definition fork from the paper.
+
+**Phase 2 — MLS embedding and decision procedure.** EMLS literals, normalization, model-graph skeleton (or proved equivalence to a known algorithm). **Satisfiability** (not validity): `decideMLSSat`, soundness, completeness on the implemented fragment. `serializeFormula`, `SatMLS` as definable functions (remove axiom). Step counter `stepsMLS` for linking to $`\mathrm{Av}(T)`$.
+
+*Exit criterion:* no `sorry` on soundness for the proved fragment; completeness scoped honestly.
+
+**Phase 3 — Worst-case and coding.** MLS satisfiability in **NP** (witness: assignment / model graph certificate). Formula encoding size lemmas. Depends on Mathlib computational complexity development.
+
+*Exit criterion:* `SatMLS ∈ NP` as a formal statement, or a written blocker if Mathlib is insufficient.
+
+**Phase 4 — TR1995-711 reductions.** Formalize NBH (or the report’s chosen complete problem) with POL-rankable $`\mu_0`$. Prove domination for the reduction $`f`$ into `SatMLS` (and EMLS / FP/LP variants). Prove **NP-average completeness** of `SatMLS`.
+
+*Exit criterion:* Corollary 5.1 proved or a specific failed obligation recorded.
+
+**Phase 5 — AvP consequences.** From completeness + closure: conditional theorems (e.g. simple rankable $`\mu \Rightarrow`$ not in AvP unless collapse). Relate to `SatMLS_average_hard` (remove `sorry` and minimize axioms).
+
+### Methodology
+
+1. **Definitions before theorems** — no `sorry` in defs we label “final.”
+2. **One obligation per issue** — each former `sorry` becomes a named lemma with a one-line statement.
+3. **Literature pointer** — every definition cites TR1995-711 section or [RS93], [Lev86], etc.
+4. **Fork log** — if we must choose (finite support, encoding, POL-rankable vs P-computable), record in `DEFINITION_FORKS.md`.
+5. **CI** — `./run_lean_check.sh` must pass; new sorries require a comment `-- Phase N, issue #…`.
+
+We grind on Phases 1→5 in order, accept any of the four outcomes above, and do not treat the technical report as authoritative until the relevant step is checked in Lean. §§6–10 describe the current Lean encoding; §12 lists further directions beyond this program.
+
 ---
 
 ## 2. Recap of Multilevel Syllogistic (MLS) and Its Decision Procedures
@@ -499,7 +564,24 @@ theorem SatMLS_average_hard (μ : Distribution) (h_rank : ∃ T, IsPolynomial T 
 
 ---
 
-## 11. Suggestions for Future Work
+## 11. Conclusions
+
+*Placeholder — to be updated as the Lean formalization progresses.*
+
+At the time of writing, the project has laid out the AvCom vocabulary (§3), encoded an MLS deep embedding and a decision-procedure skeleton in Lean 4 (§§7–10), and committed to the proof program in §1. **No TR1995-711 hardness or completeness theorem has been machine-checked yet**; core obligations (`rank`, `T_inv`, distributional reductions, `SatMLS_average_hard`) remain `sorry` or axiom.
+
+| Proof-program target | Status |
+|----------------------|--------|
+| Proofs check | **Not reached** — theorems unproved |
+| Lean expressive enough | **Open** — Mathlib lacks a standard AvCom layer; our embedding is in progress |
+| Paper proofs wrong | **Open** — not yet tested |
+| Field definitions not solid | **Open** — finite-support distributions and rank conventions not finalized |
+
+When Phase 1–5 work completes (or stops), this section will state which outcome obtained and cite the precise Lean lemmas or counterexamples.
+
+---
+
+## 12. Suggestions for Future Work
 
 Building on this integration of automated theorem proving and structural complexity, several avenues for future work emerge:
 

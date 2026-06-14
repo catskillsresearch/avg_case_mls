@@ -43,6 +43,8 @@ chmod +x run_lean_check.sh run_lean_tests.sh
 
 Most theorem proofs are still `sorry`; tests cover the MLS embedding and decidable fragments (`decideMLS` on empty-set cases, `len`, `IsPolynomial`).
 
+**Proof program:** See [`arxiv.md`](arxiv.md) §1 (charter) and §11 (conclusions, updated as work progresses).
+
 ## Contributions and Collaboration
 
 This repository functions strictly as a unilateral broadcast of public code for educational and research purposes.

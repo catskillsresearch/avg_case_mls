@@ -118,6 +118,20 @@ When the literature leaves a choice implicit, we record it here.
 
 **Rationale:** NP membership is for the poly-time checker on encodings, not full semantic satisfiability without completeness.
 
+## NBH scaffold (Phase 4A)
+
+**Literature:** Levin bounded halting $`\mathrm{BH} = \{(M,x,1^t)\}`$; TR1995-711 reductions start from NBH with a simple POL-rankable $`\mu_0`$.
+
+**Lean fork — machine table:** [`NBHInstance`](AvgCaseMls/NBH.lean) references [`canonicalMachines`] by `machineId` rather than embedding arbitrary transition tables in the bitstring (Phase **4B** can extend).
+
+**Lean fork — encoding:** `input · [false,false,true] · encodeNat(machineId) · [false,false,true] · encodeNat(bound)`; run certificates use the same delimiter between `state`, `head`, and `tape` fields.
+
+**Lean fork — checker vs semantic:** [`NBHChecker`] is certificate-based via [`verifyNBH`]; [`NBHSemantic`] uses [`NBH`] on decoded instances. [`NBHChecker_in_NP`] and [`nbhProb_in_DistNP`] are proved; [`decode_encode`] / [`decodeRun?_encodeRun`] remain `sorry` (partial-def friction, same class as Phase **3B** decode lemmas).
+
+**Lean fork — $`\mu_0`$:** uniform on a singleton support containing the trivial immediate-accept instance; [`μ₀_polRankable`] via [`IsPolRankable.uniformOn_polRankable`].
+
+**Rationale:** Delivers the distNP-complete *core scaffold* for Phase **4B** (reduction into `SatMLS`) without a Mathlib NTM layer.
+
 ## Encoding size bounds (Phase 3B)
 
 **Literature:** $\\Vert\\varphi\\Vert$ is polynomially bounded in syntax size (TR1995-711 / §8).

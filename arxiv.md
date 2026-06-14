@@ -611,13 +611,13 @@ theorem SatMLS_average_hard (μ : Distribution) (h_rank : ∃ T, IsPolynomial T 
 | **2D** | `serializeFormula`, `SatMLS`, `stepsMLS` (§8 axioms removed) | Proofs check |
 | **3A** | [`SatMLSChecker_in_NP`](AvgCaseMls/NPMembership.lean); checker vs semantic [`SatMLS`] fork | Proofs check (decode roundtrip `sorry`) |
 | **3B** | [`encodingBound`], [`formulaSize_le_encodingBound`], [`encodingBound_poly`](AvgCaseMls/Serialization.lean) | Proofs check (`nodeBound_pair_le` `sorry`) |
-| **4A** | NBH (or report core) + POL-rankable $`\mu_0`$ | TBD |
+| **4A** | [`NBHChecker_in_NP`], [`μ₀_polRankable`], [`nbhProb_in_DistNP`](AvgCaseMls/NBH.lean) | Proofs check (`decode_encode` `sorry`) |
 | **4B** | Reduction + domination into `SatMLS` | TBD |
 | **4C** | NP-average completeness (Corollary 5.1) | TBD |
 | **5A** | Conditional non-AvP from completeness | TBD |
 | **5B** | `SatMLS_average_hard` without `sorry` | TBD |
 
-*Last updated: Phases **1A–1D**, **2A–2D**, **3A–3B (partial)** graded **Proofs check** where noted (`SatMLS_average_hard`, completeness gaps in 2C, decode roundtrip and `nodeBound_pair_le` remain `sorry`); remaining subphases TBD.*
+*Last updated: Phases **1A–1D**, **2A–2D**, **3A–3B (partial)**, **4A (partial)** graded **Proofs check** where noted; remaining subphases TBD.*
 
 ---
 

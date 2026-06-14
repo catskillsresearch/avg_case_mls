@@ -9,6 +9,7 @@ import AvgCaseMls.EMLS
 import AvgCaseMls.DecideMLS
 import AvgCaseMls.Serialization
 import AvgCaseMls.NPMembership
+import AvgCaseMls.NBH
 import AvgCaseMls.AvCom
 
 /-!
@@ -183,6 +184,22 @@ example :
   refine formulaSize_le_polyMass _ 10 ?_
   simp [formulaAstMass, formulaNodes, relationNodes, termNodes, maxVarFormula,
     maxVarRelation, maxVarTerm]
+
+/-! ### Phase 4A — NBH + POL-rankable μ₀ (§4) -/
+
+open NBH
+
+example : InNP NBHChecker := NBHChecker_in_NP
+
+example : IsPolRankable μ₀ := μ₀_polRankable
+
+example : InDistNP nbhProb := nbhProb_in_DistNP
+
+example : NBHInstance.encode trivialInstance ∈ NBHChecker := trivialInstance_in_NBHChecker
+
+example : μ₀.prob (NBHInstance.encode trivialInstance) = 1 := μ₀_mass_on_trivial
+
+#eval verifyNBH (NBHInstance.encode trivialInstance) trivialCert
 
 #eval decideMLSSat (Formula.rel (Relation.eq Term.empty Term.empty))
 #eval decideConjunct [.mem 0 1]

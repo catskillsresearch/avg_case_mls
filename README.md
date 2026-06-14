@@ -25,8 +25,8 @@ Lean code from [`arxiv.md`](arxiv.md) §§2–3 (math + encoding), §§6–8 (st
 
 | Module | `arxiv.md` | Content |
 |--------|------------|---------|
-| [`AvgCaseMls/MLS.lean`](AvgCaseMls/MLS.lean) | §2 | MLS syntax and axiomatic `ZFSet` semantics |
-| [`AvgCaseMls/AvCom.lean`](AvgCaseMls/AvCom.lean) | §3 | Distributions, rank, AvP |
+| [`AvgCaseMls/AvCom.lean`](AvgCaseMls/AvCom.lean) | §2 | Distributions, rank, AvP |
+| [`AvgCaseMls/MLS.lean`](AvgCaseMls/MLS.lean) | §3 | MLS syntax and axiomatic `ZFSet` semantics |
 | [`AvgCaseMls/DecideMLS.lean`](AvgCaseMls/DecideMLS.lean) | §7 | Mock decision procedure + soundness/completeness statements |
 | [`AvgCaseMls/AverageHardness.lean`](AvgCaseMls/AverageHardness.lean) | §8 | `SatMLS` and average-case hardness theorem (proof sketch) |
 | [`AvgCaseMls/Tests.lean`](AvgCaseMls/Tests.lean) | — | Smoke tests (`#eval`, `native_decide`) |

@@ -123,8 +123,8 @@ If you see a multi-gigabyte `.lake/` folder after setup, that is normal. It is i
 
 | `arxiv.md` section | Module | Status |
 |--------------------|--------|--------|
-| §2 MLS (math + Lean encoding) | [`AvgCaseMls/MLS.lean`](AvgCaseMls/MLS.lean) | Phase 2A complete; no `sorry` |
-| §3 AvCom (math + Lean encoding) | [`AvgCaseMls/AvCom.lean`](AvgCaseMls/AvCom.lean) | `rank`, `T_inv` still `sorry` |
+| §2 AvCom (math + Lean encoding) | [`AvgCaseMls/AvCom.lean`](AvgCaseMls/AvCom.lean) | `rank`, `T_inv` still `sorry` |
+| §3 MLS (math + Lean encoding) | [`AvgCaseMls/MLS.lean`](AvgCaseMls/MLS.lean) | Phase 2A complete; no `sorry` |
 | §6 Lean strategy | (prose in [`arxiv.md`](arxiv.md)) | Roadmap, Mathlib gap, design table |
 | §7 Decision procedure | [`AvgCaseMls/DecideMLS.lean`](AvgCaseMls/DecideMLS.lean) | Mock `decideMLS`; proofs are `sorry` |
 | §8 Average-case hardness | [`AvgCaseMls/AverageHardness.lean`](AvgCaseMls/AverageHardness.lean) | Theorem statement; proof is `sorry` |

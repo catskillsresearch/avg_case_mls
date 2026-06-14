@@ -7,7 +7,7 @@ Authors: Lars Warren Ericson, Catskills Research Company
 /-!
 Deep embedding of Multilevel Syllogistic (MLS) syntax and set-theoretic semantics.
 
-Extracted from [`arxiv.md`](../arxiv.md) §2.
+Extracted from [`arxiv.md`](../arxiv.md) §3.
 -/
 
 namespace MLS

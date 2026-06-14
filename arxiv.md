@@ -31,39 +31,61 @@ The report **states proofs**, not conjectures, for:
 - **Distributional reductions** with domination, from bounded halting (NBH) and other distNP-complete cores.
 - **Corollaries** tying average completeness to absence of AvP on simple POL-rankable distributions (conditional on standard collapse hypotheses such as NEXP $`\neq`$ EXP).
 
-Our Lean development should eventually either prove these statements from formal definitions or refute a specific step. §11 is the report card for Phases 1–5.
+Our Lean development should eventually either prove these statements from formal definitions or refute a specific step. §11 grades each subphase (Phase 2A is complete; see Results).
 
 ### Phased plan
 
-**Phase 0 — Infrastructure (current → near term).** Lake project, smoke tests, and paper synced to this document. Remaining work: no `sorry` in **definitions** we claim are final (`rank`, `T_inv`, finite-support `Distribution`, etc.); each theorem `sorry` tagged with its phase.
+Phases are numbered in **proof dependency order** (AvCom definitions before average-case theorems about MLS), not in the order we happened to code the repository—§7 (`MLS.lean`) landed before §9 (`AvCom.lean`) was finished. **Do not swap Phase 1 and Phase 2:** hardness and completeness (Phases 4–5) need both layers, and TR1995-711 presents AvCom (§3) before the MLS application. Subphases track progress within each phase; §11 is the report card.
 
-**Phase 1 — AvCom vocabulary (literature → Lean).** Formalize in `AvgCaseMls/` without theorem sorries:
+**Phase 0 — Infrastructure.** Lake project, smoke tests, paper synced to this document. *Status: complete.*
 
-| Concept | Literature | Lean target |
-|---------|------------|-------------|
-| Distributional problem | $`(L, \mu)`$ | `DistributionalProblem` |
-| Rank | $`\mathrm{rank}_{\mu}(x)`$ | `rank` (finite support or explicit convention) |
-| $`T^{-1}`$, $`\mathrm{Av}(T)`$ | RS93 rank-sum | `T_inv`, `IsAvTime` |
-| $`\mathrm{DistTime}`$, $`\mathrm{AvDTime}`$ | RS93 / TR1995-711 §3.2 | new modules |
-| $`\mathrm{AvP}`$, $`\mathrm{distNP}`$ | TR1995-711 | `AvP`, `InDistNP` |
-| Distributional reduction + domination | Levin, RS93 | `DistributionalReduction` |
-| NP-average complete | TR1995-711 | `IsNPAverageComplete` |
+**Phase 1 — AvCom vocabulary (literature → Lean).**
 
-*Exit criterion:* definitions compile; basic lemmas (monotonicity, closure under notation); tests on toy distributions. Document any definition fork from the paper.
+| Subphase | Goal | Lean target |
+|----------|------|-------------|
+| **1A** | Inputs and distributions | `Bitstring`, `len`, `Distribution`, `DistributionalProblem`, `IsPolynomial` |
+| **1B** | Rank and inverse bounds | `rank`, `T_inv` (no `sorry`; finite-support or explicit fork) |
+| **1C** | Average time and dist-time classes | `IsAvTime`, `DistTime`, `AvDTime` |
+| **1D** | Classes, reductions, completeness | `AvP`, `InDistNP`, `DistributionalReduction`, `IsNPAverageComplete` |
 
-**Phase 2 — MLS embedding and decision procedure.** EMLS literals, normalization, model-graph skeleton (or proved equivalence to a known algorithm). **Satisfiability** (not validity): `decideMLSSat`, soundness, completeness on the implemented fragment. `serializeFormula`, `SatMLS` as definable functions (remove axiom). Step counter `stepsMLS` for linking to $`\mathrm{Av}(T)`$.
+*Exit criterion (Phase 1):* all subphase definitions compile without `sorry`; basic lemmas and toy distribution tests; forks documented in `DEFINITION_FORKS.md`.
 
-*Exit criterion:* no `sorry` on soundness for the proved fragment; completeness scoped honestly.
+**Phase 2 — MLS embedding and decision procedure.**
 
-**Phase 3 — Worst-case and coding.** MLS satisfiability in **NP** (witness: assignment / model graph certificate). Formula encoding size lemmas. Depends on Mathlib computational complexity development.
+| Subphase | Goal | Lean / doc |
+|----------|------|------------|
+| **2A** | MLS syntax + axiomatic semantics | §7, [`MLS.lean`](AvgCaseMls/MLS.lean)—`Term`, `Relation`, `Formula`, `evalTerm`, `evalFormula` |
+| **2B** | EMLS surface language | `EMLS.Literal`, `toMLS`, normalization to elementary conjuncts (§7 planned block) |
+| **2C** | Decision procedure for **satisfiability** | §8, [`DecideMLS.lean`](AvgCaseMls/DecideMLS.lean)—`decideMLSSat`, soundness/completeness on implemented fragment |
+| **2D** | Problem encoding and step count | `serializeFormula`, `SatMLS`, `stepsMLS` (remove axioms in §10) |
 
-*Exit criterion:* `SatMLS ∈ NP` as a formal statement, or a written blocker if Mathlib is insufficient.
+*Exit criterion (Phase 2):* 2A–2D complete; no `sorry` on soundness for the proved decision fragment; completeness scoped honestly.
 
-**Phase 4 — TR1995-711 reductions.** Formalize NBH (or the report’s chosen complete problem) with POL-rankable $`\mu_0`$. Prove domination for the reduction $`f`$ into `SatMLS` (and EMLS / FP/LP variants). Prove **NP-average completeness** of `SatMLS`.
+**Phase 3 — Worst-case and coding.**
 
-*Exit criterion:* Corollary 5.1 proved or a specific failed obligation recorded.
+| Subphase | Goal |
+|----------|------|
+| **3A** | `SatMLS ∈ NP` (witness / certificate) |
+| **3B** | Formula encoding size lemmas; polynomial bounds on $`|\varphi|`$ |
 
-**Phase 5 — AvP consequences.** From completeness + closure: conditional theorems (e.g. simple rankable $`\mu \Rightarrow`$ not in AvP unless collapse). Relate to `SatMLS_average_hard` (remove `sorry` and minimize axioms).
+*Exit criterion:* formal NP membership or a written Mathlib blocker.
+
+**Phase 4 — TR1995-711 reductions.**
+
+| Subphase | Goal |
+|----------|------|
+| **4A** | NBH (or report’s distNP-complete core) + POL-rankable $`\mu_0`$ |
+| **4B** | Reduction $`f`$, domination into `SatMLS` / EMLS / FP/LP |
+| **4C** | **NP-average completeness** of `SatMLS` (Corollary 5.1) |
+
+*Exit criterion:* 4C proved or a specific failed obligation recorded.
+
+**Phase 5 — AvP consequences.**
+
+| Subphase | Goal |
+|----------|------|
+| **5A** | Conditional non-AvP from completeness + simple rankable $`\mu`$ |
+| **5B** | `SatMLS_average_hard` without `sorry`; axioms minimized |
 
 ### Methodology
 
@@ -71,9 +93,9 @@ Our Lean development should eventually either prove these statements from formal
 2. **One obligation per issue** — each former `sorry` becomes a named lemma with a one-line statement.
 3. **Literature pointer** — every definition cites TR1995-711 section or [RS93], [Lev86], etc.
 4. **Fork log** — if we must choose (finite support, encoding, POL-rankable vs P-computable), record in `DEFINITION_FORKS.md`.
-5. **CI** — `./run_lean_check.sh` must pass; new sorries require a comment `-- Phase N, issue #…`.
+5. **CI** — `./run_lean_check.sh` must pass; new sorries require a comment `-- Phase Nx, issue #…`.
 
-We grind on Phases 1→5 in order, accept any of the four outcomes above, and do not treat the technical report as authoritative until the relevant step is checked in Lean. §§6–10 describe the current Lean encoding; §12 lists further directions beyond this program.
+We grind on Phases 1→5 in dependency order (subphases may be implemented out of order when independent). §§6–10 describe the current Lean encoding; §11 grades each subphase; §12 lists further directions.
 
 ---
 
@@ -321,6 +343,8 @@ Our approach mirrors [icon2lean](https://github.com/catskillsresearch/icon2lean)
 
 ## 7. Formalizing MLS in Lean 4
 
+**Scope (Phase 2A).** This section is **complete** for its current goal: a deep embedding of full MLS syntax and axiomatic set-theoretic semantics in Lean 4. [`AvgCaseMls/MLS.lean`](AvgCaseMls/MLS.lean) compiles with no `sorry`. What remains in Phase 2 is **2B** (EMLS literals and normalization, sketched below), **2C** (decision procedure, §8), and **2D** (serialization and step counting, §10)—not more MLS syntax in this section.
+
 Below we give a self-contained **deep embedding** of MLS syntax in Lean 4: inductive types for terms, relations, and formulas, plus a semantic evaluation function into an axiomatic `ZFSet` universe. Set variables are identified with natural-number indices (`Nat → ZFSet` environments), matching the report's $`v_i`$ notation.
 
 **Modeling nested sets.** MLS formulas talk about membership chains $`v_i \in v_j \in v_k \in \cdots`$. Three semantic approaches are common in proof assistants: (i) a parametric type parameter, (ii) Mathlib's `ZFSet`, or (iii) a custom axiomatized sort. We use (iii) so the development is self-contained and `evalTerm`/`evalFormula` are explicitly `noncomputable` (axioms are not compiled). A Mathlib-backed refactor would replace `axiom ZFSet` with imports from `Mathlib.Data.ZFC.Basic`.
@@ -395,7 +419,7 @@ noncomputable def evalFormula (env : Env) : Formula → Prop
 end MLS
 ```
 
-**EMLS (planned extension).** Elementary Multilevel Syllogistic restricts formulas to conjunctions of flat literals ($`v_i = \emptyset`$, $`v_i = v_j \cup v_k`$, $`v_i \in v_j`$, etc.). A natural Lean extension is a separate inductive type:
+**EMLS (Phase 2B — planned).** Elementary Multilevel Syllogistic restricts formulas to conjunctions of flat literals ($`v_i = \emptyset`$, $`v_i = v_j \cup v_k`$, $`v_i \in v_j`$, etc.). A natural Lean extension is a separate inductive type:
 
 ```lean
 inductive EMLS.Literal : Type
@@ -566,17 +590,27 @@ theorem SatMLS_average_hard (μ : Distribution) (h_rank : ∃ T, IsPolynomial T 
 
 ## 11. Results
 
-§11 is the **report card** for the proof program (Phases 1–5). Each row records the phase goal and its **outcome**: **TBD** while work is in progress, or one of the four accepted outcomes from §1 (*Proofs check*; *Lean is not expressive enough (yet)*; *Paper proofs are wrong*; *Field definitions are not solid*). Phase 0 (Lake project, CI, paper sync) is complete; it is not graded here.
+§11 is the **report card** for the proof program. Each row is a **subphase** from §1. **Outcome** is **TBD** while work is in progress, or one of the four accepted outcomes (*Proofs check*; *Lean is not expressive enough (yet)*; *Paper proofs are wrong*; *Field definitions are not solid*). Phase 0 (infrastructure) is complete and not graded here.
 
 | Phase | Phase goal | Outcome |
 |-------|------------|---------|
-| **1** | AvCom vocabulary in Lean (`rank`, `T_inv`, `DistTime`, `AvDTime`, `AvP`, `distNP`, distributional reductions, NP-average completeness)—definitions without `sorry`, basic lemmas, toy tests; any literature fork documented | TBD |
-| **2** | MLS/EMLS embedding, satisfiability decision procedure (`decideMLSSat`), soundness proved on implemented fragment, completeness scoped honestly; `serializeFormula` / `SatMLS` definable; `stepsMLS` for linking to $`\mathrm{Av}(T)`$ | TBD |
-| **3** | MLS satisfiability in **NP** (certificate + encoding lemmas), or a precise Mathlib/infrastructure blocker written down | TBD |
-| **4** | TR1995-711 reduction chain: NBH (or report’s complete core), domination, **NP-average completeness** of `SatMLS` (Corollary 5.1)—proved or a specific failed obligation recorded | TBD |
-| **5** | AvP consequences from completeness; `SatMLS_average_hard` without `sorry`; axioms minimized | TBD |
+| **1A** | `Bitstring`, `len`, `Distribution`, `DistributionalProblem`, `IsPolynomial`—scaffolding in [`AvCom.lean`](AvgCaseMls/AvCom.lean); defs not yet declared final | TBD |
+| **1B** | `rank`, `T_inv` without `sorry`; finite-support convention or fork documented | TBD |
+| **1C** | `IsAvTime`, `DistTime`, `AvDTime` | TBD |
+| **1D** | `AvP`, `InDistNP`, `DistributionalReduction`, `IsNPAverageComplete` | TBD |
+| **2A** | MLS syntax + axiomatic semantics (§7, [`MLS.lean`](AvgCaseMls/MLS.lean)) | Proofs check |
+| **2B** | EMLS literals, `toMLS`, normalization (§7 planned block) | TBD |
+| **2C** | `decideMLSSat`, model-graph skeleton, soundness/completeness (§8) | TBD |
+| **2D** | `serializeFormula`, `SatMLS`, `stepsMLS` (§10 axioms removed) | TBD |
+| **3A** | `SatMLS ∈ NP` or Mathlib blocker | TBD |
+| **3B** | Encoding size / $`|\varphi|`$ lemmas | TBD |
+| **4A** | NBH (or report core) + POL-rankable $`\mu_0`$ | TBD |
+| **4B** | Reduction + domination into `SatMLS` | TBD |
+| **4C** | NP-average completeness (Corollary 5.1) | TBD |
+| **5A** | Conditional non-AvP from completeness | TBD |
+| **5B** | `SatMLS_average_hard` without `sorry` | TBD |
 
-*Last updated: project start — all phases TBD.*
+*Last updated: Phase 2A graded **Proofs check** (`MLS.lean` builds, no `sorry`); all other subphases TBD.*
 
 ---
 

@@ -31,7 +31,7 @@ The report **states proofs**, not conjectures, for:
 - **Distributional reductions** with domination, from bounded halting (NBH) and other distNP-complete cores.
 - **Corollaries** tying average completeness to absence of AvP on simple POL-rankable distributions (conditional on standard collapse hypotheses such as NEXP $`\neq`$ EXP).
 
-Our Lean development should eventually either prove these statements from formal definitions or refute a specific step. §11 summarizes progress toward these targets.
+Our Lean development should eventually either prove these statements from formal definitions or refute a specific step. §11 is the report card for Phases 1–5.
 
 ### Phased plan
 
@@ -564,20 +564,19 @@ theorem SatMLS_average_hard (μ : Distribution) (h_rank : ∃ T, IsPolynomial T 
 
 ---
 
-## 11. Conclusions
+## 11. Results
 
-*Placeholder — to be updated as the Lean formalization progresses.*
+§11 is the **report card** for the proof program (Phases 1–5). Each row records the phase goal and its **outcome**: **TBD** while work is in progress, or one of the four accepted outcomes from §1 (*Proofs check*; *Lean is not expressive enough (yet)*; *Paper proofs are wrong*; *Field definitions are not solid*). Phase 0 (Lake project, CI, paper sync) is complete; it is not graded here.
 
-At the time of writing, the project has laid out the AvCom vocabulary (§3), encoded an MLS deep embedding and a decision-procedure skeleton in Lean 4 (§§7–10), and committed to the proof program in §1. **No TR1995-711 hardness or completeness theorem has been machine-checked yet**; core obligations (`rank`, `T_inv`, distributional reductions, `SatMLS_average_hard`) remain `sorry` or axiom.
+| Phase | Phase goal | Outcome |
+|-------|------------|---------|
+| **1** | AvCom vocabulary in Lean (`rank`, `T_inv`, `DistTime`, `AvDTime`, `AvP`, `distNP`, distributional reductions, NP-average completeness)—definitions without `sorry`, basic lemmas, toy tests; any literature fork documented | TBD |
+| **2** | MLS/EMLS embedding, satisfiability decision procedure (`decideMLSSat`), soundness proved on implemented fragment, completeness scoped honestly; `serializeFormula` / `SatMLS` definable; `stepsMLS` for linking to $`\mathrm{Av}(T)`$ | TBD |
+| **3** | MLS satisfiability in **NP** (certificate + encoding lemmas), or a precise Mathlib/infrastructure blocker written down | TBD |
+| **4** | TR1995-711 reduction chain: NBH (or report’s complete core), domination, **NP-average completeness** of `SatMLS` (Corollary 5.1)—proved or a specific failed obligation recorded | TBD |
+| **5** | AvP consequences from completeness; `SatMLS_average_hard` without `sorry`; axioms minimized | TBD |
 
-| Proof-program target | Status |
-|----------------------|--------|
-| Proofs check | **Not reached** — theorems unproved |
-| Lean expressive enough | **Open** — Mathlib lacks a standard AvCom layer; our embedding is in progress |
-| Paper proofs wrong | **Open** — not yet tested |
-| Field definitions not solid | **Open** — finite-support distributions and rank conventions not finalized |
-
-When Phase 1–5 work completes (or stops), this section will state which outcome obtained and cite the precise Lean lemmas or counterexamples.
+*Last updated: project start — all phases TBD.*
 
 ---
 

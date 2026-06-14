@@ -1,5 +1,5 @@
 # Proof program
 
-The canonical statement of the proof program is **§1 of [`arxiv.md`](arxiv.md)** (outcomes, targets, phased plan, methodology). **§11 of `arxiv.md`** will summarize whether we got there.
+The canonical statement of the proof program is **§1 of [`arxiv.md`](arxiv.md)** (outcomes, targets, phased plan, methodology). **§11 of `arxiv.md`** is the results report card for Phases 1–5.
 
-This file is kept as a short pointer for repository navigation; edit the introduction and conclusions in `arxiv.md` when the program or status changes.
+This file is kept as a short pointer for repository navigation; edit the introduction and results table in `arxiv.md` when the program or status changes.

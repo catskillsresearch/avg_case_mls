@@ -25,8 +25,8 @@ def slug(path: str) -> str:
     return path.lower().replace("/", "-").replace(".", "-").replace("_", "-")
 
 
-def appendix_ref(rel_path: str) -> str:
-    return f"[Appendix {rel_path}](#{slug(rel_path)})"
+def lean_ref(rel_path: str) -> str:
+    return f"[`{rel_path}`](#{slug(rel_path)})"
 
 
 def replace_lean_links(text: str) -> str:
@@ -34,28 +34,12 @@ def replace_lean_links(text: str) -> str:
         label, rel_path = match.group(1), match.group(2)
         bare = label.strip("`")
         if bare == rel_path or bare.endswith(".lean") or rel_path.endswith(bare):
-            return appendix_ref(rel_path)
-        return f"`{bare}` ({appendix_ref(rel_path)})"
+            return lean_ref(rel_path)
+        return f"`{bare}` ({lean_ref(rel_path)})"
 
     text = LINK_RE.sub(replace_link, text)
-    return INLINE_LEAN_RE.sub(lambda m: appendix_ref(m.group(1)), text)
+    return INLINE_LEAN_RE.sub(lambda m: lean_ref(m.group(1)), text)
 
-
-def expand_includes(text: str) -> str:
-    def replace_stub(match: re.Match[str]) -> str:
-        rel_path = match.group(1)
-        content = read_lean(rel_path)
-        return lean_block(rel_path, content)
-
-    text = STUB_FENCE_RE.sub(replace_stub, text)
-
-    # Markers without a following stub fence (e.g. §8 triple include).
-    def replace_bare_marker(match: re.Match[str]) -> str:
-        rel_path = match.group(1)
-        content = read_lean(rel_path)
-        return lean_block(rel_path, content)
-
-    return INCLUDE_MARKER.sub(replace_bare_marker, text)
 
 def sanitize_lean_source(text: str) -> str:
     """Remove markdown file links inside Lean sources (doc comments)."""
@@ -70,26 +54,47 @@ def read_lean(rel_path: str) -> str:
 
 
 def lean_block(rel_path: str, content: str) -> str:
+    anchor = slug(rel_path)
     return (
-        f"**Full source (`{rel_path}`).** See also {appendix_ref(rel_path)}.\n\n"
+        f"### `{rel_path}` {{#{anchor}}}\n\n"
         f"```lean\n{content.rstrip()}\n```\n\n"
     )
 
 
-def build_appendix() -> str:
-    lines = [
-        "\n---\n\n",
-        "## Appendix: Complete Lean 4 sources\n\n",
-        "Every module below is reproduced in full from the formalization. "
-        "Each line is part of the checked proof development.\n\n",
+def expand_includes(text: str) -> tuple[str, set[str]]:
+    included: set[str] = set()
+
+    def expand(rel_path: str) -> str:
+        included.add(rel_path)
+        return lean_block(rel_path, read_lean(rel_path))
+
+    def replace_stub(match: re.Match[str]) -> str:
+        return expand(match.group(1))
+
+    text = STUB_FENCE_RE.sub(replace_stub, text)
+
+    def replace_bare_marker(match: re.Match[str]) -> str:
+        return expand(match.group(1))
+
+    text = INCLUDE_MARKER.sub(replace_bare_marker, text)
+    return text, included
+
+
+def append_missing_modules(text: str, included: set[str]) -> str:
+    missing = [
+        path.relative_to(ROOT).as_posix()
+        for path in sorted(LEAN_DIR.glob("*.lean"))
+        if path.relative_to(ROOT).as_posix() not in included
     ]
-    for path in sorted(LEAN_DIR.glob("*.lean")):
-        rel_path = path.relative_to(ROOT).as_posix()
-        content = sanitize_lean_source(path.read_text().rstrip())
-        anchor = slug(rel_path)
-        lines.append(f"### `{rel_path}` {{#{anchor}}}\n\n")
-        lines.append(f"```lean\n{content}\n```\n\n")
-    return "".join(lines)
+    if not missing:
+        return text
+
+    blocks = [lean_block(rel_path, read_lean(rel_path)) for rel_path in missing]
+    return (
+        text.rstrip()
+        + "\n\n---\n\n## Lean modules (inlined)\n\n"
+        + "".join(blocks)
+    )
 
 
 def main() -> int:
@@ -97,12 +102,11 @@ def main() -> int:
         print(f"error: missing {SRC}", file=sys.stderr)
         return 1
 
-    body = SRC.read_text()
-    body = replace_lean_links(body)
-    body = expand_includes(body)
-    body = body.rstrip() + build_appendix()
+    body = replace_lean_links(SRC.read_text())
+    body, included = expand_includes(body)
+    body = append_missing_modules(body, included)
 
-    OUT.write_text(body + "\n")
+    OUT.write_text(body.rstrip() + "\n")
     print(f"wrote {OUT.relative_to(ROOT)} ({OUT.stat().st_size:,} bytes)")
     return 0
 

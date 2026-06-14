@@ -1,6 +1,6 @@
 # Revisiting average case complexity of multilevel syllogistic: From the 1995 Courant Technical Report to Lean 4 Formalization
 
-> **Portable edition:** run `./scripts/build_arxiv_with_includes.sh` to generate [`arxiv_with_includes.md`](arxiv_with_includes.md), a self-contained copy with every Lean module inlined in full (no external `.lean` references).
+> **Portable edition:** run `./scripts/build_arxiv_with_includes.sh` to generate [`arxiv_with_includes.md`](arxiv_with_includes.md), a self-contained copy with every Lean module inlined once in full (no external `.lean` references).
 
 ## 1. Introduction: The Vision of AvCom in Program Verification
 In the late 1970s and throughout the 1980s, the "Correct Program Technology" (CPT) movement, spearheaded by figures such as Martin Davis and Jacob T. Schwartz, envisioned a software development pipeline where programmers wrote code alongside mathematical specifications [DS77]. A compiler, integrated with an automated theorem prover, would then verify that the program met its specification. 

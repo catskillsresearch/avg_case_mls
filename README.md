@@ -21,7 +21,7 @@ The goals of this paper are:
 
 ## Lean 4 formalization
 
-Lean code from [`arxiv.md`](arxiv.md) §6–§9 lives under [`AvgCaseMls/`](AvgCaseMls/). The project follows the same Lake + Mathlib layout as [icon2lean](https://github.com/catskillsresearch/icon2lean).
+Lean code from [`arxiv.md`](arxiv.md) §§6–10 lives under [`AvgCaseMls/`](AvgCaseMls/). The project follows the same Lake + Mathlib layout as [icon2lean](https://github.com/catskillsresearch/icon2lean).
 
 | Module | Content |
 |--------|---------|

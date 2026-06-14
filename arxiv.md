@@ -55,9 +55,9 @@ Context and Lean infrastructure appear in **§§2–4**; Phase 1 (AvCom) is **§
 
 | Subphase | Goal | Lean / doc |
 |----------|------|------------|
-| **2A** | MLS syntax + axiomatic semantics | §6, [`MLS.lean`](AvgCaseMls/MLS.lean)—`Term`, `Relation`, `Formula`, `evalTerm`, `evalFormula` |
-| **2B** | EMLS literals, `literalToFormula`, `conjunctToFormula` | [`EMLS.lean`](AvgCaseMls/EMLS.lean), §6 |
-| **2C** | FOS80 decision procedure for **satisfiability** | [`DecideMLS.lean`](AvgCaseMls/DecideMLS.lean), §7 |
+| **2A** | MLS syntax + axiomatic semantics | §6 — `Term`, `Relation`, `Formula`, `evalTerm`, `evalFormula` |
+| **2B** | EMLS literals, `literalToFormula`, `conjunctToFormula` | §6 |
+| **2C** | FOS80 decision procedure for **satisfiability** | §7 |
 | **2D** | Problem encoding and step count | `serializeFormula`, `SatMLS`, `stepsMLS` (remove axioms in §8) |
 
 *Exit criterion (Phase 2):* 2A–2D complete; no `sorry` on soundness for the proved decision fragment; completeness scoped honestly.
@@ -195,7 +195,7 @@ Our approach mirrors [icon2lean](https://github.com/catskillsresearch/icon2lean)
 | Distributions | `structure Distribution` with explicit finite `support`, off-support zero, `support.sum prob ≤ 1` | Avoids infinite sums; rank and testing are well-defined (see [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md)) |
 | Rank | `noncomputable def rank` | Cardinality over all strings is not computable |
 | Set semantics | Axiomatic `MLS.ZFSet` + `noncomputable evalTerm` | Supports nested sets without committing to full ZF in Mathlib; `Mathlib.Data.ZFC.Basic` is an alternative for a future refactor |
-| EMLS | `Literal`, `literalToFormula`, `conjunctToFormula`, `Literal.holds` in [`EMLS.lean`](AvgCaseMls/EMLS.lean) | FOS80 §3 normal form for §7 decision procedure |
+| EMLS | `Literal`, `literalToFormula`, `conjunctToFormula`, `Literal.holds` (§6) | FOS80 §3 normal form for §7 decision procedure |
 | Tests | `#eval` + `native_decide` on decidable fragments | Same regression pattern as `Icon2lean/Tests.lean` |
 
 ---
@@ -410,8 +410,8 @@ Let $`q^*`$ be the sub-conjunction of $(*)$ literals, $`V_{\in}`$ the variables 
 
 | File | Role |
 |------|------|
-| [`AvgCaseMls/EMLS.lean`](AvgCaseMls/EMLS.lean) | `Literal`, `Conjunct`, `literalToFormula`, `conjunctToFormula` |
-| [`AvgCaseMls/DecideMLS.lean`](AvgCaseMls/DecideMLS.lean) | `formulaToConjunct?`, `decideConjunct`, `decideMLSSat`, soundness/completeness |
+| `AvgCaseMls/EMLS.lean` | `Literal`, `Conjunct`, `literalToFormula`, `conjunctToFormula` |
+| `AvgCaseMls/DecideMLS.lean` | `formulaToConjunct?`, `decideConjunct`, `decideMLSSat`, soundness/completeness |
 
 **Implemented today:** partial normalization (`formulaToConjunct?` on conjunctions of flat literals), FOS80 **Step 2** contradictions ($`x \neq x`$, $`x \in y \land x \notin y`$), **Step 3** (no membership literals ⇒ SAT), and a **partial Step 4** (membership-order cycle detection). **Open:** full Step 1 substitution, complete singleton-model search, and proofs.
 
@@ -431,9 +431,29 @@ The live implementation is [`AvgCaseMls/DecideMLS.lean`](AvgCaseMls/DecideMLS.le
 ---
 
 ## 8. Lean 4 Verification: Proving Average-Case Hardness Properties
-Phase **2D** (encoding) and **5B** (hardness theorem). The AvCom classes are defined in §5; MLS syntax is in §6. The 1995 paper proves that the satisfiability of MLS formulas is **NP-average complete**. Under the defined AvCom classes, this implies that MLS cannot belong to $`\text{AvP}`$ under certain rankable distributions unless the nondeterministic and deterministic exponential-time hierarchies collapse.
 
-We can represent this theorem structurally in Lean 4:
+The AvCom classes are defined in §5; MLS syntax is in §6; decision procedures are in §7.
+
+### Phase 3 — Encoding and NP membership
+
+[`AvgCaseMls/Serialization.lean`](AvgCaseMls/Serialization.lean) defines `serializeFormula`, `SatMLS`, and encoding-size bounds. [`AvgCaseMls/NPMembership.lean`](AvgCaseMls/NPMembership.lean) proves checker-based NP membership (`SatMLSChecker_in_NP`).
+
+<!-- include-lean: AvgCaseMls/Serialization.lean -->
+<!-- include-lean: AvgCaseMls/NPMembership.lean -->
+
+### Phase 4 — NBH, reduction, and completeness
+
+[`AvgCaseMls/NBH.lean`](AvgCaseMls/NBH.lean) formalizes bounded halting (NBH), the rankable distribution μ₀, and distNP membership. [`AvgCaseMls/Reduction.lean`](AvgCaseMls/Reduction.lean) constructs the domination-preserving reduction into `SatMLS`. [`AvgCaseMls/Completeness.lean`](AvgCaseMls/Completeness.lean) proves NP-average completeness of `SatMLS`.
+
+<!-- include-lean: AvgCaseMls/NBH.lean -->
+<!-- include-lean: AvgCaseMls/Reduction.lean -->
+<!-- include-lean: AvgCaseMls/Completeness.lean -->
+
+### Phase 5 — Hardness and non-AvP consequences
+
+The 1995 paper proves that the satisfiability of MLS formulas is **NP-average complete**. Under the defined AvCom classes, this implies that MLS cannot belong to $`\text{AvP}`$ under certain rankable distributions unless the nondeterministic and deterministic exponential-time hierarchies collapse.
+
+We represent this structurally in Lean 4:
 
 <!-- include-lean: AvgCaseMls/ComplexityAxioms.lean -->
 <!-- include-lean: AvgCaseMls/AverageHardness.lean -->
@@ -446,21 +466,21 @@ We can represent this theorem structurally in Lean 4:
 
 | Phase | Phase goal | Outcome |
 |-------|------------|---------|
-| **1A** | `Bitstring`, `len`, `lenBot`, `Distribution`, `DistributionalProblem`, `IsPolynomial` in [`AvCom.lean`](AvgCaseMls/AvCom.lean); finite-support fork in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md) | Proofs check |
+| **1A** | `Bitstring`, `len`, `lenBot`, `Distribution`, `DistributionalProblem`, `IsPolynomial` (§5); finite-support fork in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md) | Proofs check |
 | **1B** | `rank`, `T_inv` without `sorry`; finite-support rank + partial `T_inv` in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md) | Proofs check |
 | **1C** | `IsAvTime`, `rankLe`, `DistTime`, `AvDTime`, `IsTRankable`; forks in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md) | Proofs check |
 | **1D** | `AvP`, `InDistNP`, `DistributionalReduction`, `IsNPAverageComplete`; forks in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md) | Proofs check |
-| **2A** | MLS syntax + axiomatic semantics (§6, [`MLS.lean`](AvgCaseMls/MLS.lean)) | Proofs check |
-| **2B** | `Literal`, `literalToFormula`, `conjunctToFormula`, `Literal.holds` ([`EMLS.lean`](AvgCaseMls/EMLS.lean)) | Proofs check |
-| **2C** | `decideMLSSat`, FOS80 Steps 2–4 partial ([`DecideMLS.lean`](AvgCaseMls/DecideMLS.lean)) | Proofs check |
-| **2D** | `serializeFormula`, `SatMLS`, `stepsMLS` (§8 axioms removed) | Proofs check |
-| **3A** | [`SatMLSChecker_in_NP`](AvgCaseMls/NPMembership.lean), [`decodeFormula?_serializeFormula`](AvgCaseMls/Serialization.lean); checker vs semantic [`SatMLS`] fork | Proofs check |
-| **3B** | [`encodingBound`], [`formulaSize_le_encodingBound`], [`encodingBound_poly`](AvgCaseMls/Serialization.lean) | Proofs check |
-| **4A** | [`NBHChecker_in_NP`], [`μ₀_polRankable`], [`nbhProb_in_DistNP`](AvgCaseMls/NBH.lean) | Proofs check (`decode_encode` `sorry`) |
-| **4B** | [`nbhToSatMLS_red`], [`reduce_domination`](AvgCaseMls/Reduction.lean) | Proofs check (`reduce_correct` `sorry`) |
-| **4C** | [`satMLSProb_NPAverageComplete`](AvgCaseMls/Completeness.lean), [`IsNPAverageComplete.of_reductor`](AvgCaseMls/AvCom.lean) | Proofs check (`nbhProb_NPAverageComplete`, `DistributionalReduction.trans` `sorry`) |
-| **5A** | [`not_AvP_of_NPAverageComplete`](AvgCaseMls/NonAvP.lean), [`NEXP_eq_EXP_of_AvP_complete`](AvgCaseMls/NonAvP.lean) | Proofs check (`NEXP_eq_EXP_of_AvP_complete` `sorry`) |
-| **5B** | [`SatMLS_average_hard`](AvgCaseMls/NonAvP.lean), [`exists_simple_rankable_not_AvP`](AvgCaseMls/NonAvP.lean) | Proofs check (no `sorry` in main theorems; [`SatMLS_semantic_not_AvP`] `sorry`) |
+| **2A** | MLS syntax + axiomatic semantics (§6) | Proofs check |
+| **2B** | `Literal`, `literalToFormula`, `conjunctToFormula`, `Literal.holds` (§6) | Proofs check |
+| **2C** | `decideMLSSat`, FOS80 Steps 2–4 partial (§7) | Proofs check |
+| **2D** | `serializeFormula`, `SatMLS`, `stepsMLS` (§8) | Proofs check |
+| **3A** | `SatMLSChecker_in_NP`, `decodeFormula?_serializeFormula`; checker vs semantic `SatMLS` fork (§8) | Proofs check |
+| **3B** | `encodingBound`, `formulaSize_le_encodingBound`, `encodingBound_poly` (§8) | Proofs check |
+| **4A** | `NBHChecker_in_NP`, `μ₀_polRankable`, `nbhProb_in_DistNP` (§8) | Proofs check (`decode_encode` `sorry`) |
+| **4B** | `nbhToSatMLS_red`, `reduce_domination` (§8) | Proofs check (`reduce_correct` `sorry`) |
+| **4C** | `satMLSProb_NPAverageComplete`, `IsNPAverageComplete.of_reductor` (§8) | Proofs check (`nbhProb_NPAverageComplete`, `DistributionalReduction.trans` `sorry`) |
+| **5A** | `not_AvP_of_NPAverageComplete`, `NEXP_eq_EXP_of_AvP_complete` (§8) | Proofs check (`NEXP_eq_EXP_of_AvP_complete` `sorry`) |
+| **5B** | `SatMLS_average_hard`, `exists_simple_rankable_not_AvP` (§8) | Proofs check (no `sorry` in main theorems; `SatMLS_semantic_not_AvP` `sorry`) |
 
 *Last updated: Phases **1A–1D**, **2A–2D**, **3A**, **3B**, **4A–4C (partial)**, **5A–5B (partial)** graded **Proofs check** where noted.*
 

@@ -99,12 +99,18 @@ def lean_paths_in_line(line: str) -> list[str]:
     return paths
 
 
+def is_table_row(line: str) -> bool:
+    return line.lstrip().startswith("|")
+
+
 def inject_at_first_link(text: str, included: set[str]) -> str:
     """Insert full Lean sources immediately after the first markdown link to each module."""
     lines = text.split("\n")
     out: list[str] = []
     for line in lines:
         out.append(line)
+        if is_table_row(line):
+            continue
         pending: list[str] = []
         for rel_path in lean_paths_in_line(line):
             if rel_path in included:

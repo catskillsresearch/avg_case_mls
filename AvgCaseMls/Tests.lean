@@ -8,6 +8,7 @@ import AvgCaseMls.MLS
 import AvgCaseMls.EMLS
 import AvgCaseMls.DecideMLS
 import AvgCaseMls.Serialization
+import AvgCaseMls.NPMembership
 import AvgCaseMls.AvCom
 
 /-!
@@ -103,7 +104,7 @@ example : AvDTime id (fun _ => 2) testProb :=
 /-! ### AvCom Phase 1D (§5) -/
 
 example : InDistNP testProb :=
-  InDistNP.intro trivial (IsPolRankable.uniformOn_polRankable {[], [true]} (by decide))
+  InDistNP.intro InNP.empty (IsPolRankable.uniformOn_polRankable {[], [true]} (by decide))
 
 example : AvP testProb :=
   AvP.zero (IsPolRankable.uniformOn_polRankable {[], [true]} (by decide)) IsPolynomial.id
@@ -147,6 +148,41 @@ example :
         (Formula.rel (Relation.eq (Term.var 1) Term.empty))) := by
   simp [stepsMLS, stepsConjunct, formulaToConjunct?_and]
   decide
+
+/-! ### Phase 3A — NP membership (§3) -/
+
+example : InNP SatMLSChecker := SatMLSChecker_in_NP
+
+example :
+    verifySatMLS (serializeFormula (Formula.rel (Relation.eq Term.empty Term.empty))) [] = true := by
+  rw [verifySatMLS_true_iff]
+  simp [SatMLSChecker, decodeFormula?_serializeFormula, decideMLSSat, formulaToConjunct?,
+    decideConjunct, relationToLiteral?, literalToFormula]
+  decide
+
+example :
+    serializeFormula (Formula.rel (Relation.eq Term.empty Term.empty)) ∈ SatMLSChecker := by
+  rw [← verifySatMLS_true_iff]
+  simp [verifySatMLS, decodeFormula?_serializeFormula, decideMLSSat, formulaToConjunct?,
+    decideConjunct, relationToLiteral?, literalToFormula]
+  decide
+
+/-! ### Phase 3B — encoding size bounds (§3) -/
+
+example :
+    formulaSize (Formula.rel (Relation.eq (Term.var 2) Term.empty)) ≤
+      encodingBound (formulaAstMass (Formula.rel (Relation.eq (Term.var 2) Term.empty))) :=
+  formulaSize_le_encodingBound _
+
+example : IsPolynomial encodingBound := encodingBound_poly
+
+example :
+    formulaSize (Formula.and (Formula.rel (Relation.eq (Term.var 0) Term.empty))
+      (Formula.rel (Relation.neq (Term.var 0) (Term.var 1)))) ≤
+      encodingBound 10 := by
+  refine formulaSize_le_polyMass _ 10 ?_
+  simp [formulaAstMass, formulaNodes, relationNodes, termNodes, maxVarFormula,
+    maxVarRelation, maxVarTerm]
 
 #eval decideMLSSat (Formula.rel (Relation.eq Term.empty Term.empty))
 #eval decideConjunct [.mem 0 1]

@@ -168,6 +168,13 @@ theorem add_one (T : Nat → Nat) (h : IsPolynomial T) : IsPolynomial fun n => T
       rw [Nat.add_mul, Nat.one_mul]
       omega
 
+theorem add_const (T : Nat → Nat) (d : Nat) (h : IsPolynomial T) :
+    IsPolynomial fun n => T n + d := by
+  induction d with
+  | zero => simpa using h
+  | succ d ih =>
+    simpa [Nat.add_assoc] using add_one (T := fun n => T n + d) ih
+
 end IsPolynomial
 
 /-! ## Phase 1B — rank and inverse bounds -/
@@ -324,11 +331,27 @@ end AvDTime
 /-! ## Phase 1D — AvP, distNP, reductions, completeness -/
 
 /--
-NP membership (stub). Replace when Mathlib hosts `NP` for bitstring languages.
-See [`DEFINITION_FORKS.md`](../DEFINITION_FORKS.md).
+Certificate-based NP membership (Phase **3A** fork): poly-sized witnesses plus a
+`Bool` verifier. See [`DEFINITION_FORKS.md`](../DEFINITION_FORKS.md).
 -/
-def InNP (_L : Set Bitstring) : Prop :=
-  True
+def InNP (L : Set Bitstring) : Prop :=
+  ∃ (verify : Bitstring → Bitstring → Bool) (bound : Nat → Nat),
+    IsPolynomial bound ∧
+    (∀ x, x ∈ L ↔ ∃ cert, len cert ≤ bound (len x) ∧ verify x cert = true)
+
+namespace InNP
+
+theorem intro {L : Set Bitstring} {verify : Bitstring → Bitstring → Bool} {bound : Nat → Nat}
+    (hbound : IsPolynomial bound)
+    (h : ∀ x, x ∈ L ↔ ∃ cert, len cert ≤ bound (len x) ∧ verify x cert = true) :
+    InNP L :=
+  ⟨verify, bound, hbound, h⟩
+
+theorem empty : InNP (∅ : Set Bitstring) :=
+  intro (verify := fun _ _ => false) (bound := fun _ => 0) (IsPolynomial.const 0) fun x => by
+    simp
+
+end InNP
 
 /-- `distNP`: NP language plus POL-rankable distribution (TR1995-711 §3.2). -/
 def InDistNP (prob : DistributionalProblem) : Prop :=

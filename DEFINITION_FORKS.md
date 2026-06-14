@@ -105,3 +105,25 @@ When the literature leaves a choice implicit, we record it here.
 **Lean fork — step budget:** [`stepsMLS`] = `wireSizeFormula f` + [`stepsConjunct`] when [`formulaToConjunct?`] succeeds; conjunct budget is $O(n^2)$ in literal count (Step 2 pairs). No link to `IsAvTime` yet (Phase 5 / future work).
 
 **Rationale:** Removes the §8 `serializeFormula` axiom; keeps `NEXP_neq_EXP` and `SatMLS_average_hard` as structural placeholders until Phase 4–5.
+
+## NP membership proxy (Phase 3A)
+
+**Literature:** $\\text{SatMLS} \\in \\text{NP}$ via polynomial-size certificates and poly-time verification.
+
+**Lean fork — checker vs semantic language:** [`SatMLSChecker`](AvgCaseMls/NPMembership.lean) is the NP target: decode a bitstring with [`decodeFormula?`], require empty rest, run [`decideMLSSat`]. [`SatMLSChecker_in_NP`] uses certificate length bound `0` and verifier [`verifySatMLS`]. Semantic [`SatMLS`] still uses noncomputable [`evalFormula`]; [`SatMLSChecker_subset_SatMLS`] links checker → semantic language on the decide-sound fragment.
+
+**Lean fork — `InNP`:** [`InNP`](AvgCaseMls/AvCom.lean) is certificate-based ($\\exists$ poly-bounded verify with $x \\in L \\iff \\exists$ cert, not semantic `True`).
+
+**Deferred:** [`decodeFormula?_serializeFormula`] and suffix decode lemmas remain `sorry` (partial-def proof friction); does not block the NP scaffold.
+
+**Rationale:** NP membership is for the poly-time checker on encodings, not full semantic satisfiability without completeness.
+
+## Encoding size bounds (Phase 3B)
+
+**Literature:** $\\Vert\\varphi\\Vert$ is polynomially bounded in syntax size (TR1995-711 / §8).
+
+**Lean fork — syntax mass:** [`formulaAstMass`] = [`formulaNodes`] + [`maxVarFormula`]; [`encodingBound n := nodeBound n + 2`] with [`nodeBound n = (n+2)^2 · 10^{12} + 10^{12}`] (quadratic slack, intentionally loose).
+
+**Lean fork — lemmas:** [`formulaSize_le_encodingBound`], [`encodingBound_poly`], [`formulaSize_le_polyMass`]; wire-size bounds via [`formulaSize_le_nodeBound`] modulo [`nodeBound_pair_le`] `sorry` (binary combine inequality) and rel/not wrapper steps.
+
+**Rationale:** Delivers checkable polynomial-size targets for Phase 4–5; tighten combine/decode proofs later.

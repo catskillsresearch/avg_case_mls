@@ -1,8 +1,7 @@
 # avg_cas_mls
 
 Revisit a 1995 paper on average case complexity of multilevel syllogistic (Courant Institute technical report CS-TR #711).
-Recap the ideas of the day and how they have translated into the present
-The source report is [`TR1995-711.pdf`](TR1995-711.pdf); the paper-style treatment is [`arxiv.md`](arxiv.md).
+The source report is [`TR1995-711.pdf`](TR1995-711.pdf); the new paper is [`arxiv.md`](arxiv.md).
 The goals of this paper are:
 * Topic of original paper (marrying average case complexity to decision procedures for MLS) - call this AvCom
 * Recap MLS and its decision procedures
@@ -12,7 +11,7 @@ The goals of this paper are:
 * Formalize MLS in Lean 4
 * Code the decision procedures for MLS in Lean 4
 * Code the AvCom complexity analysis in Lean 4
-* The original paper is pasted earlier in the chat.
+* The original paper is pasted earlier in the chat
 * Use Lean 4 to prove that the decision procedures lie in a certain AvCom class as originally stated in the 1995 paper
 * Suggestions for future work
 
@@ -111,21 +110,6 @@ What happens:
 
 - Compiles Mathlib modules your code imports (incremental; first run is heavy)  
 - Produces cache files under `.lake/build/`  
-
-
-## Optional: regenerate the markdown from the PDF
-
-The PDF→markdown script uses only Python stdlib plus system **mutool** (MuPDF):
-
-```bash
-# Debian/Ubuntu
-sudo apt install mupdf-tools
-
-mutool convert -F txt -o /tmp/mutool_full.txt Courant_Ericson_1986.pdf
-python3 scripts/pdf_to_md.py /tmp/mutool_full.txt Courant_Ericson_1986.md
-```
-
-No Poetry or virtualenv is required unless you add Python dependencies later.
 
 ---
 

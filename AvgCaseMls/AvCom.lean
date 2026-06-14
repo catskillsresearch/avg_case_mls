@@ -19,7 +19,9 @@ Extracted from [`arxiv.md`](../arxiv.md) §5.
 
 **Phase 1C:** `IsAvTime`, `DistTime`, `AvDTime`, rankability predicates.
 
-**Phase 1D+:** `AvP`, reductions, completeness — proofs open.
+**Phase 1D:** `AvP`, `InDistNP`, `DistributionalReduction`, `IsNPAverageComplete`.
+
+**Phase 2+:** MLS hardness — proofs open in later modules.
 -/
 
 open Finset
@@ -281,6 +283,16 @@ We do not yet tie `f` to a decider for `L`; see [`DEFINITION_FORKS.md`](../DEFIN
 def DistTime (T : Nat → Nat) (prob : DistributionalProblem) : Prop :=
   ∃ f : Bitstring → Nat, IsAvTime T f prob.μ
 
+namespace IsPolRankable
+
+theorem uniformOn_polRankable (S : Finset Bitstring) (h : S.Nonempty) :
+    IsPolRankable (uniformOn S h) :=
+  ⟨fun _ => S.card, IsPolynomial.const S.card,
+    IsTRankable.of_support _ _ fun x _ =>
+      rank.le_support_card (uniformOn S h) x⟩
+
+end IsPolRankable
+
 namespace DistTime
 
 theorem of_avTime {T : Nat → Nat} {prob : DistributionalProblem} {f : Bitstring → Nat}
@@ -307,10 +319,86 @@ theorem of_distTime {T V : Nat → Nat} {prob : DistributionalProblem}
 
 end AvDTime
 
-/-! ## Phase 1D — AvP (depends on 1C) -/
+/-! ## Phase 1D — AvP, distNP, reductions, completeness -/
 
+/--
+NP membership (stub). Replace when Mathlib hosts `NP` for bitstring languages.
+See [`DEFINITION_FORKS.md`](../DEFINITION_FORKS.md).
+-/
+def InNP (_L : Set Bitstring) : Prop :=
+  True
+
+/-- `distNP`: NP language plus POL-rankable distribution (TR1995-711 §3.2). -/
+def InDistNP (prob : DistributionalProblem) : Prop :=
+  InNP prob.L ∧ IsPolRankable prob.μ
+
+namespace InDistNP
+
+theorem intro {prob : DistributionalProblem} (hNP : InNP prob.L) (hμ : IsPolRankable prob.μ) :
+    InDistNP prob :=
+  ⟨hNP, hμ⟩
+
+theorem uniformOn (L : Set Bitstring) (S : Finset Bitstring) (h : S.Nonempty)
+    (hNP : InNP L) :
+    InDistNP ⟨L, uniformOn S h⟩ :=
+  intro hNP (IsPolRankable.uniformOn_polRankable S h)
+
+end InDistNP
+
+/--
+Distributional reduction (TR1995-711 §3.2): polynomial-time map `f` (time check deferred),
+correctness `x ∈ L₁ ↔ f(x) ∈ L₂`, and domination
+
+`rank_{μ₂}(f(x)) ≤ c₀ · lenBot(x)^{c₁} · rank_{μ₁}(x)`.
+-/
+def DistributionalReduction (source target : DistributionalProblem) : Prop :=
+  ∃ f : Bitstring → Bitstring,
+    (∀ x, x ∈ source.L ↔ f x ∈ target.L) ∧
+    (∃ c0 c1 : Nat, 0 < c0 ∧ 0 < c1 ∧
+      ∀ x, rank target.μ (f x) ≤ c0 * (lenBot x) ^ c1 * rank source.μ x)
+
+namespace DistributionalReduction
+
+theorem refl (p : DistributionalProblem) : DistributionalReduction p p := by
+  refine ⟨id, ?_, ⟨1, 1, one_pos, one_pos, fun x => ?_⟩⟩
+  · intro x; simp
+  · simp only [id_eq, pow_one, one_mul]
+    rcases Nat.eq_zero_or_pos (rank p.μ x) with hr | hr
+    · omega
+    · exact Nat.le_mul_of_pos_left (rank p.μ x) (lenBot_ne_zero x)
+
+end DistributionalReduction
+
+/--
+Average polynomial time: POL-rankable distribution plus `DistTime T` for some `T ∈ POL`.
+Matches `DistTime(POL, POL-rankable)` in TR1995-711 §3.2.
+-/
 def AvP (prob : DistributionalProblem) : Prop :=
-  ∃ f : Bitstring → Nat, ∃ T : Nat → Nat,
-    IsPolynomial T ∧ IsAvTime T f prob.μ
+  IsPolRankable prob.μ ∧ ∃ T : Nat → Nat, IsPolynomial T ∧ DistTime T prob
+
+namespace AvP
+
+theorem of_distTime {prob : DistributionalProblem} (hμ : IsPolRankable prob.μ)
+    {T : Nat → Nat} (hT : IsPolynomial T) (h : DistTime T prob) : AvP prob :=
+  ⟨hμ, T, hT, h⟩
+
+theorem zero {prob : DistributionalProblem} (hμ : IsPolRankable prob.μ) {T : Nat → Nat}
+    (hT : IsPolynomial T) : AvP prob :=
+  of_distTime hμ hT (DistTime.zero T prob)
+
+end AvP
+
+/-- NP-average (distNP) completeness: in `distNP` and hard for all of `distNP`. -/
+def IsNPAverageComplete (target : DistributionalProblem) : Prop :=
+  InDistNP target ∧ ∀ source, InDistNP source → DistributionalReduction source target
+
+namespace IsNPAverageComplete
+
+theorem intro {target : DistributionalProblem} (h : InDistNP target)
+    (hred : ∀ source, InDistNP source → DistributionalReduction source target) :
+    IsNPAverageComplete target :=
+  ⟨h, hred⟩
+
+end IsNPAverageComplete
 
 end AvCom

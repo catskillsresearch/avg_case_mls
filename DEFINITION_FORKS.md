@@ -57,3 +57,27 @@ When the literature leaves a choice implicit, we record it here.
 **Lean fork:** `IsPolRankable μ := ∃ V ∈ POL, IsTRankable V μ` — computability of rank omitted until a model is chosen.
 
 **Rationale:** Separates the numeric rank bound (needed for domination/reductions) from executable rank oracles.
+
+## `InNP` stub (Phase 1D)
+
+**Literature:** $\\text{distNP} = \\{(L, \\mu) : L \\in \\text{NP},\\ \\mu \\in \\text{POL-rankable}\\}$.
+
+**Lean fork:** `InNP _L := True` until a Mathlib bitstring $\\text{NP}$ layer exists; `InDistNP` still enforces `IsPolRankable`.
+
+**Rationale:** Keeps distNP-shaped definitions checkable now without axiomatizing Turing machines.
+
+## Domination uses `lenBot` (Phase 1D)
+
+**Literature:** $p_2(f(x)) \\le c_0 |x|^{c_1} p_1(x)$ with $|x| = \\text{len}(x)$.
+
+**Lean fork:** Replace $|x|$ with `lenBot x` in the domination inequality so the identity reduction is provable at the empty string.
+
+**Rationale:** Aligns with the RS93 denominator convention; avoids $0^{c_1}$ collapsing domination at $|x| = 0$.
+
+## Reduction map without poly-time check (Phase 1D)
+
+**Literature:** $f$ is polynomial-time computable.
+
+**Lean fork:** `DistributionalReduction` records correctness and domination only; no bound on $\\text{len}(f(x))$ yet (transitivity of reductions deferred).
+
+**Rationale:** Polynomial-time map verification waits on a concrete encoding of poly-time functions.

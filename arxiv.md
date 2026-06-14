@@ -322,9 +322,9 @@ Here we translate TR1995-711 §3.2 into Lean 4 using the RS93 rank-sum definitio
 * `T_inv` — partial search for $`\min\{ n \mid T(n) \ge m \}`$ from `n = 0` (Phase **1B**);
 * `IsAvTime`, `IsAv`, `rankLe` — RS93 rank-sum average time (Phase **1C**);
 * `IsTRankable`, `IsPolRankable`, `DistTime`, `AvDTime` — dist-time classes (Phase **1C**);
-* `AvP` — structural counterpart of $`\text{DistTime}(\text{POL}, \text{POL-rankable})`$ (Phase **1D**).
+* `AvP`, `InDistNP`, `DistributionalReduction`, `IsNPAverageComplete` — average classes and reductions (Phase **1D**).
 
-Planned extensions (not yet in the repository): `InDistNP`, `DistributionalReduction`, and `IsNPAverageComplete`. These will let us state TR1995-711 Corollary 5.1 as a theorem rather than a comment (§8).
+All Phase **1** AvCom scaffolding is in [`AvCom.lean`](AvgCaseMls/AvCom.lean). Later phases connect MLS (§6–§8) and hardness (§8).
 
 ```lean
 import Mathlib.Data.Real.Basic
@@ -370,7 +370,15 @@ def DistTime (T : Nat → Nat) (prob : DistributionalProblem) : Prop := ...
 
 def AvDTime (T V : Nat → Nat) (prob : DistributionalProblem) : Prop := ...
 
+def InNP (_L : Set Bitstring) : Prop := ...
+
+def InDistNP (prob : DistributionalProblem) : Prop := ...
+
+def DistributionalReduction (source target : DistributionalProblem) : Prop := ...
+
 def AvP (prob : DistributionalProblem) : Prop := ...
+
+def IsNPAverageComplete (target : DistributionalProblem) : Prop := ...
 ```
 
 ---
@@ -587,7 +595,7 @@ theorem SatMLS_average_hard (μ : Distribution) (h_rank : ∃ T, IsPolynomial T 
 | **1A** | `Bitstring`, `len`, `lenBot`, `Distribution`, `DistributionalProblem`, `IsPolynomial` in [`AvCom.lean`](AvgCaseMls/AvCom.lean); finite-support fork in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md) | Proofs check |
 | **1B** | `rank`, `T_inv` without `sorry`; finite-support rank + partial `T_inv` in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md) | Proofs check |
 | **1C** | `IsAvTime`, `rankLe`, `DistTime`, `AvDTime`, `IsTRankable`; forks in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md) | Proofs check |
-| **1D** | `AvP`, `InDistNP`, `DistributionalReduction`, `IsNPAverageComplete` | TBD |
+| **1D** | `AvP`, `InDistNP`, `DistributionalReduction`, `IsNPAverageComplete`; forks in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md) | Proofs check |
 | **2A** | MLS syntax + axiomatic semantics (§6, [`MLS.lean`](AvgCaseMls/MLS.lean)) | Proofs check |
 | **2B** | EMLS literals, `literalToFormula`, `conjunctToFormula` ([`EMLS.lean`](AvgCaseMls/EMLS.lean)) | TBD |
 | **2C** | `decideMLSSat`, FOS80 Steps 2–4 partial ([`DecideMLS.lean`](AvgCaseMls/DecideMLS.lean)) | TBD |
@@ -600,7 +608,7 @@ theorem SatMLS_average_hard (μ : Distribution) (h_rank : ∃ T, IsPolynomial T 
 | **5A** | Conditional non-AvP from completeness | TBD |
 | **5B** | `SatMLS_average_hard` without `sorry` | TBD |
 
-*Last updated: Phases **1A**, **1B**, **1C**, and **2A** graded **Proofs check** (`AvCom.lean` / `MLS.lean` build, no `sorry` in 1A–1C/2A scope); all other subphases TBD.*
+*Last updated: Phases **1A–1D** and **2A** graded **Proofs check** (`AvCom.lean` / `MLS.lean` build, no `sorry` in Phase 1 / 2A scope); all other subphases TBD.*
 
 ---
 

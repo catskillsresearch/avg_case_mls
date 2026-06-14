@@ -97,6 +97,17 @@ example : AvDTime id (fun _ => 2) testProb :=
     (IsTRankable.of_support _ _ fun x _ => rank.le_support_card testProb.μ x)
     (DistTime.zero id testProb)
 
+/-! ### AvCom Phase 1D (§5) -/
+
+example : InDistNP testProb :=
+  InDistNP.intro trivial (IsPolRankable.uniformOn_polRankable {[], [true]} (by decide))
+
+example : AvP testProb :=
+  AvP.zero (IsPolRankable.uniformOn_polRankable {[], [true]} (by decide)) IsPolynomial.id
+
+example : DistributionalReduction testProb testProb :=
+  DistributionalReduction.refl testProb
+
 #eval decideMLSSat (Formula.rel (Relation.eq Term.empty Term.empty))
 #eval decideConjunct [.mem 0 1]
 #eval decideConjunct [.mem 0 0]

@@ -190,7 +190,7 @@ Our approach mirrors [icon2lean](https://github.com/catskillsresearch/icon2lean)
 | Concept | Lean representation | Rationale |
 |---------|---------------------|-----------|
 | Inputs | `Bitstring := List Bool`, `len` | Matches $`\Sigma = \{0,1\}`$ encodings in the report |
-| Distributions | `structure Distribution` with `Finset` sums $`\leq 1`$ | Avoids infinite sums; enough for rank-based definitions |
+| Distributions | `structure Distribution` with explicit finite `support`, off-support zero, `support.sum prob ≤ 1` | Avoids infinite sums; rank and testing are well-defined (see [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md)) |
 | Rank | `noncomputable def rank` | Cardinality over all strings is not computable |
 | Set semantics | Axiomatic `MLS.ZFSet` + `noncomputable evalTerm` | Supports nested sets without committing to full ZF in Mathlib; `Mathlib.Data.ZFC.Basic` is an alternative for a future refactor |
 | EMLS | Elementary literals in §6 grammar; optional separate `EMLS.Literal` inductive (planned) | EMLS is the normal form the model-graph algorithm consumes |
@@ -315,12 +315,13 @@ TR1995-711 Corollary 5.1 (page 12) states that **MLS satisfiability** is NP-aver
 
 Here we translate TR1995-711 §3.2 into Lean 4 using the RS93 rank-sum definition of $`\text{Av}(T)`$. The module [`AvgCaseMls/AvCom.lean`](AvgCaseMls/AvCom.lean) currently defines:
 
-* `Bitstring`, `len` — inputs $`x \in \{0,1\}^*`$ and length $`|x|`$;
-* `Distribution` — probability mass with non-negativity and finite `Finset` sum $`\leq 1`$;
+* `Bitstring`, `len`, `lenBot` — inputs $`x \in \{0,1\}^*`$, length $`|x|`$, and `max 1 |x|` for RS93 denominators (see [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md));
+* `Distribution` — finite `support`, non-negative `prob`, mass zero off support, `support.sum prob ≤ 1`; constructors `pointMass`, `uniformOn`;
+* `DistributionalProblem`, `IsPolynomial` (+ basic lemmas) — Phase **1A** complete in [`AvCom.lean`](AvgCaseMls/AvCom.lean);
 * `rank` — placeholder for $`\text{rank}_\mu(x)`$ (Phase **1B**);
 * `T_inv` — placeholder for the generalized inverse $`T^{-1}`$ (Phase **1B**);
 * `IsAvTime` — the RS93 rank-sum condition (Phase **1C**);
-* `DistributionalProblem`, `IsPolynomial`, `AvP` — structural counterparts of $`\text{DistTime}(\text{POL}, \text{POL-rankable})`$ (Phase **1D**).
+* `AvP` — structural counterpart of $`\text{DistTime}(\text{POL}, \text{POL-rankable})`$ (Phase **1D**).
 
 Planned extensions (not yet in the repository): `DistTime`, `AvDTime`, `InDistNP`, `DistributionalReduction`, and `IsNPAverageComplete`. These will let us state TR1995-711 Corollary 5.1 as a theorem rather than a comment (§8).
 
@@ -334,38 +335,27 @@ abbrev Bitstring := List Bool
 
 def len (s : Bitstring) : Nat := s.length
 
+def lenBot (s : Bitstring) : Nat := max 1 s.length
+
 structure Distribution where
+  support : Finset Bitstring
   prob : Bitstring → Real
-  nonneg : ∀ s, 0 ≤ prob s
-  sum_le_one : ∀ (F : Finset Bitstring), F.sum prob ≤ 1
+  prob_nonneg : ∀ s, 0 ≤ prob s
+  prob_zero_outside : ∀ s, s ∉ support → prob s = 0
+  prob_sum_le_one : support.sum prob ≤ 1
 
-noncomputable def rank (μ : Distribution) (x : Bitstring) : Nat :=
-  if μ.prob x = 0 then 0
-  else
-    -- Conceptually: |{ z : μ.prob z ≥ μ.prob x }|
-    sorry
+noncomputable def pointMass (x : Bitstring) (p : Real) (hp0 : 0 ≤ p) (hp1 : p ≤ 1) : Distribution := ...
 
-def T_inv (T : Nat → Nat) (m : Nat) : Nat :=
-  sorry
-
-def IsAvTime (T : Nat → Nat) (f : Bitstring → Nat) (μ : Distribution) : Prop :=
-  ∀ (l : Nat), l ≥ 1 →
-    ∃ (S : Finset Bitstring),
-      (∀ x, x ∈ S ↔ rank μ x ≤ l) ∧
-      S.sum (fun x => (T_inv T (f x) : Real) / (len x : Real)) ≤ (l : Real)
+noncomputable def uniformOn (S : Finset Bitstring) (h : S.Nonempty) : Distribution := ...
 
 structure DistributionalProblem where
   L : Set Bitstring
   μ : Distribution
 
 def IsPolynomial (T : Nat → Nat) : Prop :=
-  ∃ (c k : Nat), ∀ n, T n ≤ c * n^k + c
+  ∃ c k : Nat, ∀ n, T n ≤ c * n ^ k + c
 
-def AvP (prob : DistributionalProblem) : Prop :=
-  ∃ (f : Bitstring → Nat) (T : Nat → Nat),
-    IsPolynomial T ∧ IsAvTime T f prob.μ
-
-/- Planned: DistTime, AvDTime, distNP membership, distributional reductions -/
+/- Phase 1B+: rank, T_inv (sorry); IsAvTime; AvP -/
 ```
 
 ---
@@ -579,7 +569,7 @@ theorem SatMLS_average_hard (μ : Distribution) (h_rank : ∃ T, IsPolynomial T 
 
 | Phase | Phase goal | Outcome |
 |-------|------------|---------|
-| **1A** | `Bitstring`, `len`, `Distribution`, `DistributionalProblem`, `IsPolynomial`—scaffolding in [`AvCom.lean`](AvgCaseMls/AvCom.lean); defs not yet declared final | TBD |
+| **1A** | `Bitstring`, `len`, `lenBot`, `Distribution`, `DistributionalProblem`, `IsPolynomial` in [`AvCom.lean`](AvgCaseMls/AvCom.lean); finite-support fork in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md) | Proofs check |
 | **1B** | `rank`, `T_inv` without `sorry`; finite-support convention or fork documented | TBD |
 | **1C** | `IsAvTime`, `DistTime`, `AvDTime` | TBD |
 | **1D** | `AvP`, `InDistNP`, `DistributionalReduction`, `IsNPAverageComplete` | TBD |
@@ -595,7 +585,7 @@ theorem SatMLS_average_hard (μ : Distribution) (h_rank : ∃ T, IsPolynomial T 
 | **5A** | Conditional non-AvP from completeness | TBD |
 | **5B** | `SatMLS_average_hard` without `sorry` | TBD |
 
-*Last updated: Phase 2A graded **Proofs check** (`MLS.lean` builds, no `sorry`); all other subphases TBD.*
+*Last updated: Phases **1A** and **2A** graded **Proofs check** (`AvCom.lean` / `MLS.lean` build, no `sorry` in 1A/2A scope); all other subphases TBD.*
 
 ---
 

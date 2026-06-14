@@ -65,7 +65,7 @@ Context and Lean infrastructure appear in **§§2–4**; Phase 1 (AvCom) is **§
 | Subphase | Goal |
 |----------|------|
 | **3A** | `SatMLS ∈ NP` (witness / certificate) |
-| **3B** | Formula encoding size lemmas; polynomial bounds on $`|\varphi|`$ |
+| **3B** | Formula encoding size lemmas; polynomial bounds on $`\Vert \varphi \Vert`$ |
 
 *Exit criterion:* formal NP membership or a written Mathlib blocker.
 
@@ -588,7 +588,7 @@ theorem SatMLS_average_hard (μ : Distribution) (h_rank : ∃ T, IsPolynomial T 
 | **2C** | `decideMLSSat`, FOS80 Steps 2–4 partial ([`DecideMLS.lean`](AvgCaseMls/DecideMLS.lean)) | TBD |
 | **2D** | `serializeFormula`, `SatMLS`, `stepsMLS` (§8 axioms removed) | TBD |
 | **3A** | `SatMLS ∈ NP` or Mathlib blocker | TBD |
-| **3B** | Encoding size / $`|\varphi|`$ lemmas | TBD |
+| **3B** | Encoding size lemmas; polynomial bounds on $`\Vert \varphi \Vert`$ | TBD |
 | **4A** | NBH (or report core) + POL-rankable $`\mu_0`$ | TBD |
 | **4B** | Reduction + domination into `SatMLS` | TBD |
 | **4C** | NP-average completeness (Corollary 5.1) | TBD |

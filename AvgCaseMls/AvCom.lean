@@ -36,6 +36,8 @@ abbrev Bitstring := List Bool
 /-- Length $|x|$ as `List.length`. -/
 def len (s : Bitstring) : Nat := s.length
 
+@[simp] theorem len_eq (s : Bitstring) : len s = s.length := rfl
+
 /--
 Length used in RS93 denominators: `max 1 |x|` so the empty string is guarded.
 See `DEFINITION_FORKS.md`.

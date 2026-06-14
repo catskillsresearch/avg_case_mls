@@ -4,23 +4,21 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Lars Warren Ericson, Catskills Research Company
 -/
 
-import AvgCaseMls.MLS
-import AvgCaseMls.AvCom
+import AvgCaseMls.Serialization
 
 /-!
 Structural statement of average-case hardness for MLS satisfiability.
 
 Extracted from [`arxiv.md`](../arxiv.md) §8. Proof is intentionally incomplete (`sorry`).
+Phase **2D** replaces the `serializeFormula` axiom with [`MLS.serializeFormula`](AvgCaseMls/Serialization.lean).
 -/
 
 open MLS AvCom
 
 axiom NEXP_neq_EXP : Prop
 
-axiom serializeFormula : MLS.Formula → Bitstring
-
 def SatMLS : Set Bitstring :=
-  { s | ∃ (f : MLS.Formula), serializeFormula f = s ∧ ∃ (env : MLS.Env), MLS.evalFormula env f }
+  { s | ∃ (f : Formula), serializeFormula f = s ∧ ∃ (env : Env), evalFormula env f }
 
 /-
   Theorem 5.1 (adapted): SatMLS is NP-average complete.

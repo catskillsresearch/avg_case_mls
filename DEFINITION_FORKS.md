@@ -94,4 +94,14 @@ When the literature leaves a choice implicit, we record it here.
 
 **Lean fork — sound fragment:** `InDecideSoundFragment` / `InDecideSoundFormula` hypothesis on `decideMLSSat_sound` and `decideConjunct_sound` (no membership/`eqOp` literals; Step 3 obstruction false).
 
-**Rationale:** Honest partial procedure: proved soundness on the conjunct fragment exercised by tests; completeness deferred to Phase 2D+ / fuller Step 4.
+**Rationale:** Honest partial procedure: proved soundness on the conjunct fragment exercised by tests; completeness deferred past Phase 2C.
+
+## MLS formula encoding (Phase 2D)
+
+**Literature:** TR1995-711 and §8 represent satisfiable MLS formulas as bitstrings in $\\{0,1\\}^*$.
+
+**Lean fork:** Tagged prefix encoding in [`Serialization.lean`](AvgCaseMls/Serialization.lean): 3-bit constructor tags for `Term` / `Formula`, 2-bit tags for `Relation`, unary `encodeNat` for variable indices. [`wireSizeFormula`] (alias [`formulaSize`]) tracks exact `len (serializeFormula f)` via [`len_serializeFormula`].
+
+**Lean fork — step budget:** [`stepsMLS`] = `wireSizeFormula f` + [`stepsConjunct`] when [`formulaToConjunct?`] succeeds; conjunct budget is $O(n^2)$ in literal count (Step 2 pairs). No link to `IsAvTime` yet (Phase 5 / future work).
+
+**Rationale:** Removes the §8 `serializeFormula` axiom; keeps `NEXP_neq_EXP` and `SatMLS_average_hard` as structural placeholders until Phase 4–5.

@@ -7,6 +7,7 @@ Authors: Lars Warren Ericson, Catskills Research Company
 import AvgCaseMls.MLS
 import AvgCaseMls.EMLS
 import AvgCaseMls.DecideMLS
+import AvgCaseMls.Serialization
 import AvgCaseMls.AvCom
 
 /-!
@@ -128,6 +129,24 @@ example :
       some (Literal.eqOp 0 1 2 BinOp.union) := rfl
 
 example : decideEMLSSat [.neq 0 0] = false := rfl
+
+/-! ### Serialization Phase 2D (§8) -/
+
+example :
+    len (serializeFormula (Formula.rel (Relation.eq Term.empty Term.empty))) =
+      wireSizeFormula (Formula.rel (Relation.eq Term.empty Term.empty)) :=
+  len_serializeFormula _
+
+example : stepsMLS (Formula.rel (Relation.eq Term.empty Term.empty)) > 0 :=
+  stepsMLS_pos _
+
+example :
+    stepsMLS (Formula.and (Formula.rel (Relation.eq (Term.var 0) Term.empty))
+      (Formula.rel (Relation.eq (Term.var 1) Term.empty))) >
+      wireSizeFormula (Formula.and (Formula.rel (Relation.eq (Term.var 0) Term.empty))
+        (Formula.rel (Relation.eq (Term.var 1) Term.empty))) := by
+  simp [stepsMLS, stepsConjunct, formulaToConjunct?_and]
+  decide
 
 #eval decideMLSSat (Formula.rel (Relation.eq Term.empty Term.empty))
 #eval decideConjunct [.mem 0 1]

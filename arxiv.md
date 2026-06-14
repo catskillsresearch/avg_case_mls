@@ -100,6 +100,30 @@ We grind on Phases 1→5 in dependency order (subphases may be implemented out o
 
 ## 2. Historical Context, Terminology, and Reception of TR1995-711
 
+### Application and Findings
+Cox, Ericson, and Mishra apply this structure to show that program-verification sublanguages cannot be easily bypassed using typical average-case heuristics. They prove that **EMLS, MLS, and FP/LP are $`\text{NP}`$-average complete**. This implies there are simple, rankable distributions that will frustrate any decision algorithm for these problems, forcing super-polynomial average-case running times unless deterministic and nondeterministic exponential time are equal ($`\text{NEXP} = \text{EXP}`$).
+
+### The Concept of "The Nose"
+The paper features a key visualization of the average-case landscape of NP-complete languages (Figure 1, page 13).
+
+![The average-case complexity "nose" diagram (TR1995-711, Figure 1)](figures/nose.png)
+
+**Figure 1 (schematic).** Languages L<sub>i</sub> are plotted by worst-case complexity *V* (vertical) and average-case complexity *T* (horizontal). The shaded **nose** is the tractable region in the polynomial–polynomial corner. Regenerate with `python3 scripts/plot_nose.py`.
+
+In this diagram, languages $`L_i`$ are mapped based on their worst-case complexity $`V`$ (vertical axis) and their average-case complexity $`T`$ (horizontal axis). 
+*   **The Nose** represents the sweet spot of tractability: the shaded region where the worst-case complexity of the ranking function $`V`$ is bounded by $`h(T)`$, such that the language still possesses an efficient average-case algorithm.
+*   Formally, the authors define this boundary as:
+
+
+```math
+\text{nose}(L) = \{ (T, V) \in (\text{POL}, \text{POL}) : L \in \text{AvDTime}(T, V\text{-rankable}) \}
+```
+
+
+*   For an NP-average complete problem, the "nose" is trivial or empty under simple distributions, meaning no non-trivial efficient average-case behavior can be guaranteed unless $`\text{Nondeterministic Exp} = \text{Deterministic Exp}`$.
+
+### Pre-publication review in 1995
+
 Reviewer Martin Davis asked the authors to give a more pragmatic demonstration of their results before accepting the work into *Communications on Pure and Applied Mathematics* (CPAM). That demonstration never materialized; the concrete heuristics were weak, and the empirical machinery to test these algorithms on large datasets did not yet exist. The paper was never published in CPAM.
 
 That outcome is not the whole story, however. The report's deeper aim was to supply a **language for describing how hard a typical instance of a verification problem might be**—not to ship a production solver. This historical episode highlights a common turning point in computer science during the mid-1990s: the tension between elegant, highly formal mathematical complexity theory and the messy, empirical reality of practical software engineering.
@@ -343,28 +367,6 @@ def AvP (prob : DistributionalProblem) : Prop :=
 
 /- Planned: DistTime, AvDTime, distNP membership, distributional reductions -/
 ```
-
-### Application and Findings
-Cox, Ericson, and Mishra apply this structure to show that program-verification sublanguages cannot be easily bypassed using typical average-case heuristics. They prove that **EMLS, MLS, and FP/LP are $`\text{NP}`$-average complete**. This implies there are simple, rankable distributions that will frustrate any decision algorithm for these problems, forcing super-polynomial average-case running times unless deterministic and nondeterministic exponential time are equal ($`\text{NEXP} = \text{EXP}`$).
-
-### The Concept of "The Nose"
-The paper features a key visualization of the average-case landscape of NP-complete languages (Figure 1, page 13).
-
-![The average-case complexity "nose" diagram (TR1995-711, Figure 1)](figures/nose.png)
-
-**Figure 1 (schematic).** Languages L<sub>i</sub> are plotted by worst-case complexity *V* (vertical) and average-case complexity *T* (horizontal). The shaded **nose** is the tractable region in the polynomial–polynomial corner. Regenerate with `python3 scripts/plot_nose.py`.
-
-In this diagram, languages $`L_i`$ are mapped based on their worst-case complexity $`V`$ (vertical axis) and their average-case complexity $`T`$ (horizontal axis). 
-*   **The Nose** represents the sweet spot of tractability: the shaded region where the worst-case complexity of the ranking function $`V`$ is bounded by $`h(T)`$, such that the language still possesses an efficient average-case algorithm.
-*   Formally, the authors define this boundary as:
-
-
-```math
-\text{nose}(L) = \{ (T, V) \in (\text{POL}, \text{POL}) : L \in \text{AvDTime}(T, V\text{-rankable}) \}
-```
-
-
-*   For an NP-average complete problem, the "nose" is trivial or empty under simple distributions, meaning no non-trivial efficient average-case behavior can be guaranteed unless $`\text{Nondeterministic Exp} = \text{Deterministic Exp}`$.
 
 ---
 

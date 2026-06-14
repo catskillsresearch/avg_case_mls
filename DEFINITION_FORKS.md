@@ -132,6 +132,20 @@ When the literature leaves a choice implicit, we record it here.
 
 **Rationale:** Delivers the distNP-complete *core scaffold* for Phase **4B** (reduction into `SatMLS`) without a Mathlib NTM layer.
 
+## NBH → SatMLS reduction (Phase 4B)
+
+**Literature:** TR1995-711 §3.2 distributional reduction with domination into target language/distribution.
+
+**Lean fork — map [`reduceNBHToSatMLS`]:** strings in [`μ₀Support`] map to [`satTargetEnc`]; all other inputs map to [`unsatTargetEnc`] (off [`μ₁Support`]) so domination holds with constants `(c_0,c_1) = (1,1)`.
+
+**Lean fork — target problem [`satMLSProb`]:** language [`SatMLSChecker`], distribution [`μ₁`] uniform on `{satTargetEnc}`.
+
+**Lean fork — correctness:** [`reduce_correct_on_μ₀Support`] and [`nbhToSatMLS_red_on_μ₀`] proved on the scaffold support; full [`reduce_correct`] remains `sorry` (TM→MLS encoding deferred).
+
+**Proved:** [`reduce_domination`], [`nbhToSatMLS_red`] (modulo `reduce_correct` `sorry`).
+
+**Rationale:** Wires Phase **4A** into the MLS target for Phase **4C** completeness; honest gap on general checker correctness matches Phase **3A** checker fork.
+
 ## Encoding size bounds (Phase 3B)
 
 **Literature:** $\\Vert\\varphi\\Vert$ is polynomially bounded in syntax size (TR1995-711 / §8).

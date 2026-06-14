@@ -5,4 +5,5 @@ import AvgCaseMls.Serialization
 import AvgCaseMls.AverageHardness
 import AvgCaseMls.NPMembership
 import AvgCaseMls.NBH
+import AvgCaseMls.Reduction
 import AvgCaseMls.Tests

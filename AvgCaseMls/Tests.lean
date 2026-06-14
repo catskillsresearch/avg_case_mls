@@ -10,6 +10,7 @@ import AvgCaseMls.DecideMLS
 import AvgCaseMls.Serialization
 import AvgCaseMls.NPMembership
 import AvgCaseMls.NBH
+import AvgCaseMls.Reduction
 import AvgCaseMls.AvCom
 
 /-!
@@ -198,6 +199,20 @@ example : InDistNP nbhProb := nbhProb_in_DistNP
 example : NBHInstance.encode trivialInstance ∈ NBHChecker := trivialInstance_in_NBHChecker
 
 example : μ₀.prob (NBHInstance.encode trivialInstance) = 1 := μ₀_mass_on_trivial
+
+/-! ### Phase 4B — NBH → SatMLS reduction (§4) -/
+
+open Reduction
+
+example : DistributionalReduction nbhProb satMLSProb := nbhToSatMLS_red
+
+example :
+    NBHInstance.encode trivialInstance ∈ NBHChecker ↔
+      reduceNBHToSatMLS (NBHInstance.encode trivialInstance) ∈ SatMLSChecker :=
+  nbhToSatMLS_red_on_μ₀ _ (by simp [μ₀Support])
+
+example : reduceNBHToSatMLS (NBHInstance.encode trivialInstance) = satTargetEnc := by
+  simp [reduceNBHToSatMLS, μ₀Support]
 
 #eval verifyNBH (NBHInstance.encode trivialInstance) trivialCert
 

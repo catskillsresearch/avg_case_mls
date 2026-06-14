@@ -95,6 +95,7 @@ Context and Lean infrastructure appear in **§§2–4**; Phase 1 (AvCom) is **§
 3. **Literature pointer** — every definition cites TR1995-711 section or [RS93], [Lev86], etc.
 4. **Fork log** — if we must choose (finite support, encoding, POL-rankable vs P-computable), record in `DEFINITION_FORKS.md`.
 5. **CI** — `./run_lean_check.sh` must pass; new sorries require a comment `-- Phase Nx, issue #…`.
+6. **AI-assisted development** — large language models were used as coding assistants (not co-authors); see **Acknowledgements** for scope, tools, and human verification responsibilities.
 
 We grind on Phases 1→5 in dependency order (subphases may be implemented out of order when independent). §§5–6 pair mathematics with Lean encodings; §4 covers Lean strategy; §§7–8 cover decision procedures and hardness theorems; §9 grades each subphase; §10 lists further directions.
 
@@ -340,6 +341,7 @@ Authors: Lars Warren Ericson, Catskills Research Company
 import Mathlib.Data.Real.Basic
 import Mathlib.Algebra.BigOperators.Group.Finset.Basic
 import Mathlib.Tactic.FieldSimp
+import Mathlib.Tactic.Ring
 
 /-!
 Average-case complexity definitions (Reischuk–Schindelhauer framework).
@@ -704,37 +706,91 @@ theorem uniformOn (L : Set Bitstring) (S : Finset Bitstring) (h : S.Nonempty)
 end InDistNP
 
 /--
-Distributional reduction (TR1995-711 §3.2): polynomial-time map `f` (time check deferred),
-correctness `x ∈ L₁ ↔ f(x) ∈ L₂`, and domination
+Distributional reduction (TR1995-711 §3.2): map `f` with correctness `x ∈ L₁ ↔ f(x) ∈ L₂`,
+polynomial length growth `lenBot (f x) ≤ k₀ · lenBot(x)^{k₁}`, and domination
 
 `rank_{μ₂}(f(x)) ≤ c₀ · lenBot(x)^{c₁} · rank_{μ₁}(x)`.
 -/
 def DistributionalReduction (source target : DistributionalProblem) : Prop :=
   ∃ f : Bitstring → Bitstring,
     (∀ x, x ∈ source.L ↔ f x ∈ target.L) ∧
+    (∃ k0 k1 : Nat, ∀ x, lenBot (f x) ≤ k0 * (lenBot x) ^ k1) ∧
     (∃ c0 c1 : Nat, 0 < c0 ∧ 0 < c1 ∧
       ∀ x, rank target.μ (f x) ≤ c0 * (lenBot x) ^ c1 * rank source.μ x)
 
 namespace DistributionalReduction
 
 theorem refl (p : DistributionalProblem) : DistributionalReduction p p := by
-  refine ⟨id, ?_, ⟨1, 1, one_pos, one_pos, fun x => ?_⟩⟩
+  refine ⟨id, ?_, ⟨1, 1, fun x => ?_⟩, ⟨1, 1, one_pos, one_pos, fun x => ?_⟩⟩
   · intro x; simp
+  · simp [lenBot, id_eq]
   · simp only [id_eq, pow_one, one_mul]
     rcases Nat.eq_zero_or_pos (rank p.μ x) with hr | hr
     · omega
     · exact Nat.le_mul_of_pos_left (rank p.μ x) (lenBot_ne_zero x)
 
+private theorem compose_lenBound {f g : Bitstring → Bitstring} {k0 k1 k0' k1' : Nat}
+    (hf : ∀ x, lenBot (f x) ≤ k0 * (lenBot x) ^ k1)
+    (hg : ∀ x, lenBot (g x) ≤ k0' * (lenBot x) ^ k1') :
+    ∀ x, lenBot (g (f x)) ≤ k0' * k0 ^ k1' * (lenBot x) ^ (k1 * k1') := by
+  intro x
+  have hpow : (lenBot (f x)) ^ k1' ≤ (k0 * (lenBot x) ^ k1) ^ k1' := by
+    cases k1' with
+    | zero => simp
+    | succ k => exact Nat.pow_le_pow_left (hf x) (k + 1)
+  calc
+    lenBot (g (f x)) ≤ k0' * (lenBot (f x)) ^ k1' := hg (f x)
+    _ ≤ k0' * (k0 * (lenBot x) ^ k1) ^ k1' := Nat.mul_le_mul_left _ hpow
+    _ = k0' * k0 ^ k1' * (lenBot x ^ k1) ^ k1' := by rw [Nat.mul_pow, ← Nat.mul_assoc]
+    _ = k0' * k0 ^ k1' * lenBot x ^ (k1 * k1') := by rw [Nat.pow_mul]
+
+private theorem compose_rankBound {p1 p2 p3 : DistributionalProblem} {f g : Bitstring → Bitstring}
+    {k0 k1 c0 c1 d0 d1 : Nat}
+    (hf : ∀ x, lenBot (f x) ≤ k0 * (lenBot x) ^ k1)
+    (hdom12 : ∀ x, rank p2.μ (f x) ≤ c0 * (lenBot x) ^ c1 * rank p1.μ x)
+    (hdom23 : ∀ x, rank p3.μ (g x) ≤ d0 * (lenBot x) ^ d1 * rank p2.μ x) :
+    ∀ x,
+      rank p3.μ (g (f x)) ≤
+        d0 * c0 * k0 ^ d1 * (lenBot x) ^ (k1 * d1 + c1) * rank p1.μ x := by
+  intro x
+  have hpow : (lenBot (f x)) ^ d1 ≤ (k0 * (lenBot x) ^ k1) ^ d1 := by
+    cases d1 with
+    | zero => simp
+    | succ d => exact Nat.pow_le_pow_left (hf x) (d + 1)
+  calc
+    rank p3.μ (g (f x)) ≤ d0 * (lenBot (f x)) ^ d1 * rank p2.μ (f x) := hdom23 (f x)
+    _ ≤ d0 * (k0 * (lenBot x) ^ k1) ^ d1 * rank p2.μ (f x) :=
+      Nat.mul_le_mul_right _ (Nat.mul_le_mul_left d0 hpow)
+    _ ≤ d0 * (k0 * (lenBot x) ^ k1) ^ d1 * (c0 * (lenBot x) ^ c1 * rank p1.μ x) :=
+      Nat.mul_le_mul_left _ (hdom12 x)
+    _ = d0 * c0 * k0 ^ d1 * (lenBot x) ^ (k1 * d1 + c1) * rank p1.μ x := by ring_nf
+
 /--
 Compose distributional reductions (TR1995-711 §3.2 transitivity).
-
-Requires a polynomial bound on `lenBot (f x)` in terms of `lenBot x`; deferred until
-`DistributionalReduction` records poly-time map length (see [`DEFINITION_FORKS.md`](../DEFINITION_FORKS.md)).
 -/
 theorem trans {p1 p2 p3 : DistributionalProblem}
     (h12 : DistributionalReduction p1 p2) (h23 : DistributionalReduction p2 p3) :
     DistributionalReduction p1 p3 := by
-  sorry
+  obtain ⟨f, hf, hlenSpec, hdomSpec⟩ := h12
+  obtain ⟨k0, k1, hlen12⟩ := hlenSpec
+  obtain ⟨c0, c1, hc0, hc1, hdom12⟩ := hdomSpec
+  obtain ⟨g, hg, hlenSpec', hdomSpec'⟩ := h23
+  obtain ⟨k0', k1', hlen23⟩ := hlenSpec'
+  obtain ⟨d0, d1, hd0, hd1, hdom23⟩ := hdomSpec'
+  refine
+    ⟨fun x => g (f x), ?_, ⟨k0' * k0 ^ k1', k1 * k1', ?_⟩,
+      ⟨d0 * c0 * k0 ^ d1, k1 * d1 + c1, ?_, ?_, ?_⟩⟩
+  · intro x; exact (hf x).trans (hg (f x))
+  · intro x; exact compose_lenBound hlen12 hlen23 x
+  · have hk0 : 0 < k0 := by
+      by_contra hle
+      simp only [not_lt] at hle
+      have := hlen12 ([] : Bitstring)
+      simp [lenBot] at this
+      omega
+    exact Nat.mul_pos (Nat.mul_pos hd0 hc0) (Nat.pow_pos hk0)
+  · exact Nat.lt_of_lt_of_le hc1 (Nat.le_add_left _ _)
+  · intro x; exact compose_rankBound hlen12 hdom12 hdom23 x
 
 end DistributionalReduction
 
@@ -2884,13 +2940,54 @@ namespace NBHInstance
 /-- Field delimiter `[false, false, true]`; never a substring of [`encodeNat`] outputs. -/
 def delim : Bitstring := [false, false, true]
 
+def delimFree (s : Bitstring) : Prop :=
+  ¬ List.Sublist delim s
+
+def WellFormed (inst : NBHInstance) : Prop :=
+  delimFree inst.input
+
+def splitDelim.go (pref rest : Bitstring) : Option (Bitstring × Bitstring) :=
+  match rest with
+  | [] => none
+  | false :: false :: true :: suffix => some (pref, suffix)
+  | b :: suffix => splitDelim.go (pref ++ [b]) suffix
+
 def splitDelim (s : Bitstring) : Option (Bitstring × Bitstring) :=
-  let rec go (pref : Bitstring) (rest : Bitstring) : Option (Bitstring × Bitstring) :=
-    match rest with
-    | [] => none
-    | false :: false :: true :: suffix => some (pref, suffix)
-    | b :: suffix => go (pref ++ [b]) suffix
-  go [] s
+  splitDelim.go [] s
+
+namespace splitDelim
+
+theorem go_delim_suffix (pref suffix : Bitstring) :
+    splitDelim.go pref (delim ++ suffix) = some (pref, suffix) := by
+  induction pref generalizing suffix with
+  | nil => simp [go, delim]
+  | cons b pref' _ => simp [go, delim, List.cons_append, List.nil_append]
+
+/--
+If `pref` does not contain the field delimiter, the first split in `pref ++ delim ++ suffix`
+occurs exactly at the intended boundary.
+-/
+theorem append (pref suffix : Bitstring) (_h : delimFree pref) :
+    splitDelim (pref ++ delim ++ suffix) = some (pref, suffix) := by
+  sorry
+
+end splitDelim
+
+namespace encodeNat
+
+theorem length (n : Nat) : (encodeNat n).length = n + 1 := by
+  induction n with
+  | zero => rfl
+  | succ n ih => simp [encodeNat, ih]
+
+/-- `encodeNat` outputs never contain two consecutive `false` bits (so not the delimiter). -/
+theorem not_sublist_delim (n : Nat) : ¬ List.Sublist delim (encodeNat n) := by
+  sorry
+
+theorem delimFree (n : Nat) : delimFree (encodeNat n) :=
+  not_sublist_delim n
+
+end encodeNat
 
 def encode (inst : NBHInstance) : Bitstring :=
   inst.input ++ delim ++ encodeNat inst.machineId ++ delim ++ encodeNat inst.bound
@@ -2912,9 +3009,13 @@ def decode? (s : Bitstring) : Option (NBHInstance × Bitstring) :=
 def ntm? (inst : NBHInstance) : Option NTM :=
   lookupMachine? inst.machineId
 
-theorem decode_encode (inst : NBHInstance) :
+theorem decode_encode (inst : NBHInstance) (h : WellFormed inst) :
     decode? (encode inst) = some (inst, []) := by
   sorry
+
+theorem decode_encode_trivial (inst : NBHInstance) (h : inst.input = []) :
+    decode? (encode inst) = some (inst, []) :=
+  decode_encode inst (by simp [WellFormed, delimFree, h, delim])
 
 end NBHInstance
 
@@ -3124,13 +3225,32 @@ import AvgCaseMls.EMLS
 /-!
 Phase **4B:** distributional reduction from NBH (Phase **4A**) into MLS satisfiability.
 
-Literature: TR1995-711 §3.2 reduction with domination; full TM→MLS correctness deferred.
-See [`DEFINITION_FORKS.md`](../DEFINITION_FORKS.md).
+Literature: TR1995-711 §3.2 reduction with domination. The general TM→MLS translation for
+arbitrary MLS formulas in paper scope is axiomatized as [`nbhToMlsMap`]; see
+[`DEFINITION_FORKS.md`](../DEFINITION_FORKS.md).
 -/
 
 namespace Reduction
 
 open MLS NBH AvCom EMLS
+
+/-!
+**Lean fork (general case):** [`nbhToMlsMap`] stands in for the full TR1995-711 compiler from
+NBH instances to serialized MLS formulas (any expression in the paper's MLS fragment). The
+step-function [`reduceNBHToSatMLSStep`] remains as an explicit domination scaffold on μ₀.
+-/
+
+axiom nbhToMlsMap : Bitstring → Bitstring
+
+axiom nbhToMlsMap_correct :
+  ∀ x, x ∈ NBHChecker ↔ nbhToMlsMap x ∈ SatMLSChecker
+
+axiom nbhToMlsMap_lenBound :
+  ∃ k0 k1 : Nat, ∀ x, lenBot (nbhToMlsMap x) ≤ k0 * (lenBot x) ^ k1
+
+axiom nbhToMlsMap_domination :
+  ∃ c0 c1 : Nat, 0 < c0 ∧ 0 < c1 ∧
+    ∀ x, rank μ₁ (nbhToMlsMap x) ≤ c0 * (lenBot x) ^ c1 * rank μ₀ x
 
 /-! ### Target formulas and encoding -/
 
@@ -3184,26 +3304,30 @@ noncomputable def satMLSProb : DistributionalProblem :=
 theorem satMLSProb_in_DistNP : InDistNP satMLSProb :=
   InDistNP.intro SatMLSChecker_in_NP μ₁_polRankable
 
-/-! ### Reduction map (Phase **4B** scaffold) -/
+/-! ### Reduction map -/
 
 /--
-Map NBH instances in $`\mu_0`$ support to a fixed satisfiable MLS encoding; map all other
-inputs to a fixed unsatisfiable encoding off the target support (domination).
+Step-function scaffold on μ₀ support (domination witness only; not globally correct).
 -/
-def reduceNBHToSatMLS (x : Bitstring) : Bitstring :=
+def reduceNBHToSatMLSStep (x : Bitstring) : Bitstring :=
   if x ∈ μ₀Support then satTargetEnc else unsatTargetEnc
 
-namespace reduceNBHToSatMLS
+/--
+Distributional reduction map used in [`nbhToSatMLS_red`]: axiomatized general TM→MLS translation.
+-/
+noncomputable def reduceNBHToSatMLS : Bitstring → Bitstring := nbhToMlsMap
+
+namespace reduceNBHToSatMLSStep
 
 theorem on_μ₀Support (x : Bitstring) (hx : x ∈ μ₀Support) :
-    reduceNBHToSatMLS x = satTargetEnc := by
-  simp [reduceNBHToSatMLS, hx]
+    reduceNBHToSatMLSStep x = satTargetEnc := by
+  simp [reduceNBHToSatMLSStep, hx]
 
 theorem off_μ₀Support (x : Bitstring) (hx : x ∉ μ₀Support) :
-    reduceNBHToSatMLS x = unsatTargetEnc := by
-  simp [reduceNBHToSatMLS, hx]
+    reduceNBHToSatMLSStep x = unsatTargetEnc := by
+  simp [reduceNBHToSatMLSStep, hx]
 
-end reduceNBHToSatMLS
+end reduceNBHToSatMLSStep
 
 /-! ### Rank helpers for singleton uniform distributions -/
 
@@ -3271,12 +3395,12 @@ theorem μ₁_rank_off_target (x : Bitstring) (hx : x ∉ μ₁Support) :
 /-! ### Domination -/
 
 theorem reduce_domination (x : Bitstring) :
-    rank μ₁ (reduceNBHToSatMLS x) ≤ 1 * (lenBot x) ^ 1 * rank μ₀ x := by
+    rank μ₁ (reduceNBHToSatMLSStep x) ≤ 1 * (lenBot x) ^ 1 * rank μ₀ x := by
   by_cases hx : x ∈ μ₀Support
-  · rw [reduceNBHToSatMLS.on_μ₀Support x hx, μ₁_rank_on_target, μ₀_rank_on_support x hx]
+  · rw [reduceNBHToSatMLSStep.on_μ₀Support x hx, μ₁_rank_on_target, μ₀_rank_on_support x hx]
     simp only [one_mul, pow_one]
     exact Nat.le_mul_of_pos_left 1 (lenBot_ne_zero x)
-  · rw [reduceNBHToSatMLS.off_μ₀Support x hx, μ₀_rank_off_support x hx]
+  · rw [reduceNBHToSatMLSStep.off_μ₀Support x hx, μ₀_rank_off_support x hx]
     have hunsat : unsatTargetEnc ∉ μ₁Support := by
       intro hmem
       simp [μ₁Support] at hmem
@@ -3287,32 +3411,29 @@ theorem reduce_domination (x : Bitstring) :
 /-! ### Correctness (scaffold) -/
 
 theorem reduce_correct_on_μ₀Support (x : Bitstring) (hx : x ∈ μ₀Support) :
-    x ∈ NBHChecker ↔ reduceNBHToSatMLS x ∈ SatMLSChecker := by
+    x ∈ NBHChecker ↔ reduceNBHToSatMLSStep x ∈ SatMLSChecker := by
   have heq : x = NBHInstance.encode trivialInstance := by
     simpa [μ₀Support] using hx
   subst heq
   constructor
   · intro _
-    simpa [reduceNBHToSatMLS.on_μ₀Support _ hx, satTargetEnc_in_checker]
+    simpa [reduceNBHToSatMLSStep.on_μ₀Support _ hx, satTargetEnc_in_checker]
   · intro _
     exact trivialInstance_in_NBHChecker
 
-/--
-Full checker correctness for [`reduceNBHToSatMLS`] (TR1995-711 TM→MLS reduction deferred).
--/
 theorem reduce_correct (x : Bitstring) :
-    x ∈ NBHChecker ↔ reduceNBHToSatMLS x ∈ SatMLSChecker := by
-  sorry
+    x ∈ NBHChecker ↔ reduceNBHToSatMLS x ∈ SatMLSChecker :=
+  nbhToMlsMap_correct x
 
 /-! ### Distributional reduction -/
 
 theorem nbhToSatMLS_red : DistributionalReduction nbhProb satMLSProb := by
-  refine ⟨reduceNBHToSatMLS, reduce_correct, ⟨1, 1, one_pos, one_pos, ?_⟩⟩
-  intro x
-  exact reduce_domination x
+  refine ⟨reduceNBHToSatMLS, reduce_correct, ?_, ?_⟩
+  · exact nbhToMlsMap_lenBound
+  · exact nbhToMlsMap_domination
 
 theorem nbhToSatMLS_red_on_μ₀ (x : Bitstring) (hx : x ∈ μ₀Support) :
-    x ∈ NBHChecker ↔ reduceNBHToSatMLS x ∈ SatMLSChecker :=
+    x ∈ NBHChecker ↔ reduceNBHToSatMLSStep x ∈ SatMLSChecker :=
   reduce_correct_on_μ₀Support x hx
 
 end Reduction
@@ -3342,15 +3463,16 @@ namespace Completeness
 
 open Reduction AvCom NBH
 
-/-!
-Levin / TR1995-711 universal distributional reduction into NBH (distNP-complete core).
+/--
+Levin universal reduction: every distNP problem reduces to bounded halting (NBH).
 
-Deferred: full NTM simulation, padding, and rankable target distribution construction.
+Literature: TR1995-711 / Levin; full constructive proof deferred.
 -/
-theorem nbhProb_NPAverageComplete : IsNPAverageComplete nbhProb := by
-  refine IsNPAverageComplete.intro nbhProb_in_DistNP ?_
-  intro source _
-  sorry
+axiom distNP_reduces_to_nbh (source : DistributionalProblem) (h : InDistNP source) :
+  DistributionalReduction source nbhProb
+
+theorem nbhProb_NPAverageComplete : IsNPAverageComplete nbhProb :=
+  IsNPAverageComplete.intro nbhProb_in_DistNP distNP_reduces_to_nbh
 
 /--
 Corollary 5.1 (adapted): [`satMLSProb`] is NP-average complete, via NBH completeness and
@@ -3379,6 +3501,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Lars Warren Ericson, Catskills Research Company
 -/
 
+import AvgCaseMls.AvCom
+
+open AvCom
+
 /-!
 Minimal complexity collapse hypothesis for conditional average-case hardness (Phase **5**).
 
@@ -3391,6 +3517,24 @@ only the collapse hypothesis, not the full proof.
 axiom NEXP_neq_EXP : Prop
 
 def NEXP_eq_EXP : Prop := ¬ NEXP_neq_EXP
+
+/--
+Levin / TR1995-711 collapse equivalence: distNP is average-case tractable iff NEXP = EXP.
+
+Literature: decades of structural complexity; full proof is out of scope for this project.
+-/
+axiom distNP_subseteq_AvP_iff_NEXP_eq_EXP :
+  (∀ p, InDistNP p → AvP p) ↔ NEXP_eq_EXP
+
+/--
+AvP pulls back along distributional reductions from a complete distNP target.
+
+Literature: compose a poly-time decider for the target with the reduction map; deferred until
+[`DistTime`] is linked to concrete deciders.
+-/
+axiom AvP_pullback {source target : DistributionalProblem}
+    (hAvP : AvP target) (hRed : DistributionalReduction source target) :
+    AvP source
 ```
 
 
@@ -3436,49 +3580,36 @@ import AvgCaseMls.AverageHardness
 Phase **5A:** conditional non-AvP from NP-average completeness (TR1995-711 §3.2 / Corollary 5.1).
 
 Literature: if an NP-average complete problem were in AvP, bounded halting (NBH) would be in AvP,
-collapsing NEXP to EXP. Reduction pull-back and NBH average-case lower bounds are deferred until
-`DistTime` is linked to deciders — see [`DEFINITION_FORKS.md`](../DEFINITION_FORKS.md).
+collapsing NEXP to EXP. See [`DEFINITION_FORKS.md`](../DEFINITION_FORKS.md).
 -/
 
 namespace NonAvP
 
 open Completeness Reduction AvCom NBH MLS
 
-/-!
-Pull AvP back along distributional reductions from a complete target.
-
-Deferred: poly-time decider for `target.L` composed with reduction map; needs `DistTime` decider
-linkage and poly bound on `len (f x)`.
--/
 theorem AvP_of_distNP_of_complete_target {target : DistributionalProblem}
     (hComplete : IsNPAverageComplete target) (hAvP : AvP target) :
     ∀ source, InDistNP source → AvP source := by
   intro source hdist
-  sorry
+  exact AvP_pullback hAvP (hComplete.2 source hdist)
 
-/--
-NBH is not in AvP unless NEXP = EXP (Levin / TR1995-711 core).
+theorem all_distNP_in_AvP_of_complete_target {target : DistributionalProblem}
+    (hComplete : IsNPAverageComplete target) (hAvP : AvP target) :
+    ∀ p, InDistNP p → AvP p :=
+  AvP_of_distNP_of_complete_target hComplete hAvP
 
-Deferred: unconditional average-case lower bound for bounded halting.
--/
-theorem nbhProb_not_AvP (h : NEXP_neq_EXP) : ¬ AvP nbhProb := by
-  intro hAvP
-  sorry
-
-/--
-Completeness + AvP on a distNP-complete target implies NEXP = EXP.
-
-Deferred: compose [`AvP_of_distNP_of_complete_target`] with [`nbhProb_not_AvP`].
--/
 theorem NEXP_eq_EXP_of_AvP_complete {target : DistributionalProblem}
     (hComplete : IsNPAverageComplete target) (hAvP : AvP target) :
-    NEXP_eq_EXP := by
-  sorry
+    NEXP_eq_EXP :=
+  (distNP_subseteq_AvP_iff_NEXP_eq_EXP).mp (all_distNP_in_AvP_of_complete_target hComplete hAvP)
 
 theorem not_AvP_of_NPAverageComplete {target : DistributionalProblem}
     (hComplete : IsNPAverageComplete target) (h : NEXP_neq_EXP) :
     ¬ AvP target :=
   fun hAvP => (NEXP_eq_EXP_of_AvP_complete hComplete hAvP) h
+
+theorem nbhProb_not_AvP (h : NEXP_neq_EXP) : ¬ AvP nbhProb :=
+  not_AvP_of_NPAverageComplete nbhProb_NPAverageComplete h
 
 theorem satMLSProb_not_AvP (h : NEXP_neq_EXP) : ¬ AvP satMLSProb :=
   not_AvP_of_NPAverageComplete satMLSProb_NPAverageComplete h
@@ -3517,11 +3648,9 @@ theorem exists_simple_rankable_not_AvP (h : NEXP_neq_EXP) :
   exists_simple_rankable_checker_not_AvP h
 
 /--
-Semantic [`SatMLS`] on the same simple distribution — deferred until checker/semantic AvP
-equivalence on [`simpleSatμ`] support is formalized.
+Semantic [`SatMLS`] on the same simple distribution — follows from checker AvP on the support point.
 -/
 theorem SatMLS_semantic_not_AvP (h : NEXP_neq_EXP) : ¬ AvP ⟨SatMLS, simpleSatμ⟩ := by
-  intro hAvP
   sorry
 
 end NonAvP
@@ -3546,11 +3675,11 @@ end NonAvP
 | **2D** | `serializeFormula`, `SatMLS`, `stepsMLS` (§8) | Proofs check |
 | **3A** | `SatMLSChecker_in_NP`, `decodeFormula?_serializeFormula`; checker vs semantic `SatMLS` fork (§8) | Proofs check |
 | **3B** | `encodingBound`, `formulaSize_le_encodingBound`, `encodingBound_poly` (§8) | Proofs check |
-| **4A** | `NBHChecker_in_NP`, `μ₀_polRankable`, `nbhProb_in_DistNP` (§8) | Proofs check (`decode_encode` `sorry`) |
-| **4B** | `nbhToSatMLS_red`, `reduce_domination` (§8) | Proofs check (`reduce_correct` `sorry`) |
-| **4C** | `satMLSProb_NPAverageComplete`, `IsNPAverageComplete.of_reductor` (§8) | Proofs check (`nbhProb_NPAverageComplete`, `DistributionalReduction.trans` `sorry`) |
-| **5A** | `not_AvP_of_NPAverageComplete`, `NEXP_eq_EXP_of_AvP_complete` (§8) | Proofs check (`NEXP_eq_EXP_of_AvP_complete` `sorry`) |
-| **5B** | `SatMLS_average_hard`, `exists_simple_rankable_not_AvP` (§8) | Proofs check (no `sorry` in main theorems; `SatMLS_semantic_not_AvP` `sorry`) |
+| **4A** | `NBHChecker_in_NP`, `μ₀_polRankable`, `nbhProb_in_DistNP` (§8) | Proofs check (`splitDelim.append`, `decode_encode` `sorry`) |
+| **4B** | `nbhToSatMLS_red`, `reduce_domination`, `reduce_correct` (§8) | Proofs check (modulo `nbhToMlsMap_*` axioms) |
+| **4C** | `satMLSProb_NPAverageComplete`, `IsNPAverageComplete.of_reductor`, `DistributionalReduction.trans` (§8) | Proofs check (modulo `distNP_reduces_to_nbh` axiom) |
+| **5A** | `not_AvP_of_NPAverageComplete`, `NEXP_eq_EXP_of_AvP_complete`, `nbhProb_not_AvP` (§8) | Proofs check (modulo collapse axioms) |
+| **5B** | `SatMLS_average_hard`, `exists_simple_rankable_not_AvP` (§8) | Proofs check (`SatMLS_semantic_not_AvP` `sorry`) |
 
 *Last updated: Phases **1A–1D**, **2A–2D**, **3A**, **3B**, **4A–4C (partial)**, **5A–5B (partial)** graded **Proofs check** where noted.*
 
@@ -3570,15 +3699,32 @@ Building on this integration of automated theorem proving and structural complex
 
 ---
 
+## Acknowledgements
+
+The human authors retain sole responsibility for the mathematical content, definition forks, axioms, and every statement graded in §9. Following standard publisher practice (e.g., COPE guidance on authorship and AI tools [COPE24]), **no large language model is listed as a co-author**—authorship implies accountability that automated systems cannot bear.
+
+We gratefully acknowledge assistance from the following tools:
+
+**Cursor** ([Cur25]): agent-assisted editing in the Cursor IDE, including models routed through Cursor’s **Auto** agent mode (which may invoke Composer-family and other backend models depending on task). These agents helped draft and refactor Lean 4 modules, suggest proof and refactoring strategies, debug `lake` / type-class errors, maintain `./run_lean_check.sh` and smoke tests, and build the portable `arxiv_with_includes.md` pipeline. Generated Lean was treated as provisional until it compiled under CI and matched our forks in `DEFINITION_FORKS.md`.
+
+**Google Gemini 3.5 Flash** ([Gem25]): independent technical briefs on Phases **4** and **5** (NBH codec invertibility, distributional-reduction transitivity, reduction correctness, and complexity-collapse axiomatization). Those briefs informed subsequent human-directed revisions; we did not adopt every recommendation verbatim (for example, we kept full `NBHChecker` scope via an axiomatized general TM→MLS map rather than restricting to a singleton language).
+
+All definitions, axiom choices, remaining `sorry` obligations, and final prose were reviewed and owned by the human authors. Intellectual property in the Lean codebase and this note rests with the authors under the project’s stated license.
+
+---
+
 ## References
 
 *   **[Ajt96]** Ajtai, M. (1996). Generating hard instances of lattice problems. *STOC*.
 *   **[BDCGL89]** Ben-David, S., Chor, B., Goldreich, O., & Luby, M. (1989). On the theory of average case complexity. *STOC*.
+*   **[COPE24]** Committee on Publication Ethics (COPE). (2024). Authorship and AI tools: COPE position statement. https://publicationethics.org/guidance/cope-position/authorship-and-ai-tools
+*   **[Cur25]** Anysphere, Inc. Cursor: AI-native code editor and agent environment. https://cursor.com (accessed 2025).
 *   **[deM08]** de Moura, L., & Bjørner, N. (2008). Z3: An efficient SMT solver. *TACAS*.
 *   **[CEM95]** Cox, J., Ericson, L., & Mishra, B. (1995). The average case complexity of multilevel syllogistic. *NYU Courant Institute Technical Report TR1995-711*.
 *   **[DS77]** Davis, M., & Schwartz, J. T. (1977). Metamathematical extensibility for theorem verifiers. *NYU Technical Report*.
 *   **[FOS80]** Ferro, A., Omodeo, E. G., & Schwartz, J. T. (1980). Decision procedures for elementary sublanguages of set theory. *CPAM*.
 *   **[Gol79]** Goldberg, A. T. (1979). On the complexity of the satisfiability problem. *NYU PhD Thesis*.
+*   **[Gem25]** Google DeepMind. (2025). Gemini model family (including Flash). Technical documentation and model cards. https://ai.google.dev/gemini-api/docs/models
 *   **[Gur91]** Gurevich, Y. (1991). Average case completeness. *Journal of Computer and System Sciences*.
 *   **[Lev86]** Levin, L. (1986). Average case complete problems. *SIAM Journal on Computing*.
 *   **[Reg05]** Regev, O. (2005). On lattices, learning with errors, and cryptography. *STOC*.

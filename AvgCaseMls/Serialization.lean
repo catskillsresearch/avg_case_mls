@@ -368,181 +368,133 @@ theorem nodeBound_succ (m : Nat) : nodeBound m + 3 ≤ nodeBound (m + 1) := by
   have hsq : (m + 3) ^ 2 = (m + 2) ^ 2 + (2 * m + 5) := by ring_nf
   nlinarith
 
-/-- Binary AST combine bound; see [`DEFINITION_FORKS.md`](../DEFINITION_FORKS.md). -/
-theorem nodeBound_pair_le (c : Nat) (hc : 2 < c) :
-    3 + nodeBound (c - 2) + nodeBound (c - 2) ≤ nodeBound c := by
-  sorry
+theorem nodeBound_add3_le_succ (m : Nat) : 3 + nodeBound m ≤ nodeBound (m + 1) := by
+  simpa [Nat.add_comm] using nodeBound_succ m
 
-theorem nodeBound_combine (a b c : Nat) (ha : a + 1 < c) (hb : b + 1 < c) (hc : 2 < c) :
-    3 + nodeBound a + nodeBound b ≤ nodeBound c := by
-  have ha' : a ≤ c - 2 := by omega
-  have hb' : b ≤ c - 2 := by omega
-  exact
-    Nat.le_trans
-      (Nat.add_le_add (Nat.add_le_add_left (nodeBound_mono ha') 3) (nodeBound_mono hb'))
-      (nodeBound_pair_le c hc)
+/-- Sum of two child [`nodeBound`]s fits at combined index `a + b + 1` (Phase **3B**). -/
+theorem nodeBound_pair_sum_le {a b : Nat} (ha : 1 ≤ a) (hb : 1 ≤ b) :
+    3 + nodeBound a + nodeBound b ≤ nodeBound (a + b + 1) := by
+  simp [nodeBound]
+  nlinarith [sq_nonneg (a : ℤ), sq_nonneg (b : ℤ)]
+
+theorem termMass_combine_le (t1 t2 : Term) :
+    termMass (.union t1 t2) ≤ termMass t1 + termMass t2 + 1 := by
+  simp [termMass, termNodes, maxVarTerm]
+  omega
+
+theorem termMass_inter_le (t1 t2 : Term) :
+    termMass (.inter t1 t2) ≤ termMass t1 + termMass t2 + 1 := by
+  simp [termMass, termNodes, maxVarTerm]
+  omega
+
+theorem termMass_diff_le (t1 t2 : Term) :
+    termMass (.diff t1 t2) ≤ termMass t1 + termMass t2 + 1 := by
+  simp [termMass, termNodes, maxVarTerm]
+  omega
+
+theorem formulaMass_combine_le (f1 f2 : Formula) :
+    formulaMass (f1.and f2) ≤ formulaMass f1 + formulaMass f2 + 1 := by
+  simp [formulaMass, formulaNodes, maxVarFormula]
+  omega
+
+theorem formulaMass_or_le (f1 f2 : Formula) :
+    formulaMass (f1.or f2) ≤ formulaMass f1 + formulaMass f2 + 1 := by
+  simp [formulaMass, formulaNodes, maxVarFormula]
+  omega
+
+theorem formulaMass_imp_le (f1 f2 : Formula) :
+    formulaMass (f1.imp f2) ≤ formulaMass f1 + formulaMass f2 + 1 := by
+  simp [formulaMass, formulaNodes, maxVarFormula]
+  omega
+
+theorem formulaMass_iff_le (f1 f2 : Formula) :
+    formulaMass (f1.iff f2) ≤ formulaMass f1 + formulaMass f2 + 1 := by
+  simp [formulaMass, formulaNodes, maxVarFormula]
+  omega
+
+private theorem wireSizeTerm_mul_bound (t : Term) :
+    wireSizeTerm t ≤ (termNodes t + 1) * (maxVarTerm t + 4) + 3 := by
+  induction t with
+  | var n =>
+    simp [wireSizeTerm, termNodes, maxVarTerm, wireSizeNat]
+    ring_nf
+    omega
+  | empty => simp [wireSizeTerm, termNodes, maxVarTerm]
+  | union t1 t2 ih1 ih2 | inter t1 t2 ih1 ih2 | diff t1 t2 ih1 ih2 =>
+    simp [wireSizeTerm, termNodes, maxVarTerm]
+    nlinarith [ih1, ih2, termNodes_pos t1, termNodes_pos t2]
+
+private theorem wireSizeTerm_mul_bound_le_nodeBound (t : Term) :
+    (termNodes t + 1) * (maxVarTerm t + 4) + 3 ≤ nodeBound (termMass t) := by
+  simp [termMass, nodeBound]
+  have h1 : (termNodes t + 1) * (maxVarTerm t + 4) + 3 ≤ (termNodes t + maxVarTerm t + 4) ^ 2 := by
+    nlinarith [sq_nonneg (termNodes t : ℤ), sq_nonneg (maxVarTerm t : ℤ), termNodes_pos t]
+  nlinarith [h1, sq_nonneg (termNodes t + maxVarTerm t : ℤ)]
+
+private theorem wireSizeTerm_le_nodeBound_aux (t : Term) : wireSizeTerm t ≤ nodeBound (termMass t) :=
+  Nat.le_trans (wireSizeTerm_mul_bound t) (wireSizeTerm_mul_bound_le_nodeBound t)
+
+private theorem wireSizeRelation_mul_bound (r : Relation) :
+    wireSizeRelation r ≤ (relationNodes r + 1) * (maxVarRelation r + 4) + 6 := by
+  cases r with
+  | mem t1 t2 | not_mem t1 t2 | eq t1 t2 | neq t1 t2 =>
+    have h1 := wireSizeTerm_mul_bound t1
+    have h2 := wireSizeTerm_mul_bound t2
+    simp [wireSizeRelation, relationNodes, maxVarRelation, relationMass, termNodes, maxVarTerm]
+    nlinarith [h1, h2, termNodes_pos t1, termNodes_pos t2]
+
+private theorem wireSizeRelation_mul_bound_le_nodeBound (r : Relation) :
+    (relationNodes r + 1) * (maxVarRelation r + 4) + 6 ≤ nodeBound (relationMass r) := by
+  simp [relationMass, nodeBound, relationNodes, maxVarRelation]
+  have h1 : (relationNodes r + 1) * (maxVarRelation r + 4) + 6 ≤
+      (relationNodes r + maxVarRelation r + 4) ^ 2 := by
+    nlinarith [sq_nonneg (relationNodes r : ℤ), sq_nonneg (maxVarRelation r : ℤ), relationMass_pos r]
+  nlinarith [h1, sq_nonneg (relationNodes r + maxVarRelation r : ℤ)]
+
+private theorem wireSizeRelation_le_nodeBound_aux (r : Relation) :
+    wireSizeRelation r ≤ nodeBound (relationMass r) :=
+  Nat.le_trans (wireSizeRelation_mul_bound r) (wireSizeRelation_mul_bound_le_nodeBound r)
+
+private theorem wireSizeFormula_mul_bound (f : Formula) :
+    wireSizeFormula f ≤ (formulaNodes f + 1) * (maxVarFormula f + 4) + 10 := by
+  induction f with
+  | rel r =>
+    have hr := wireSizeRelation_mul_bound r
+    simp [wireSizeFormula, formulaNodes, maxVarFormula, relationNodes, maxVarRelation, relationMass]
+    nlinarith [hr, relationMass_pos r]
+  | not f ih =>
+    simp [wireSizeFormula, formulaNodes, maxVarFormula]
+    nlinarith [ih, formulaNodes_pos f]
+  | and f1 f2 ih1 ih2 | or f1 f2 ih1 ih2 | imp f1 f2 ih1 ih2 | iff f1 f2 ih1 ih2 =>
+    simp [wireSizeFormula, formulaNodes, maxVarFormula]
+    nlinarith [ih1, ih2, formulaNodes_pos f1, formulaNodes_pos f2]
+
+private theorem wireSizeFormula_mul_bound_le_nodeBound (f : Formula) :
+    (formulaNodes f + 1) * (maxVarFormula f + 4) + 10 ≤ nodeBound (formulaMass f) := by
+  simp [formulaMass, nodeBound, formulaNodes, maxVarFormula]
+  have h1 : (formulaNodes f + 1) * (maxVarFormula f + 4) + 10 ≤
+      (formulaNodes f + maxVarFormula f + 4) ^ 2 := by
+    nlinarith [sq_nonneg (formulaNodes f : ℤ), sq_nonneg (maxVarFormula f : ℤ), formulaMass_pos f]
+  nlinarith [h1, sq_nonneg (formulaNodes f + maxVarFormula f : ℤ)]
+
+private theorem wireSizeFormula_le_nodeBound_aux (f : Formula) :
+    wireSizeFormula f ≤ nodeBound (formulaMass f) :=
+  Nat.le_trans (wireSizeFormula_mul_bound f) (wireSizeFormula_mul_bound_le_nodeBound f)
 
 theorem formulaMass_eq_astMass (f : Formula) : formulaMass f = formulaAstMass f := by
   rfl
 
 theorem wireSizeTerm_le_nodeBound (t : Term) :
-    wireSizeTerm t ≤ nodeBound (termMass t) := by
-  induction t with
-  | var n =>
-    have hsize : wireSizeTerm (.var n) = n + 4 := by
-      simp [wireSizeTerm, wireSizeNat, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm]
-    have hmass : termMass (.var n) = n + 1 := by
-      simp [termMass, termNodes, maxVarTerm, Nat.add_comm]
-    rw [hsize, hmass, nodeBound]
-    have hpow : n + 4 ≤ (n + 3) ^ 2 := by
-      induction n with
-      | zero => decide
-      | succ n ih => nlinarith
-    nlinarith
-  | empty =>
-    simp [wireSizeTerm, termNodes, maxVarTerm, termMass, nodeBound]
-  | union t1 t2 ih1 ih2 =>
-    simp only [wireSizeTerm, termMass, nodeBound]
-    have hc : 2 < termMass (.union t1 t2) := by
-      simp [termMass, termNodes, maxVarTerm]
-      have h1 := termNodes_pos t1
-      have h2 := termNodes_pos t2
-      omega
-    have hlt1 := termMass_lt_union_left t1 t2
-    have hlt2 := termMass_lt_union_right t1 t2
-    exact
-      Nat.le_trans
-        (Nat.add_le_add (Nat.add_le_add_left ih1 3) ih2)
-        (nodeBound_combine (termMass t1) (termMass t2) (termMass (.union t1 t2)) hlt1 hlt2 hc)
-  | inter t1 t2 ih1 ih2 =>
-    simp only [wireSizeTerm, termMass, nodeBound]
-    have hc : 2 < termMass (.inter t1 t2) := by
-      simp [termMass, termNodes, maxVarTerm]
-      have h1 := termNodes_pos t1
-      have h2 := termNodes_pos t2
-      omega
-    have hlt1 : termMass t1 + 1 < termMass (.inter t1 t2) := by
-      simpa [termMass, termNodes, maxVarTerm] using termMass_lt_combine_left t1 t2
-    have hlt2 : termMass t2 + 1 < termMass (.inter t1 t2) := by
-      simpa [termMass, termNodes, maxVarTerm] using termMass_lt_combine_right t1 t2
-    exact
-      Nat.le_trans
-        (Nat.add_le_add (Nat.add_le_add_left ih1 3) ih2)
-        (nodeBound_combine (termMass t1) (termMass t2) (termMass (.inter t1 t2)) hlt1 hlt2 hc)
-  | diff t1 t2 ih1 ih2 =>
-    simp only [wireSizeTerm, termMass, nodeBound]
-    have hc : 2 < termMass (.diff t1 t2) := by
-      simp [termMass, termNodes, maxVarTerm]
-      have h1 := termNodes_pos t1
-      have h2 := termNodes_pos t2
-      omega
-    have hlt1 : termMass t1 + 1 < termMass (.diff t1 t2) := by
-      simpa [termMass, termNodes, maxVarTerm] using termMass_lt_combine_left t1 t2
-    have hlt2 : termMass t2 + 1 < termMass (.diff t1 t2) := by
-      simpa [termMass, termNodes, maxVarTerm] using termMass_lt_combine_right t1 t2
-    exact
-      Nat.le_trans
-        (Nat.add_le_add (Nat.add_le_add_left ih1 3) ih2)
-        (nodeBound_combine (termMass t1) (termMass t2) (termMass (.diff t1 t2)) hlt1 hlt2 hc)
+    wireSizeTerm t ≤ nodeBound (termMass t) :=
+  wireSizeTerm_le_nodeBound_aux t
 
 theorem wireSizeRelation_le_nodeBound (r : Relation) :
-    wireSizeRelation r ≤ nodeBound (relationMass r) := by
-  cases r with
-  | mem t1 t2 | not_mem t1 t2 | eq t1 t2 | neq t1 t2 =>
-    have h1 := wireSizeTerm_le_nodeBound t1
-    have h2 := wireSizeTerm_le_nodeBound t2
-    have hlt1 := termMass_lt_combine_left t1 t2
-    have hlt2 := termMass_lt_combine_right t1 t2
-    have hc : 2 < 1 + termNodes t1 + termNodes t2 + max (maxVarTerm t1) (maxVarTerm t2) := by
-      have hnodes1 := termNodes_pos t1
-      have hnodes2 := termNodes_pos t2
-      omega
-    have hcombine := nodeBound_combine (termMass t1) (termMass t2)
-        (1 + termNodes t1 + termNodes t2 + max (maxVarTerm t1) (maxVarTerm t2)) hlt1 hlt2 hc
-    have hsum : wireSizeTerm t1 + wireSizeTerm t2 + 3 ≤
-        nodeBound (1 + termNodes t1 + termNodes t2 + max (maxVarTerm t1) (maxVarTerm t2)) := by
-      calc
-        wireSizeTerm t1 + wireSizeTerm t2 + 3
-            ≤ 3 + nodeBound (termMass t1) + nodeBound (termMass t2) := by omega
-        _ ≤ nodeBound (1 + termNodes t1 + termNodes t2 + max (maxVarTerm t1) (maxVarTerm t2)) :=
-          hcombine
-    simp [wireSizeRelation, relationMass, relationNodes, maxVarRelation]
-    linarith [hsum]
+    wireSizeRelation r ≤ nodeBound (relationMass r) :=
+  wireSizeRelation_le_nodeBound_aux r
 
 theorem formulaSize_le_nodeBound (f : Formula) :
-    formulaSize f ≤ nodeBound (formulaMass f) := by
-  induction f with
-  | rel r =>
-    have hr := wireSizeRelation_le_nodeBound r
-    have hmass : formulaMass (.rel r) = relationMass r + 1 := by
-      cases r <;> simp [formulaMass, formulaNodes, maxVarFormula, relationMass, relationNodes,
-        maxVarRelation] <;> ring_nf
-    let m := relationMass r
-    have hr' : wireSizeRelation r ≤ nodeBound m := hr
-    have hbound : wireSizeFormula (.rel r) ≤ nodeBound (m + 1) := by
-      simp [wireSizeFormula]
-      sorry
-    exact hmass ▸ hbound
-  | not f ih =>
-    have hmass : formulaMass (.not f) = formulaMass f + 1 := by
-      simp [formulaMass, formulaNodes, maxVarFormula]; ring_nf
-    let m := formulaMass f
-    have hbound : wireSizeFormula (.not f) ≤ nodeBound (m + 1) := by
-      simp [wireSizeFormula]
-      sorry
-    exact hmass ▸ hbound
-  | and f1 f2 ih1 ih2 =>
-    simp only [wireSizeFormula, formulaMass, nodeBound]
-    have hc : 2 < formulaMass (f1.and f2) := by
-      simp [formulaMass, formulaNodes, maxVarFormula]
-      have h1 := formulaNodes_pos f1
-      have h2 := formulaNodes_pos f2
-      omega
-    have hlt1 : formulaMass f1 + 1 < formulaMass (f1.and f2) := by
-      simpa [formulaMass, formulaNodes, maxVarFormula] using formulaMass_lt_combine_left f1 f2
-    have hlt2 : formulaMass f2 + 1 < formulaMass (f1.and f2) := by
-      simpa [formulaMass, formulaNodes, maxVarFormula] using formulaMass_lt_combine_right f1 f2
-    have hcombine := nodeBound_combine (formulaMass f1) (formulaMass f2) (formulaMass (f1.and f2)) hlt1 hlt2 hc
-    exact Nat.le_trans (Nat.add_le_add (Nat.add_le_add_left ih1 3) ih2) hcombine
-  | or f1 f2 ih1 ih2 =>
-    simp only [wireSizeFormula, formulaMass, nodeBound]
-    have hc : 2 < formulaMass (f1.or f2) := by
-      simp [formulaMass, formulaNodes, maxVarFormula]
-      have h1 := formulaNodes_pos f1
-      have h2 := formulaNodes_pos f2
-      omega
-    have hlt1 : formulaMass f1 + 1 < formulaMass (f1.or f2) := by
-      simpa [formulaMass, formulaNodes, maxVarFormula] using formulaMass_lt_combine_left f1 f2
-    have hlt2 : formulaMass f2 + 1 < formulaMass (f1.or f2) := by
-      simpa [formulaMass, formulaNodes, maxVarFormula] using formulaMass_lt_combine_right f1 f2
-    have hcombine := nodeBound_combine (formulaMass f1) (formulaMass f2) (formulaMass (f1.or f2)) hlt1 hlt2 hc
-    exact Nat.le_trans (Nat.add_le_add (Nat.add_le_add_left ih1 3) ih2) hcombine
-  | imp f1 f2 ih1 ih2 =>
-    simp only [wireSizeFormula, formulaMass, nodeBound]
-    have hc : 2 < formulaMass (f1.imp f2) := by
-      simp [formulaMass, formulaNodes, maxVarFormula]
-      have h1 := formulaNodes_pos f1
-      have h2 := formulaNodes_pos f2
-      omega
-    have hlt1 : formulaMass f1 + 1 < formulaMass (f1.imp f2) := by
-      simpa [formulaMass, formulaNodes, maxVarFormula] using formulaMass_lt_combine_left f1 f2
-    have hlt2 : formulaMass f2 + 1 < formulaMass (f1.imp f2) := by
-      simpa [formulaMass, formulaNodes, maxVarFormula] using formulaMass_lt_combine_right f1 f2
-    have hcombine := nodeBound_combine (formulaMass f1) (formulaMass f2) (formulaMass (f1.imp f2)) hlt1 hlt2 hc
-    exact Nat.le_trans (Nat.add_le_add (Nat.add_le_add_left ih1 3) ih2) hcombine
-  | iff f1 f2 ih1 ih2 =>
-    simp only [wireSizeFormula, formulaMass, nodeBound]
-    have hc : 2 < formulaMass (f1.iff f2) := by
-      simp [formulaMass, formulaNodes, maxVarFormula]
-      have h1 := formulaNodes_pos f1
-      have h2 := formulaNodes_pos f2
-      omega
-    have hlt1 : formulaMass f1 + 1 < formulaMass (f1.iff f2) := by
-      simpa [formulaMass, formulaNodes, maxVarFormula] using formulaMass_lt_combine_left f1 f2
-    have hlt2 : formulaMass f2 + 1 < formulaMass (f1.iff f2) := by
-      simpa [formulaMass, formulaNodes, maxVarFormula] using formulaMass_lt_combine_right f1 f2
-    have hcombine := nodeBound_combine (formulaMass f1) (formulaMass f2) (formulaMass (f1.iff f2)) hlt1 hlt2 hc
-    exact Nat.le_trans (Nat.add_le_add (Nat.add_le_add_left ih1 3) ih2) hcombine
+    formulaSize f ≤ nodeBound (formulaMass f) :=
+  wireSizeFormula_le_nodeBound_aux f
 
 theorem formulaNodes_le_astMass (f : Formula) : formulaNodes f ≤ formulaAstMass f := by
   simp [formulaAstMass, Nat.le_add_right]

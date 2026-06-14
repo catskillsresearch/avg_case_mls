@@ -41,6 +41,8 @@ example : decideConjunct [.mem 0 1, .notMem 0 1] = false := rfl
 
 example : decideConjunct [.eqEmpty 0] = true := rfl
 
+example : decideConjunct [.eqEmpty 0, .eqEmpty 1, .neq 0 1] = false := rfl
+
 example :
     decideMLSSat (Formula.and (Formula.rel (Relation.mem (Term.var 0) (Term.var 1)))
       (Formula.rel (Relation.not_mem (Term.var 0) (Term.var 1)))) = false := rfl

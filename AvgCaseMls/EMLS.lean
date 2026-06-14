@@ -139,6 +139,9 @@ def varTerm? : Term → Option Nat
   | Term.var n => some n
   | _ => none
 
+theorem varTerm?_eq (t : Term) (n : Nat) (h : varTerm? t = some n) : t = Term.var n := by
+  cases t <;> simp [varTerm?] at h <;> cases h <;> rfl
+
 def binaryOpTerm? : Term → Option (Nat × Nat × BinOp)
   | Term.union (Term.var y) (Term.var z) => some (y, z, .union)
   | Term.inter (Term.var y) (Term.var z) => some (y, z, .inter)
@@ -166,6 +169,80 @@ def relationToLiteral? : Relation → Option Literal
       return .neq x y
   | _ => none
 
+theorem relationToLiteral?_eval (env : Env) (r : Relation) (lit : Literal)
+    (h : relationToLiteral? r = some lit) :
+    evalFormula env (Formula.rel r) ↔ Literal.holds env lit := by
+  revert lit
+  cases r with
+  | mem t1 t2 =>
+    intro lit h
+    cases ht1 : varTerm? t1 with
+    | none => simp [relationToLiteral?, ht1] at h
+    | some x =>
+      cases ht2 : varTerm? t2 with
+      | none => simp [relationToLiteral?, ht2] at h
+      | some y =>
+        simp [relationToLiteral?, ht1, ht2, Literal.holds, evalFormula, evalTerm] at h ⊢
+        cases h
+        rw [varTerm?_eq t1 x ht1, varTerm?_eq t2 y ht2]
+        simp [evalTerm, Literal.holds]
+  | not_mem t1 t2 =>
+    intro lit h
+    cases ht1 : varTerm? t1 with
+    | none => simp [relationToLiteral?, ht1] at h
+    | some x =>
+      cases ht2 : varTerm? t2 with
+      | none => simp [relationToLiteral?, ht2] at h
+      | some y =>
+        simp [relationToLiteral?, ht1, ht2, Literal.holds, evalFormula, evalTerm] at h ⊢
+        cases h
+        rw [varTerm?_eq t1 x ht1, varTerm?_eq t2 y ht2]
+        simp [evalTerm, Literal.holds]
+  | eq t1 t2 =>
+    intro lit h
+    by_cases ht2 : t2 = Term.empty
+    · subst ht2
+      cases ht1 : varTerm? t1 with
+      | none => simp [relationToLiteral?, ht1] at h
+      | some x =>
+        simp [relationToLiteral?, ht1, Literal.holds, evalFormula, evalTerm] at h ⊢
+        cases h
+        rw [varTerm?_eq t1 x ht1]
+        simp [evalTerm, Literal.holds]
+    · by_cases hunion : ∃ x y z, t1 = Term.var x ∧ t2 = Term.union (Term.var y) (Term.var z)
+      · obtain ⟨x, y, z, ht1, ht2⟩ := hunion
+        subst ht1 ht2
+        simp [relationToLiteral?, Literal.holds, evalFormula, evalTerm, binOpToTerm] at h ⊢
+        cases h; simp [evalTerm, Literal.holds]
+      · by_cases hinter : ∃ x y z, t1 = Term.var x ∧ t2 = Term.inter (Term.var y) (Term.var z)
+        · obtain ⟨x, y, z, ht1, ht2⟩ := hinter
+          subst ht1 ht2
+          simp [relationToLiteral?, Literal.holds, evalFormula, evalTerm, binOpToTerm] at h ⊢
+          cases h; simp [evalTerm, Literal.holds]
+        · by_cases hdiff : ∃ x y z, t1 = Term.var x ∧ t2 = Term.diff (Term.var y) (Term.var z)
+          · obtain ⟨x, y, z, ht1, ht2⟩ := hdiff
+            subst ht1 ht2
+            simp [relationToLiteral?, Literal.holds, evalFormula, evalTerm, binOpToTerm] at h ⊢
+            cases h; simp [evalTerm, Literal.holds]
+          · exfalso
+            have hnone :
+                relationToLiteral? (Relation.eq t1 t2) = none := by
+              sorry
+            rw [hnone] at h
+            cases h
+  | neq t1 t2 =>
+    intro lit h
+    cases ht1 : varTerm? t1 with
+    | none => simp [relationToLiteral?, ht1] at h
+    | some x =>
+      cases ht2 : varTerm? t2 with
+      | none => simp [relationToLiteral?, ht2] at h
+      | some y =>
+        simp [relationToLiteral?, ht1, ht2, Literal.holds, evalFormula, evalTerm] at h ⊢
+        cases h
+        rw [varTerm?_eq t1 x ht1, varTerm?_eq t2 y ht2]
+        simp [evalTerm, Literal.holds]
+
 def memLiterals (c : Conjunct) : List (Nat × Nat) :=
   c.filterMap fun
     | .mem x y => some (x, y)
@@ -180,5 +257,11 @@ def neqLiterals (c : Conjunct) : List (Nat × Nat) :=
   c.filterMap fun
     | .neq x y => some (x, y)
     | _ => none
+
+def hasEqEmpty (c : Conjunct) (x : Nat) : Bool :=
+  c.any fun | .eqEmpty y => decide (y = x) | _ => false
+
+def hasEqOpLiteral (c : Conjunct) : Bool :=
+  c.any fun | .eqOp _ _ _ _ => true | _ => false
 
 end MLS.EMLS

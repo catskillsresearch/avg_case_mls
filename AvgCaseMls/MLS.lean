@@ -52,6 +52,13 @@ axiom ZFSet.inter : ZFSet → ZFSet → ZFSet
 axiom ZFSet.diff  : ZFSet → ZFSet → ZFSet
 axiom ZFSet.mem   : ZFSet → ZFSet → Prop
 
+/-- Distinct nonempty tags for Step 3 witness environments (Phase 2C). -/
+axiom ZFSet.tag : Nat → ZFSet
+
+axiom ZFSet.tag_ne_empty (n : Nat) : ZFSet.tag n ≠ ZFSet.empty
+
+axiom ZFSet.tag_injective : Function.Injective ZFSet.tag
+
 def Env : Type := Nat → ZFSet
 
 noncomputable def evalTerm (env : Env) : Term → ZFSet

@@ -81,3 +81,17 @@ When the literature leaves a choice implicit, we record it here.
 **Lean fork:** `DistributionalReduction` records correctness and domination only; no bound on $\\text{len}(f(x))$ yet (transitivity of reductions deferred).
 
 **Rationale:** Polynomial-time map verification waits on a concrete encoding of poly-time functions.
+
+## FOS80 decision procedure (Phase 2C)
+
+**Literature:** Ferro–Omodeo–Schwartz [FOS80] §3 model-graph decision for MLS satisfiability.
+
+**Lean fork — Step 3 witness:** When two distinct variables are forced empty (`eqEmpty`) but linked by `neq`, Step 3 returns **unsat** via `hasStep3Obstruction` (sound: empty ≠ empty cannot satisfy `neq`).
+
+**Lean fork — partial Steps 1 & 4:** `formulaToConjunct?` covers `rel` + `and` only; Step 4 cycle check is syntactic (no semantic completeness). `decideMLSSat_complete` remains `sorry`.
+
+**Lean fork — `relationToLiteral?`:** Maps only FOS80 §3 patterns (`var`/`empty`/`∪`/`∩`/`\\` on variables). The `relationToLiteral?_eval` proof uses `sorry` only for the unreachable branch where `relationToLiteral? (eq t1 t2) = some lit` but `(t1,t2)` is outside that fragment (dead code for the soundness path).
+
+**Lean fork — sound fragment:** `InDecideSoundFragment` / `InDecideSoundFormula` hypothesis on `decideMLSSat_sound` and `decideConjunct_sound` (no membership/`eqOp` literals; Step 3 obstruction false).
+
+**Rationale:** Honest partial procedure: proved soundness on the conjunct fragment exercised by tests; completeness deferred to Phase 2D+ / fuller Step 4.

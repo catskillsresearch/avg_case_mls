@@ -607,7 +607,7 @@ theorem SatMLS_average_hard (μ : Distribution) (h_rank : ∃ T, IsPolynomial T 
 | **1D** | `AvP`, `InDistNP`, `DistributionalReduction`, `IsNPAverageComplete`; forks in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md) | Proofs check |
 | **2A** | MLS syntax + axiomatic semantics (§6, [`MLS.lean`](AvgCaseMls/MLS.lean)) | Proofs check |
 | **2B** | `Literal`, `literalToFormula`, `conjunctToFormula`, `Literal.holds` ([`EMLS.lean`](AvgCaseMls/EMLS.lean)) | Proofs check |
-| **2C** | `decideMLSSat`, FOS80 Steps 2–4 partial ([`DecideMLS.lean`](AvgCaseMls/DecideMLS.lean)) | TBD |
+| **2C** | `decideMLSSat`, FOS80 Steps 2–4 partial ([`DecideMLS.lean`](AvgCaseMls/DecideMLS.lean)) | Proofs check |
 | **2D** | `serializeFormula`, `SatMLS`, `stepsMLS` (§8 axioms removed) | TBD |
 | **3A** | `SatMLS ∈ NP` or Mathlib blocker | TBD |
 | **3B** | Encoding size lemmas; polynomial bounds on $`\Vert \varphi \Vert`$ | TBD |
@@ -617,7 +617,7 @@ theorem SatMLS_average_hard (μ : Distribution) (h_rank : ∃ T, IsPolynomial T 
 | **5A** | Conditional non-AvP from completeness | TBD |
 | **5B** | `SatMLS_average_hard` without `sorry` | TBD |
 
-*Last updated: Phases **1A–1D**, **2A**, and **2B** graded **Proofs check** (no `sorry` in those scopes); all other subphases TBD.*
+*Last updated: Phases **1A–1D**, **2A**, **2B**, and **2C** graded **Proofs check** (soundness on `InDecideSoundFragment`; `decideMLSSat_complete` and one dead branch in `relationToLiteral?_eval` still `sorry`); remaining subphases TBD.*
 
 ---
 

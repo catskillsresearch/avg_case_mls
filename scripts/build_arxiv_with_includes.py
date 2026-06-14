@@ -26,7 +26,7 @@ def slug(path: str) -> str:
 
 
 def lean_ref(rel_path: str) -> str:
-    return f"[`{rel_path}`](#{slug(rel_path)})"
+    return f"[{rel_path}](#{slug(rel_path)})"
 
 
 def replace_lean_links(text: str) -> str:
@@ -56,7 +56,7 @@ def read_lean(rel_path: str) -> str:
 def lean_block(rel_path: str, content: str) -> str:
     anchor = slug(rel_path)
     return (
-        f"### `{rel_path}` {{#{anchor}}}\n\n"
+        f"### {rel_path} {{#{anchor}}}\n\n"
         f"```lean\n{content.rstrip()}\n```\n\n"
     )
 
@@ -80,21 +80,41 @@ def expand_includes(text: str) -> tuple[str, set[str]]:
     return text, included
 
 
-def append_missing_modules(text: str, included: set[str]) -> str:
-    missing = [
-        path.relative_to(ROOT).as_posix()
-        for path in sorted(LEAN_DIR.glob("*.lean"))
-        if path.relative_to(ROOT).as_posix() not in included
-    ]
-    if not missing:
-        return text
+def normalize_lean_path(rel_path: str) -> str | None:
+    if rel_path.startswith("AvgCaseMls/"):
+        return rel_path
+    if rel_path.endswith(".lean") and "/" not in rel_path:
+        candidate = f"AvgCaseMls/{rel_path}"
+        if (ROOT / candidate).is_file():
+            return candidate
+    return None
 
-    blocks = [lean_block(rel_path, read_lean(rel_path)) for rel_path in missing]
-    return (
-        text.rstrip()
-        + "\n\n---\n\n## Lean modules (inlined)\n\n"
-        + "".join(blocks)
-    )
+
+def lean_paths_in_line(line: str) -> list[str]:
+    paths: list[str] = []
+    for match in LINK_RE.finditer(line):
+        rel_path = normalize_lean_path(match.group(2))
+        if rel_path is not None:
+            paths.append(rel_path)
+    return paths
+
+
+def inject_at_first_link(text: str, included: set[str]) -> str:
+    """Insert full Lean sources immediately after the first markdown link to each module."""
+    lines = text.split("\n")
+    out: list[str] = []
+    for line in lines:
+        out.append(line)
+        pending: list[str] = []
+        for rel_path in lean_paths_in_line(line):
+            if rel_path in included:
+                continue
+            included.add(rel_path)
+            pending.append(lean_block(rel_path, read_lean(rel_path)).rstrip())
+        if pending:
+            out.append("")
+            out.extend(pending)
+    return "\n".join(out)
 
 
 def main() -> int:
@@ -102,9 +122,9 @@ def main() -> int:
         print(f"error: missing {SRC}", file=sys.stderr)
         return 1
 
-    body = replace_lean_links(SRC.read_text())
-    body, included = expand_includes(body)
-    body = append_missing_modules(body, included)
+    body, included = expand_includes(SRC.read_text())
+    body = inject_at_first_link(body, included)
+    body = replace_lean_links(body)
 
     OUT.write_text(body.rstrip() + "\n")
     print(f"wrote {OUT.relative_to(ROOT)} ({OUT.stat().st_size:,} bytes)")

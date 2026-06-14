@@ -412,8 +412,14 @@ theorem formulaMass_iff_le (f1 f2 : Formula) :
   simp [formulaMass, formulaNodes, maxVarFormula]
   omega
 
-private theorem wireSizeTerm_mul_bound (t : Term) :
-    wireSizeTerm t ≤ (termNodes t + 1) * (maxVarTerm t + 4) + 3 := by
+private theorem sqMass_le_nodeBound (m : Nat) : (m + 30) ^ 2 ≤ nodeBound m := by
+  simp [nodeBound]
+  nlinarith [sq_nonneg (m : ℤ)]
+
+private def wireEndSlack : Nat := 603
+
+private theorem wireSizeTerm_rec_bound (t : Term) :
+    wireSizeTerm t ≤ (termNodes t + 1) * (maxVarTerm t + 4) + 3 * termNodes t := by
   induction t with
   | var n =>
     simp [wireSizeTerm, termNodes, maxVarTerm, wireSizeNat]
@@ -421,61 +427,100 @@ private theorem wireSizeTerm_mul_bound (t : Term) :
     omega
   | empty => simp [wireSizeTerm, termNodes, maxVarTerm]
   | union t1 t2 ih1 ih2 | inter t1 t2 ih1 ih2 | diff t1 t2 ih1 ih2 =>
+    have hM1 : maxVarTerm t1 ≤ max (maxVarTerm t1) (maxVarTerm t2) := Nat.le_max_left _ _
+    have hM2 : maxVarTerm t2 ≤ max (maxVarTerm t1) (maxVarTerm t2) := Nat.le_max_right _ _
+    have ih1' : wireSizeTerm t1 ≤
+        (termNodes t1 + 1) * (max (maxVarTerm t1) (maxVarTerm t2) + 4) + 3 * termNodes t1 := by
+      nlinarith [ih1, hM1]
+    have ih2' : wireSizeTerm t2 ≤
+        (termNodes t2 + 1) * (max (maxVarTerm t1) (maxVarTerm t2) + 4) + 3 * termNodes t2 := by
+      nlinarith [ih2, hM2]
     simp [wireSizeTerm, termNodes, maxVarTerm]
-    nlinarith [ih1, ih2, termNodes_pos t1, termNodes_pos t2]
+    nlinarith [ih1', ih2', termNodes_pos t1, termNodes_pos t2]
+
+private theorem wireSizeTerm_mul_bound (t : Term) :
+    wireSizeTerm t ≤ (termNodes t + 1) * (maxVarTerm t + 4) + 3 * termNodes t + wireEndSlack := by
+  nlinarith [wireSizeTerm_rec_bound t]
 
 private theorem wireSizeTerm_mul_bound_le_nodeBound (t : Term) :
-    (termNodes t + 1) * (maxVarTerm t + 4) + 3 ≤ nodeBound (termMass t) := by
-  simp [termMass, nodeBound]
-  have h1 : (termNodes t + 1) * (maxVarTerm t + 4) + 3 ≤ (termNodes t + maxVarTerm t + 4) ^ 2 := by
+    (termNodes t + 1) * (maxVarTerm t + 4) + 3 * termNodes t + wireEndSlack ≤ nodeBound (termMass t) := by
+  have h1 : (termNodes t + 1) * (maxVarTerm t + 4) + 3 * termNodes t + wireEndSlack ≤
+      (termMass t + 30) ^ 2 := by
+    simp [termMass, wireEndSlack]
     nlinarith [sq_nonneg (termNodes t : ℤ), sq_nonneg (maxVarTerm t : ℤ), termNodes_pos t]
-  nlinarith [h1, sq_nonneg (termNodes t + maxVarTerm t : ℤ)]
+  exact Nat.le_trans h1 (sqMass_le_nodeBound (termMass t))
 
 private theorem wireSizeTerm_le_nodeBound_aux (t : Term) : wireSizeTerm t ≤ nodeBound (termMass t) :=
   Nat.le_trans (wireSizeTerm_mul_bound t) (wireSizeTerm_mul_bound_le_nodeBound t)
 
-private theorem wireSizeRelation_mul_bound (r : Relation) :
-    wireSizeRelation r ≤ (relationNodes r + 1) * (maxVarRelation r + 4) + 6 := by
+private theorem wireSizeRelation_rec_bound (r : Relation) :
+    wireSizeRelation r ≤ (relationNodes r + 1) * (maxVarRelation r + 4) + 3 * relationNodes r := by
   cases r with
   | mem t1 t2 | not_mem t1 t2 | eq t1 t2 | neq t1 t2 =>
-    have h1 := wireSizeTerm_mul_bound t1
-    have h2 := wireSizeTerm_mul_bound t2
+    have hM1 : maxVarTerm t1 ≤ max (maxVarTerm t1) (maxVarTerm t2) := Nat.le_max_left _ _
+    have hM2 : maxVarTerm t2 ≤ max (maxVarTerm t1) (maxVarTerm t2) := Nat.le_max_right _ _
+    have ih1' : wireSizeTerm t1 ≤
+        (termNodes t1 + 1) * (max (maxVarTerm t1) (maxVarTerm t2) + 4) + 3 * termNodes t1 := by
+      nlinarith [wireSizeTerm_rec_bound t1, hM1]
+    have ih2' : wireSizeTerm t2 ≤
+        (termNodes t2 + 1) * (max (maxVarTerm t1) (maxVarTerm t2) + 4) + 3 * termNodes t2 := by
+      nlinarith [wireSizeTerm_rec_bound t2, hM2]
     simp [wireSizeRelation, relationNodes, maxVarRelation, relationMass, termNodes, maxVarTerm]
-    nlinarith [h1, h2, termNodes_pos t1, termNodes_pos t2]
+    nlinarith [ih1', ih2', termNodes_pos t1, termNodes_pos t2]
+
+private theorem wireSizeRelation_mul_bound (r : Relation) :
+    wireSizeRelation r ≤ (relationNodes r + 1) * (maxVarRelation r + 4) + 3 * relationNodes r +
+      wireEndSlack + 3 := by
+  nlinarith [wireSizeRelation_rec_bound r]
 
 private theorem wireSizeRelation_mul_bound_le_nodeBound (r : Relation) :
-    (relationNodes r + 1) * (maxVarRelation r + 4) + 6 ≤ nodeBound (relationMass r) := by
-  simp [relationMass, nodeBound, relationNodes, maxVarRelation]
-  have h1 : (relationNodes r + 1) * (maxVarRelation r + 4) + 6 ≤
-      (relationNodes r + maxVarRelation r + 4) ^ 2 := by
+    (relationNodes r + 1) * (maxVarRelation r + 4) + 3 * relationNodes r + wireEndSlack + 3 ≤
+      nodeBound (relationMass r) := by
+  have h1 : (relationNodes r + 1) * (maxVarRelation r + 4) + 3 * relationNodes r + wireEndSlack + 3 ≤
+      (relationMass r + 30) ^ 2 := by
+    simp [relationMass, wireEndSlack, relationNodes, maxVarRelation]
     nlinarith [sq_nonneg (relationNodes r : ℤ), sq_nonneg (maxVarRelation r : ℤ), relationMass_pos r]
-  nlinarith [h1, sq_nonneg (relationNodes r + maxVarRelation r : ℤ)]
+  exact Nat.le_trans h1 (sqMass_le_nodeBound (relationMass r))
 
 private theorem wireSizeRelation_le_nodeBound_aux (r : Relation) :
     wireSizeRelation r ≤ nodeBound (relationMass r) :=
   Nat.le_trans (wireSizeRelation_mul_bound r) (wireSizeRelation_mul_bound_le_nodeBound r)
 
-private theorem wireSizeFormula_mul_bound (f : Formula) :
-    wireSizeFormula f ≤ (formulaNodes f + 1) * (maxVarFormula f + 4) + 10 := by
+private theorem wireSizeFormula_rec_bound (f : Formula) :
+    wireSizeFormula f ≤ (formulaNodes f + 1) * (maxVarFormula f + 4) + 3 * formulaNodes f := by
   induction f with
   | rel r =>
-    have hr := wireSizeRelation_mul_bound r
-    simp [wireSizeFormula, formulaNodes, maxVarFormula, relationNodes, maxVarRelation, relationMass]
-    nlinarith [hr, relationMass_pos r]
+    have hr := wireSizeRelation_rec_bound r
+    simp [wireSizeFormula, formulaNodes, maxVarFormula]
+    nlinarith [hr, relationNodes_pos r]
   | not f ih =>
     simp [wireSizeFormula, formulaNodes, maxVarFormula]
     nlinarith [ih, formulaNodes_pos f]
   | and f1 f2 ih1 ih2 | or f1 f2 ih1 ih2 | imp f1 f2 ih1 ih2 | iff f1 f2 ih1 ih2 =>
+    have hM1 : maxVarFormula f1 ≤ max (maxVarFormula f1) (maxVarFormula f2) := Nat.le_max_left _ _
+    have hM2 : maxVarFormula f2 ≤ max (maxVarFormula f1) (maxVarFormula f2) := Nat.le_max_right _ _
+    have ih1' : wireSizeFormula f1 ≤
+        (formulaNodes f1 + 1) * (max (maxVarFormula f1) (maxVarFormula f2) + 4) + 3 * formulaNodes f1 := by
+      nlinarith [ih1, hM1]
+    have ih2' : wireSizeFormula f2 ≤
+        (formulaNodes f2 + 1) * (max (maxVarFormula f1) (maxVarFormula f2) + 4) + 3 * formulaNodes f2 := by
+      nlinarith [ih2, hM2]
     simp [wireSizeFormula, formulaNodes, maxVarFormula]
-    nlinarith [ih1, ih2, formulaNodes_pos f1, formulaNodes_pos f2]
+    nlinarith [ih1', ih2', formulaNodes_pos f1, formulaNodes_pos f2]
+
+private theorem wireSizeFormula_mul_bound (f : Formula) :
+    wireSizeFormula f ≤ (formulaNodes f + 1) * (maxVarFormula f + 4) + 3 * formulaNodes f +
+      wireEndSlack + 3 := by
+  nlinarith [wireSizeFormula_rec_bound f]
 
 private theorem wireSizeFormula_mul_bound_le_nodeBound (f : Formula) :
-    (formulaNodes f + 1) * (maxVarFormula f + 4) + 10 ≤ nodeBound (formulaMass f) := by
-  simp [formulaMass, nodeBound, formulaNodes, maxVarFormula]
-  have h1 : (formulaNodes f + 1) * (maxVarFormula f + 4) + 10 ≤
-      (formulaNodes f + maxVarFormula f + 4) ^ 2 := by
+    (formulaNodes f + 1) * (maxVarFormula f + 4) + 3 * formulaNodes f + wireEndSlack + 3 ≤
+      nodeBound (formulaMass f) := by
+  have h1 : (formulaNodes f + 1) * (maxVarFormula f + 4) + 3 * formulaNodes f + wireEndSlack + 3 ≤
+      (formulaMass f + 30) ^ 2 := by
+    simp [formulaMass, wireEndSlack, formulaNodes, maxVarFormula]
     nlinarith [sq_nonneg (formulaNodes f : ℤ), sq_nonneg (maxVarFormula f : ℤ), formulaMass_pos f]
-  nlinarith [h1, sq_nonneg (formulaNodes f + maxVarFormula f : ℤ)]
+  exact Nat.le_trans h1 (sqMass_le_nodeBound (formulaMass f))
 
 private theorem wireSizeFormula_le_nodeBound_aux (f : Formula) :
     wireSizeFormula f ≤ nodeBound (formulaMass f) :=

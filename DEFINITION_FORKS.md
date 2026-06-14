@@ -180,6 +180,8 @@ When the literature leaves a choice implicit, we record it here.
 
 **Lean fork — syntax mass:** [`formulaAstMass`] = [`formulaNodes`] + [`maxVarFormula`]; [`encodingBound n := nodeBound n + 2`] with [`nodeBound n = (n+2)^2 · 10^{12} + 10^{12}`] (quadratic slack, intentionally loose).
 
-**Lean fork — lemmas:** [`formulaSize_le_encodingBound`], [`encodingBound_poly`], [`formulaSize_le_polyMass`]; wire-size bounds via [`formulaSize_le_nodeBound`] modulo [`nodeBound_pair_le`] `sorry` (binary combine inequality) and rel/not wrapper steps.
+**Lean fork — lemmas:** [`formulaSize_le_encodingBound`], [`encodingBound_poly`], [`formulaSize_le_polyMass`]; wire-size bounds via [`formulaSize_le_nodeBound`] using a multiplicative per-node slack (`3 · nodes`) plus quadratic [`nodeBound`] gap — **not** the old false [`nodeBound_pair_le`] at child mass `c−2` (parent mass can be *below* the sum of child masses when max vars overlap; e.g. two `.var 4` unions).
 
-**Rationale:** Delivers checkable polynomial-size targets for Phase 4–5; tighten combine/decode proofs later.
+**Lean fork — combine proof:** [`nodeBound_pair_sum_le`] remains for index `a+b+1`; final [`wireSizeTerm_le_nodeBound`] uses [`wireSizeTerm_rec_bound`] (nodes/maxVar multiplicative bound) → [`sqMass_le_nodeBound`].
+
+**Rationale:** Delivers checkable polynomial-size targets for Phase 4–5 without the false child-mass combine step.

@@ -1,5 +1,7 @@
 # Revisiting average case complexity of multilevel syllogistic: From the 1995 Courant Technical Report to Lean 4 Formalization
 
+> **Portable edition:** run `./scripts/build_arxiv_with_includes.sh` to generate [`arxiv_with_includes.md`](arxiv_with_includes.md), a self-contained copy with every Lean module inlined in full (no external `.lean` references).
+
 ## 1. Introduction: The Vision of AvCom in Program Verification
 In the late 1970s and throughout the 1980s, the "Correct Program Technology" (CPT) movement, spearheaded by figures such as Martin Davis and Jacob T. Schwartz, envisioned a software development pipeline where programmers wrote code alongside mathematical specifications [DS77]. A compiler, integrated with an automated theorem prover, would then verify that the program met its specification. 
 
@@ -326,59 +328,10 @@ Here we translate TR1995-711 §3.2 into Lean 4 using the RS93 rank-sum definitio
 
 All Phase **1** AvCom scaffolding is in [`AvCom.lean`](AvgCaseMls/AvCom.lean). Later phases connect MLS (§6–§8) and hardness (§8).
 
+<!-- include-lean: AvgCaseMls/AvCom.lean -->
+
 ```lean
-import Mathlib.Data.Real.Basic
-import Mathlib.Algebra.BigOperators.Group.Finset.Basic
-
-open Finset
-
-abbrev Bitstring := List Bool
-
-def len (s : Bitstring) : Nat := s.length
-
-def lenBot (s : Bitstring) : Nat := max 1 s.length
-
-structure Distribution where
-  support : Finset Bitstring
-  prob : Bitstring → Real
-  prob_nonneg : ∀ s, 0 ≤ prob s
-  prob_zero_outside : ∀ s, s ∉ support → prob s = 0
-  prob_sum_le_one : support.sum prob ≤ 1
-
-noncomputable def pointMass (x : Bitstring) (p : Real) (hp0 : 0 ≤ p) (hp1 : p ≤ 1) : Distribution := ...
-
-noncomputable def uniformOn (S : Finset Bitstring) (h : S.Nonempty) : Distribution := ...
-
-structure DistributionalProblem where
-  L : Set Bitstring
-  μ : Distribution
-
-def IsPolynomial (T : Nat → Nat) : Prop :=
-  ∃ c k : Nat, ∀ n, T n ≤ c * n ^ k + c
-
-noncomputable def rank (μ : Distribution) (x : Bitstring) : Nat := ...
-
-def T_inv (T : Nat → Nat) (m : Nat) : Nat := ...
-
-noncomputable def rankLe (μ : Distribution) (l : Nat) : Finset Bitstring := ...
-
-def IsAvTime (T : Nat → Nat) (f : Bitstring → Nat) (μ : Distribution) : Prop := ...
-
-def IsTRankable (V : Nat → Nat) (μ : Distribution) : Prop := ...
-
-def DistTime (T : Nat → Nat) (prob : DistributionalProblem) : Prop := ...
-
-def AvDTime (T V : Nat → Nat) (prob : DistributionalProblem) : Prop := ...
-
-def InNP (_L : Set Bitstring) : Prop := ...
-
-def InDistNP (prob : DistributionalProblem) : Prop := ...
-
-def DistributionalReduction (source target : DistributionalProblem) : Prop := ...
-
-def AvP (prob : DistributionalProblem) : Prop := ...
-
-def IsNPAverageComplete (target : DistributionalProblem) : Prop := ...
+-- (full source inlined by scripts/build_arxiv_with_includes.py)
 ```
 
 ---
@@ -409,91 +362,18 @@ Set variables are identified with natural-number indices (`Nat → ZFSet` enviro
 
 The listing below matches [`AvgCaseMls/MLS.lean`](AvgCaseMls/MLS.lean).
 
+<!-- include-lean: AvgCaseMls/MLS.lean -->
+
 ```lean
--- Define the logical and syntactic structures of MLS in Lean 4
-
-namespace MLS
-
-/- 1. Syntactic Terms -/
-inductive Term : Type
-  | var   : Nat → Term
-  | empty : Term
-  | union : Term → Term → Term
-  | inter : Term → Term → Term
-  | diff  : Term → Term → Term
-  deriving DecidableEq, Repr
-
-/- 2. Set-Theoretic Relations -/
-inductive Relation : Type
-  | mem     : Term → Term → Relation
-  | not_mem : Term → Term → Relation
-  | eq      : Term → Term → Relation
-  | neq     : Term → Term → Relation
-  deriving DecidableEq, Repr
-
-/- 3. Propositional Formulas -/
-inductive Formula : Type
-  | rel : Relation → Formula
-  | not : Formula → Formula
-  | and : Formula → Formula → Formula
-  | or  : Formula → Formula → Formula
-  | imp : Formula → Formula → Formula
-  | iff : Formula → Formula → Formula
-  deriving DecidableEq, Repr
-
-/- 4. Axiomatic Semantics -/
-axiom ZFSet : Type
-
-axiom ZFSet.empty : ZFSet
-axiom ZFSet.union : ZFSet → ZFSet → ZFSet
-axiom ZFSet.inter : ZFSet → ZFSet → ZFSet
-axiom ZFSet.diff  : ZFSet → ZFSet → ZFSet
-axiom ZFSet.mem   : ZFSet → ZFSet → Prop
-
-def Env : Type := Nat → ZFSet
-
-noncomputable def evalTerm (env : Env) : Term → ZFSet
-  | Term.var n       => env n
-  | Term.empty       => ZFSet.empty
-  | Term.union t1 t2 => ZFSet.union (evalTerm env t1) (evalTerm env t2)
-  | Term.inter t1 t2 => ZFSet.inter (evalTerm env t1) (evalTerm env t2)
-  | Term.diff t1 t2  => ZFSet.diff (evalTerm env t1) (evalTerm env t2)
-
-noncomputable def evalFormula (env : Env) : Formula → Prop
-  | Formula.rel (Relation.mem t1 t2)     => ZFSet.mem (evalTerm env t1) (evalTerm env t2)
-  | Formula.rel (Relation.not_mem t1 t2) => ¬ ZFSet.mem (evalTerm env t1) (evalTerm env t2)
-  | Formula.rel (Relation.eq t1 t2)      => evalTerm env t1 = evalTerm env t2
-  | Formula.rel (Relation.neq t1 t2)     => evalTerm env t1 ≠ evalTerm env t2
-  | Formula.not f                        => ¬ evalFormula env f
-  | Formula.and f1 f2                    => evalFormula env f1 ∧ evalFormula env f2
-  | Formula.or f1 f2                     => evalFormula env f1 ∨ evalFormula env f2
-  | Formula.imp f1 f2                    => evalFormula env f1 → evalFormula env f2
-  | Formula.iff f1 f2                    => evalFormula env f1 ↔ evalFormula env f2
-
-end MLS
+-- (full source inlined by scripts/build_arxiv_with_includes.py)
 ```
 
 **EMLS (Phase 2B).** Elementary literals and translation into MLS live in [`AvgCaseMls/EMLS.lean`](AvgCaseMls/EMLS.lean), following Ferro–Omodeo–Schwartz [FOS80] §3 ([`3-540-10009-1_8.pdf`](3-540-10009-1_8.pdf)):
 
+<!-- include-lean: AvgCaseMls/EMLS.lean -->
+
 ```lean
-inductive BinOp | union | inter | diff
-
-inductive Literal
-  | eqOp    : Nat → Nat → Nat → BinOp → Literal  -- x = y ∪/∩/\ z
-  | eqEmpty : Nat → Literal
-  | mem | notMem | neq : Nat → Nat → Literal
-
-noncomputable def Literal.holds (env : Env) : Literal → Prop := …
-
-def literalToFormula : Literal → Formula := …
-def conjunctToFormula : Conjunct → Option Formula := …
-
-theorem literalToFormula_eval (env : Env) (lit : Literal) :
-    evalFormula env (literalToFormula lit) ↔ Literal.holds env lit := …
-
-theorem conjunctToFormula_eval (env : Env) (c : Conjunct) (f : Formula) … := …
-
-def relationToLiteral? : Relation → Option Literal := …  -- used by §7
+-- (full source inlined by scripts/build_arxiv_with_includes.py)
 ```
 
 Normalization from general MLS formulas to EMLS conjuncts remains partial (`formulaToConjunct?` in §7); the model-graph decision procedure is §7 only.
@@ -540,23 +420,10 @@ Let $`q^*`$ be the sub-conjunction of $(*)$ literals, $`V_{\in}`$ the variables 
 * **Soundness:** if `decideMLSSat φ = true`, then $`\exists env,\ \text{evalFormula}\ env\ \varphi`$.
 * **Completeness:** if $`\varphi`$ is satisfiable, then `decideMLSSat φ = true` (on the implemented fragment).
 
+<!-- include-lean: AvgCaseMls/DecideMLS.lean -->
+
 ```lean
-namespace MLS
-
-open EMLS
-
-def decideConjunct (c : Conjunct) : Bool := …  -- Steps 2–4 (partial)
-
-def decideMLSSat (f : Formula) : Bool :=
-  match formulaToConjunct? f with
-  | some c => decideConjunct c
-  | none => …  -- fallback on degenerate literals
-
-theorem decideMLSSat_sound (f : Formula) (h : decideMLSSat f = true) :
-    ∃ (env : Env), evalFormula env f := by sorry
-
-theorem decideMLSSat_complete (f : Formula) (h : ∃ (env : Env), evalFormula env f) :
-    decideMLSSat f = true := by sorry
+-- (full source inlined by scripts/build_arxiv_with_includes.py)
 ```
 
 The live implementation is [`AvgCaseMls/DecideMLS.lean`](AvgCaseMls/DecideMLS.lean). A **step-counting** function `stepsMLS` (Phase 2D) will relate the procedure to $`\mathrm{Av}(T)`$ in §5.
@@ -568,22 +435,9 @@ Phase **2D** (encoding) and **5B** (hardness theorem). The AvCom classes are def
 
 We can represent this theorem structurally in Lean 4:
 
-```lean
--- Collapse hypothesis (Phase 5; see AvgCaseMls/ComplexityAxioms.lean)
-axiom NEXP_neq_EXP : Prop
-
-def SatMLS : Set Bitstring :=
-  { s | ∃ (f : MLS.Formula), serializeFormula f = s ∧ ∃ (env : MLS.Env), MLS.evalFormula env f }
-
-/-
-  Corollary 5.1 consequence: simple POL-rankable μ on MLS checker encodings is not AvP-tractable,
-  assuming NEXP ≠ EXP. Proved in AvgCaseMls/AverageHardness.lean via Phase 4C completeness.
--/
-theorem SatMLS_average_hard (h : NEXP_neq_EXP) : ¬ AvP satMLSProb := …
-
-theorem exists_simple_rankable_not_AvP (h : NEXP_neq_EXP) :
-    ∃ μ, IsPolRankable μ ∧ ¬ AvP ⟨SatMLSChecker, μ⟩ := …
-```
+<!-- include-lean: AvgCaseMls/ComplexityAxioms.lean -->
+<!-- include-lean: AvgCaseMls/AverageHardness.lean -->
+<!-- include-lean: AvgCaseMls/NonAvP.lean -->
 
 ---
 

@@ -19,6 +19,30 @@ The goals of this paper are:
 * Use Lean 4 to prove that the decision procedures lie in a certain AvCom class as originally stated in the 1995 paper
 * Suggestions for future work
 
+## Lean 4 formalization
+
+Lean code from [`arxiv.md`](arxiv.md) §6–§9 lives under [`AvgCaseMls/`](AvgCaseMls/). The project follows the same Lake + Mathlib layout as [icon2lean](https://github.com/catskillsresearch/icon2lean).
+
+| Module | Content |
+|--------|---------|
+| [`AvgCaseMls/MLS.lean`](AvgCaseMls/MLS.lean) | MLS syntax and axiomatic `ZFSet` semantics |
+| [`AvgCaseMls/DecideMLS.lean`](AvgCaseMls/DecideMLS.lean) | Mock decision procedure + soundness/completeness statements |
+| [`AvgCaseMls/AvCom.lean`](AvgCaseMls/AvCom.lean) | Distributions, rank, AvP |
+| [`AvgCaseMls/AverageHardness.lean`](AvgCaseMls/AverageHardness.lean) | `SatMLS` and average-case hardness theorem (proof sketch) |
+| [`AvgCaseMls/Tests.lean`](AvgCaseMls/Tests.lean) | Smoke tests (`#eval`, `native_decide`) |
+
+**Setup:** see [`INSTALLING_LEAN.md`](INSTALLING_LEAN.md) for elan, `lake update`, and first build.
+
+**Check the code:**
+
+```bash
+chmod +x run_lean_check.sh run_lean_tests.sh
+./run_lean_check.sh     # typecheck all modules (allows sorry in proofs)
+./run_lean_tests.sh     # print #eval output from Tests.lean
+```
+
+Most theorem proofs are still `sorry`; tests cover the MLS embedding and decidable fragments (`decideMLS` on empty-set cases, `len`, `IsPolynomial`).
+
 ## Contributions and Collaboration
 
 This repository functions strictly as a unilateral broadcast of public code for educational and research purposes.

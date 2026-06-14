@@ -1,6 +1,6 @@
 # Lean setup (step by step)
 
-Lean's toolchain can feel opaque because three separate pieces work together: **elan** (installer), **Lake** (build tool), and **Mathlib** (a huge dependency). The steps below are the same ones used to set up this project on Linux.
+Lean's toolchain can feel opaque because three separate pieces work together: **elan** (installer), **Lake** (build tool), and **Mathlib** (a huge dependency). The steps below match the setup used for this project on Linux.
 
 ## 0. Prerequisites
 
@@ -36,6 +36,66 @@ which lake        # should print something like ~/.elan/bin/lake
 
 You do **not** need to install Lean manually. elan reads `lean-toolchain` in this repo and downloads **Lean 4.30.0** the first time you run `lake`.
 
+## 2. Clone and enter the project
+
+```bash
+git clone https://github.com/catskillsresearch/avg_case_mls.git
+cd avg_case_mls
+```
+
+## 3. Download dependencies (`lake update`)
+
+Lake is Lean's package manager (similar to `cargo` or `npm`). This step clones Mathlib into `.lake/packages/`:
+
+```bash
+lake update
+```
+
+What happens:
+
+- Reads `lakefile.toml` → requests Mathlib tag `v4.30.0`  
+- Writes/updates `lake-manifest.json` with exact commit hashes  
+- Clones several GitHub repos under `.lake/packages/` (Mathlib pulls in batteries, aesop, etc.)
+
+This is the slow, large download. Expect several gigabytes.
+
+## 4. Build the project (`lake build`)
+
+```bash
+lake build
+```
+
+What happens:
+
+- Compiles Mathlib modules your code imports (incremental; first run is heavy)  
+- Typechecks all files under `AvgCaseMls/`  
+- Produces cache files under `.lake/build/`  
+
+A successful run ends with something like:
+
+```text
+Build completed successfully.
+```
+
+## 5. Check the Lean formalization
+
+This repo extracts Lean 4 code from [`arxiv.md`](arxiv.md) (§6–§9). Most theorem proofs are still `sorry`; the current tests focus on definitions that compile and a few decidable examples.
+
+```bash
+chmod +x run_lean_check.sh run_lean_tests.sh
+./run_lean_check.sh     # typecheck everything
+./run_lean_tests.sh     # print #eval smoke-test output
+```
+
+Or run the underlying commands directly:
+
+```bash
+lake build
+lake build AvgCaseMls.Tests 2>&1 | grep "^info: AvgCaseMls/Tests"
+```
+
+Expected `#eval` lines include `true`, `false`, `0`, and `3` for the empty-set equality case, inequality case, and bitstring lengths.
+
 ## What is in the repo vs. what appears after you build
 
 **Committed (small, human-readable):**
@@ -45,8 +105,10 @@ You do **not** need to install Lean manually. elan reads `lean-toolchain` in thi
 | `lean-toolchain` | Pins Lean **4.30.0** (read by [elan](#1-install-elan-lean-version-manager)) |
 | `lakefile.toml` | Project config; declares Mathlib **v4.30.0** as a dependency |
 | `lake-manifest.json` | Lockfile: exact Git commits for Mathlib and its dependencies |
-| `Icon2lean/` | Algorithm implementations (GCD, CRA, FFT, etc.) |
-| `Icon2lean.lean` | Root module that imports the library |
+| `AvgCaseMls/` | MLS embedding, decision-procedure skeleton, AvCom definitions |
+| `AvgCaseMls.lean` | Root module that imports the library |
+| `run_lean_check.sh` | Runs `lake build` (full typecheck) |
+| `run_lean_tests.sh` | Runs `#eval` smoke tests in `AvgCaseMls/Tests.lean` |
 
 **Generated locally (large, gitignored):**
 
@@ -57,3 +119,43 @@ You do **not** need to install Lean manually. elan reads `lean-toolchain` in thi
 
 If you see a multi-gigabyte `.lake/` folder after setup, that is normal. It is intentionally **not** in git.
 
+## Lean library map
+
+| `arxiv.md` section | Module | Status |
+|--------------------|--------|--------|
+| §6 MLS syntax & semantics | [`AvgCaseMls/MLS.lean`](AvgCaseMls/MLS.lean) | Definitions complete |
+| §7 Decision procedure | [`AvgCaseMls/DecideMLS.lean`](AvgCaseMls/DecideMLS.lean) | Mock `decideMLS`; proofs are `sorry` |
+| §8 AvCom definitions | [`AvgCaseMls/AvCom.lean`](AvgCaseMls/AvCom.lean) | `rank`, `T_inv` still `sorry` |
+| §9 Average-case hardness | [`AvgCaseMls/AverageHardness.lean`](AvgCaseMls/AverageHardness.lean) | Theorem statement; proof is `sorry` |
+| Smoke tests | [`AvgCaseMls/Tests.lean`](AvgCaseMls/Tests.lean) | `native_decide` / `#eval` on decidable fragments |
+
+## 6. Day-to-day commands
+
+| Command | When to use |
+|---------|-------------|
+| `./run_lean_check.sh` | After editing `.lean` files — confirms everything still typechecks |
+| `./run_lean_tests.sh` | After changing computable definitions — prints `#eval` output |
+| `lake build AvgCaseMls` | Build only the library target |
+| `lake clean` | Delete `.lake/build/` cache (keeps downloaded packages) |
+| `rm -rf .lake && lake update && lake build` | Nuclear reset if dependencies get corrupted |
+
+## Troubleshooting
+
+**`lake: command not found`**  
+Run `source "$HOME/.elan/env"` or open a new terminal after installing elan.
+
+**Out of disk space during `lake update`**  
+Mathlib needs several GB. Free space or use a machine with more storage; there is no lightweight subset for this project.
+
+**Build runs out of memory**  
+Close other apps; Mathlib compilation is RAM-heavy. Retry `lake build` (Lake resumes incrementally).
+
+**Wrong Lean version**  
+From the repo root, run `elan toolchain install leanprover/lean4:v4.30.0` then `lake build`. The file `lean-toolchain` should contain `leanprover/lean4:v4.30.0`.
+
+**`.lake/` showed up in `git status`**  
+It should be ignored. If git still tracks it, you may have added it before `.gitignore`; run `git rm -r --cached .lake` once (do not delete the folder on disk).
+
+## Reference setup
+
+This Lean layout follows the same pattern as [icon2lean](https://github.com/catskillsresearch/icon2lean): pinned `lean-toolchain`, Mathlib via Lake, a namespaced library under `AvgCaseMls/`, and shell scripts to typecheck and print test output.

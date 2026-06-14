@@ -7,4 +7,5 @@ import AvgCaseMls.NPMembership
 import AvgCaseMls.NBH
 import AvgCaseMls.Reduction
 import AvgCaseMls.Completeness
+import AvgCaseMls.NonAvP
 import AvgCaseMls.Tests

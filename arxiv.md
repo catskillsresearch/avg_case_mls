@@ -569,29 +569,20 @@ Phase **2D** (encoding) and **5B** (hardness theorem). The AvCom classes are def
 We can represent this theorem structurally in Lean 4:
 
 ```lean
--- Abstract representation of the non-triviality of the "Nose" of MLS
+-- Collapse hypothesis (Phase 5; see AvgCaseMls/ComplexityAxioms.lean)
+axiom NEXP_neq_EXP : Prop
 
-axiom NEXP_neq_EXP : Prop -- Nondeterministic Exponential Time != Deterministic Exponential Time
-
--- Map an MLS Formula to its binary representation
-axiom serializeFormula : MLS.Formula → Bitstring
-
--- The language of satisfiable MLS formulas
 def SatMLS : Set Bitstring :=
   { s | ∃ (f : MLS.Formula), serializeFormula f = s ∧ ∃ (env : MLS.Env), MLS.evalFormula env f }
 
 /-
-  Theorem 5.1 (adapted): SatMLS is NP-average complete.
-  Consequently, there exists a simple, polynomial-time rankable distribution μ 
-  under which (SatMLS, μ) is not in AvP, assuming NEXP ≠ EXP.
+  Corollary 5.1 consequence: simple POL-rankable μ on MLS checker encodings is not AvP-tractable,
+  assuming NEXP ≠ EXP. Proved in AvgCaseMls/AverageHardness.lean via Phase 4C completeness.
 -/
-theorem SatMLS_average_hard (μ : Distribution) (h_rank : ∃ T, IsPolynomial T ∧ ∀ x, rank μ x ≤ T (len x)) :
-    NEXP_neq_EXP → ¬ AvP ⟨SatMLS, μ⟩ := by
-  intro h_collapse h_avp
-  -- The proof sketch reduces the bounded halting problem for NTMs (NBH)
-  -- to SatMLS, showing that if SatMLS was in AvP, NBH would be in AvP,
-  -- collapsing NEXP to EXP.
-  sorry
+theorem SatMLS_average_hard (h : NEXP_neq_EXP) : ¬ AvP satMLSProb := …
+
+theorem exists_simple_rankable_not_AvP (h : NEXP_neq_EXP) :
+    ∃ μ, IsPolRankable μ ∧ ¬ AvP ⟨SatMLSChecker, μ⟩ := …
 ```
 
 ---
@@ -614,10 +605,10 @@ theorem SatMLS_average_hard (μ : Distribution) (h_rank : ∃ T, IsPolynomial T 
 | **4A** | [`NBHChecker_in_NP`], [`μ₀_polRankable`], [`nbhProb_in_DistNP`](AvgCaseMls/NBH.lean) | Proofs check (`decode_encode` `sorry`) |
 | **4B** | [`nbhToSatMLS_red`], [`reduce_domination`](AvgCaseMls/Reduction.lean) | Proofs check (`reduce_correct` `sorry`) |
 | **4C** | [`satMLSProb_NPAverageComplete`](AvgCaseMls/Completeness.lean), [`IsNPAverageComplete.of_reductor`](AvgCaseMls/AvCom.lean) | Proofs check (`nbhProb_NPAverageComplete`, `DistributionalReduction.trans` `sorry`) |
-| **5A** | Conditional non-AvP from completeness | TBD |
-| **5B** | `SatMLS_average_hard` without `sorry` | TBD |
+| **5A** | [`not_AvP_of_NPAverageComplete`](AvgCaseMls/NonAvP.lean), [`NEXP_eq_EXP_of_AvP_complete`](AvgCaseMls/NonAvP.lean) | Proofs check (`NEXP_eq_EXP_of_AvP_complete` `sorry`) |
+| **5B** | [`SatMLS_average_hard`](AvgCaseMls/NonAvP.lean), [`exists_simple_rankable_not_AvP`](AvgCaseMls/NonAvP.lean) | Proofs check (no `sorry` in main theorems; [`SatMLS_semantic_not_AvP`] `sorry`) |
 
-*Last updated: Phases **1A–1D**, **2A–2D**, **3A–3B (partial)**, **4A–4C (partial)** graded **Proofs check** where noted; remaining subphases TBD.*
+*Last updated: Phases **1A–1D**, **2A–2D**, **3A–3B (partial)**, **4A–4C (partial)**, **5A–5B (partial)** graded **Proofs check** where noted.*
 
 ---
 

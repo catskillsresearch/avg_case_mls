@@ -12,6 +12,7 @@ import AvgCaseMls.NPMembership
 import AvgCaseMls.NBH
 import AvgCaseMls.Reduction
 import AvgCaseMls.Completeness
+import AvgCaseMls.NonAvP
 import AvgCaseMls.AvCom
 
 /-!
@@ -222,6 +223,18 @@ open Completeness
 example : IsNPAverageComplete satMLSProb := satMLSProb_NPAverageComplete
 
 example : InDistNP satMLSProb := satMLSProb_in_DistNP
+
+/-! ### Phase 5 — conditional non-AvP (§8) -/
+
+open NonAvP
+
+example : IsPolRankable simpleSatμ := simpleSatμ_polRankable
+
+example (h : NEXP_neq_EXP) : ¬ AvP satMLSProb := SatMLS_average_hard h
+
+example (h : NEXP_neq_EXP) :
+    ∃ μ, IsPolRankable μ ∧ ¬ AvP ⟨SatMLSChecker, μ⟩ :=
+  exists_simple_rankable_not_AvP h
 
 #eval verifyNBH (NBHInstance.encode trivialInstance) trivialCert
 

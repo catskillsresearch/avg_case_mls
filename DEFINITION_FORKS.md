@@ -104,7 +104,7 @@ When the literature leaves a choice implicit, we record it here.
 
 **Lean fork — step budget:** [`stepsMLS`] = `wireSizeFormula f` + [`stepsConjunct`] when [`formulaToConjunct?`] succeeds; conjunct budget is $O(n^2)$ in literal count (Step 2 pairs). No link to `IsAvTime` yet (Phase 5 / future work).
 
-**Rationale:** Removes the §8 `serializeFormula` axiom; keeps `NEXP_neq_EXP` and `SatMLS_average_hard` as structural placeholders until Phase 4–5.
+**Rationale:** Removes the §8 `serializeFormula` axiom; [`NEXP_neq_EXP`] lives in [`ComplexityAxioms.lean`](AvgCaseMls/ComplexityAxioms.lean) for Phase **5**.
 
 ## NP membership proxy (Phase 3A)
 
@@ -157,6 +157,20 @@ When the literature leaves a choice implicit, we record it here.
 **Proved:** [`IsNPAverageComplete.of_reductor`], [`satMLSProb_NPAverageComplete`] (modulo the two `sorry`s above).
 
 **Rationale:** Delivers the Corollary 5.1 proof skeleton for Phase **5** conditional non-AvP; separates compositional logic from Mathlib NTM / poly-time infrastructure.
+
+## Conditional non-AvP (Phase 5)
+
+**Literature:** TR1995-711 Corollary 5.1 consequence — NP-average complete MLS satisfiability is not in AvP under a simple POL-rankable distribution unless $\\text{NEXP} = \\text{EXP}$.
+
+**Lean fork — collapse hypothesis:** [`NEXP_neq_EXP`] is the sole complexity axiom in [`ComplexityAxioms.lean`]; [`NEXP_eq_EXP_of_AvP_complete`] encapsulates the NBH pull-back argument.
+
+**Lean fork — target problem:** [`SatMLS_average_hard`] and [`exists_simple_rankable_not_AvP`] use [`satMLSProb`] / [`SatMLSChecker`] with [`simpleSatμ`] (= [`μ₁`]), not semantic [`SatMLS`] on arbitrary rankable $\\mu$.
+
+**Lean fork — gaps:** [`AvP_of_distNP_of_complete_target`], [`nbhProb_not_AvP`], [`NEXP_eq_EXP_of_AvP_complete`], [`SatMLS_semantic_not_AvP`] remain `sorry` (decider linkage + semantic equivalence).
+
+**Proved:** [`not_AvP_of_NPAverageComplete`], [`SatMLS_average_hard`], [`exists_simple_rankable_not_AvP`] (modulo `NEXP_eq_EXP_of_AvP_complete` `sorry`).
+
+**Rationale:** Phase **5B** removes the old quantifier bug (arbitrary $\\mu$) and the `sorry` inside [`SatMLS_average_hard`]; remaining gaps are named one-line obligations.
 
 ## Encoding size bounds (Phase 3B)
 

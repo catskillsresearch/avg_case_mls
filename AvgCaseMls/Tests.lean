@@ -67,10 +67,42 @@ example : IsPolynomial (fun n => 2 * n ^ 2 + 3) := by
   calc
     2 * n ^ 2 + 3 ≤ 5 * n ^ 2 + 5 := by gcongr; omega
 
+/-! ### AvCom Phase 1B (§5) -/
+
+example : rank (pointMass [true] 0 (by norm_num) (by norm_num)) [true] = 0 :=
+  rank.zero _ _ rfl
+
+example : rank (uniformOn {[], [true]} (by decide)) [] ≤ 2 := by
+  have h := rank.le_support_card (uniformOn {[], [true]} (by decide)) []
+  simpa using h
+
+/-! ### AvCom Phase 1C (§5) -/
+
+noncomputable def testProb : DistributionalProblem where
+  L := ∅
+  μ := uniformOn {[], [true]} (by decide)
+
+example : IsAvTime id (fun _ => 0) testProb.μ :=
+  IsAvTime.zero id testProb.μ
+
+example : DistTime id testProb :=
+  DistTime.zero id testProb
+
+example : IsTRankable (fun _ => 2) testProb.μ :=
+  IsTRankable.of_support _ _ fun x _ =>
+    rank.le_support_card testProb.μ x
+
+example : AvDTime id (fun _ => 2) testProb :=
+  AvDTime.of_distTime
+    (IsTRankable.of_support _ _ fun x _ => rank.le_support_card testProb.μ x)
+    (DistTime.zero id testProb)
+
 #eval decideMLSSat (Formula.rel (Relation.eq Term.empty Term.empty))
 #eval decideConjunct [.mem 0 1]
 #eval decideConjunct [.mem 0 0]
 #eval lenBot ([] : Bitstring)
--- `Distribution.mass` is noncomputable; see the `example` above instead of `#eval`.
+#eval T_inv id 5
+#eval T_inv (fun _ => 10) 3
+-- `rank` and `Distribution.mass` are noncomputable; see `example` proofs above.
 
 end AvgCaseMls.Tests

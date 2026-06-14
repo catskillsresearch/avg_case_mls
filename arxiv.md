@@ -248,7 +248,7 @@ The **rank** of $`x`$ under $`\mu`$ counts how many inputs are at least as proba
 ```
 
 
-When $`\mu(x) = 0`$, the rank is taken to be $`0`$ (inputs of measure zero carry no average-case weight). In Lean, `rank` is marked `noncomputable` because counting over all strings is not executable; for tests one restricts to finite supports.
+When $`\mu(x) = 0`$, the rank is taken to be $`0`$ (inputs of measure zero carry no average-case weight). In Lean, `rank` is `noncomputable` (real comparisons are classical) and counts only over the finite `support`; see [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md).
 
 ### Complexity Bounds, POL, and Rankable Distributions
 Following [RS93], let **POL** denote the class of **polynomial complexity bounds**—functions $`T : \mathbb{N} \to \mathbb{N}`$ such that $`T(n) \leq c n^k + c`$ for some constants $`c, k`$ (formalized in Lean as `IsPolynomial`).
@@ -318,12 +318,13 @@ Here we translate TR1995-711 §3.2 into Lean 4 using the RS93 rank-sum definitio
 * `Bitstring`, `len`, `lenBot` — inputs $`x \in \{0,1\}^*`$, length $`|x|`$, and `max 1 |x|` for RS93 denominators (see [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md));
 * `Distribution` — finite `support`, non-negative `prob`, mass zero off support, `support.sum prob ≤ 1`; constructors `pointMass`, `uniformOn`;
 * `DistributionalProblem`, `IsPolynomial` (+ basic lemmas) — Phase **1A** complete in [`AvCom.lean`](AvgCaseMls/AvCom.lean);
-* `rank` — placeholder for $`\text{rank}_\mu(x)`$ (Phase **1B**);
-* `T_inv` — placeholder for the generalized inverse $`T^{-1}`$ (Phase **1B**);
-* `IsAvTime` — the RS93 rank-sum condition (Phase **1C**);
+* `rank` — $`\text{rank}_\mu(x)`$ as a support filter cardinality; rank `0` when `μ.prob x = 0` (Phase **1B**);
+* `T_inv` — partial search for $`\min\{ n \mid T(n) \ge m \}`$ from `n = 0` (Phase **1B**);
+* `IsAvTime`, `IsAv`, `rankLe` — RS93 rank-sum average time (Phase **1C**);
+* `IsTRankable`, `IsPolRankable`, `DistTime`, `AvDTime` — dist-time classes (Phase **1C**);
 * `AvP` — structural counterpart of $`\text{DistTime}(\text{POL}, \text{POL-rankable})`$ (Phase **1D**).
 
-Planned extensions (not yet in the repository): `DistTime`, `AvDTime`, `InDistNP`, `DistributionalReduction`, and `IsNPAverageComplete`. These will let us state TR1995-711 Corollary 5.1 as a theorem rather than a comment (§8).
+Planned extensions (not yet in the repository): `InDistNP`, `DistributionalReduction`, and `IsNPAverageComplete`. These will let us state TR1995-711 Corollary 5.1 as a theorem rather than a comment (§8).
 
 ```lean
 import Mathlib.Data.Real.Basic
@@ -355,7 +356,21 @@ structure DistributionalProblem where
 def IsPolynomial (T : Nat → Nat) : Prop :=
   ∃ c k : Nat, ∀ n, T n ≤ c * n ^ k + c
 
-/- Phase 1B+: rank, T_inv (sorry); IsAvTime; AvP -/
+noncomputable def rank (μ : Distribution) (x : Bitstring) : Nat := ...
+
+def T_inv (T : Nat → Nat) (m : Nat) : Nat := ...
+
+noncomputable def rankLe (μ : Distribution) (l : Nat) : Finset Bitstring := ...
+
+def IsAvTime (T : Nat → Nat) (f : Bitstring → Nat) (μ : Distribution) : Prop := ...
+
+def IsTRankable (V : Nat → Nat) (μ : Distribution) : Prop := ...
+
+def DistTime (T : Nat → Nat) (prob : DistributionalProblem) : Prop := ...
+
+def AvDTime (T V : Nat → Nat) (prob : DistributionalProblem) : Prop := ...
+
+def AvP (prob : DistributionalProblem) : Prop := ...
 ```
 
 ---
@@ -570,8 +585,8 @@ theorem SatMLS_average_hard (μ : Distribution) (h_rank : ∃ T, IsPolynomial T 
 | Phase | Phase goal | Outcome |
 |-------|------------|---------|
 | **1A** | `Bitstring`, `len`, `lenBot`, `Distribution`, `DistributionalProblem`, `IsPolynomial` in [`AvCom.lean`](AvgCaseMls/AvCom.lean); finite-support fork in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md) | Proofs check |
-| **1B** | `rank`, `T_inv` without `sorry`; finite-support convention or fork documented | TBD |
-| **1C** | `IsAvTime`, `DistTime`, `AvDTime` | TBD |
+| **1B** | `rank`, `T_inv` without `sorry`; finite-support rank + partial `T_inv` in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md) | Proofs check |
+| **1C** | `IsAvTime`, `rankLe`, `DistTime`, `AvDTime`, `IsTRankable`; forks in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md) | Proofs check |
 | **1D** | `AvP`, `InDistNP`, `DistributionalReduction`, `IsNPAverageComplete` | TBD |
 | **2A** | MLS syntax + axiomatic semantics (§6, [`MLS.lean`](AvgCaseMls/MLS.lean)) | Proofs check |
 | **2B** | EMLS literals, `literalToFormula`, `conjunctToFormula` ([`EMLS.lean`](AvgCaseMls/EMLS.lean)) | TBD |
@@ -585,7 +600,7 @@ theorem SatMLS_average_hard (μ : Distribution) (h_rank : ∃ T, IsPolynomial T 
 | **5A** | Conditional non-AvP from completeness | TBD |
 | **5B** | `SatMLS_average_hard` without `sorry` | TBD |
 
-*Last updated: Phases **1A** and **2A** graded **Proofs check** (`AvCom.lean` / `MLS.lean` build, no `sorry` in 1A/2A scope); all other subphases TBD.*
+*Last updated: Phases **1A**, **1B**, **1C**, and **2A** graded **Proofs check** (`AvCom.lean` / `MLS.lean` build, no `sorry` in 1A–1C/2A scope); all other subphases TBD.*
 
 ---
 

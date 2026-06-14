@@ -15,7 +15,11 @@ Extracted from [`arxiv.md`](../arxiv.md) §5.
 
 **Phase 1A:** `Bitstring`, `len`, `Distribution`, `DistributionalProblem`, `IsPolynomial`.
 
-**Phase 1B+:** `rank`, `T_inv`, `IsAvTime`, `AvP` — placeholders (`sorry`).
+**Phase 1B:** `rank`, `T_inv`.
+
+**Phase 1C:** `IsAvTime`, `DistTime`, `AvDTime`, rankability predicates.
+
+**Phase 1D+:** `AvP`, reductions, completeness — proofs open.
 -/
 
 open Finset
@@ -162,25 +166,146 @@ theorem add_one (T : Nat → Nat) (h : IsPolynomial T) : IsPolynomial fun n => T
 
 end IsPolynomial
 
-/-! ## Phase 1B — rank and inverse bounds (open) -/
+/-! ## Phase 1B — rank and inverse bounds -/
 
+/--
+Rank of `x` under `μ`: count of support strings at least as probable as `x`.
+When `μ.prob x = 0`, rank is `0` (RS93/TR1995-711 §3.2).
+
+Counts only over `μ.support`; see [`DEFINITION_FORKS.md`](../DEFINITION_FORKS.md).
+-/
 noncomputable def rank (μ : Distribution) (x : Bitstring) : Nat :=
   if μ.prob x = 0 then 0
   else
-    -- Phase 1B: |{ z ∈ μ.support : μ.prob z ≥ μ.prob x }|
-    sorry
+    open Classical in
+    (μ.support.filter (fun z => μ.prob x ≤ μ.prob z)).card
+
+namespace rank
+
+theorem zero (μ : Distribution) (x : Bitstring) (h : μ.prob x = 0) :
+    rank μ x = 0 := by
+  simp [rank, h]
+
+theorem le_support_card (μ : Distribution) (x : Bitstring) :
+    rank μ x ≤ μ.support.card := by
+  unfold rank
+  split_ifs with h
+  · omega
+  · exact card_filter_le _ _
+
+end rank
+
+/--
+Generalized inverse: minimum `n` with `T n ≥ m`, found by search from `0`.
+
+Partial: diverges if no such `n` exists (e.g. `T := fun _ => 0`, `m > 0`).
+See [`DEFINITION_FORKS.md`](../DEFINITION_FORKS.md).
+-/
+partial def T_invAux (T : Nat → Nat) (m n : Nat) : Nat :=
+  if T n ≥ m then n else T_invAux T m (n + 1)
 
 def T_inv (T : Nat → Nat) (m : Nat) : Nat :=
-  -- Phase 1B: min { n | T n ≥ m }
-  sorry
+  if m = 0 then 0 else T_invAux T m 0
 
-/-! ## Phase 1C — average time (depends on 1B) -/
+namespace T_inv
 
+theorem zero (T : Nat → Nat) : T_inv T 0 = 0 := rfl
+
+end T_inv
+
+/-! ## Phase 1C — average time and dist-time classes -/
+
+/-- Inputs whose rank under `μ` is at most `l`. -/
+noncomputable def rankLe (μ : Distribution) (l : Nat) : Finset Bitstring :=
+  μ.support.filter (fun x => rank μ x ≤ l)
+
+theorem rankLe_mem {μ : Distribution} {l : Nat} {x : Bitstring} :
+    x ∈ rankLe μ l ↔ x ∈ μ.support ∧ rank μ x ≤ l := by
+  simp [rankLe, mem_filter]
+
+/--
+RS93 average-time condition (TR1995-711 §3.2): for all `l ≥ 1`,
+
+`∑_{rank_μ(x) ≤ l} T⁻¹(f(x)) / lenBot(x) ≤ l`.
+-/
 def IsAvTime (T : Nat → Nat) (f : Bitstring → Nat) (μ : Distribution) : Prop :=
   ∀ l : Nat, l ≥ 1 →
-    ∃ S : Finset Bitstring,
-      (∀ x, x ∈ S ↔ rank μ x ≤ l) ∧
-      S.sum (fun x => (T_inv T (f x) : Real) / (lenBot x : Real)) ≤ (l : Real)
+    (rankLe μ l).sum (fun x => (T_inv T (f x) : Real) / (lenBot x : Real)) ≤ (l : Real)
+
+/-- Notation matching the literature: `(f, μ) ∈ Av(T)`. -/
+abbrev IsAv (T : Nat → Nat) (f : Bitstring → Nat) (μ : Distribution) : Prop :=
+  IsAvTime T f μ
+
+namespace IsAvTime
+
+theorem zero (T : Nat → Nat) (μ : Distribution) : IsAvTime T (fun _ => 0) μ := by
+  intro l hl
+  have hterm : ∀ x ∈ rankLe μ l, (T_inv T (0) : Real) / (lenBot x : Real) = 0 := by
+    intro x hx
+    rw [T_inv.zero]
+    norm_cast
+    exact zero_div _
+  rw [sum_eq_zero hterm]
+  norm_cast
+  omega
+
+end IsAvTime
+
+/-- `μ` is `V`-rankable: `rank_μ(x) ≤ V(|x|)` for all `x`. -/
+def IsTRankable (V : Nat → Nat) (μ : Distribution) : Prop :=
+  ∀ x, rank μ x ≤ V (len x)
+
+/-- POL-rankable: bounded by some `V ∈ POL` (polynomial-time rank computation deferred). -/
+def IsPolRankable (μ : Distribution) : Prop :=
+  ∃ V : Nat → Nat, IsPolynomial V ∧ IsTRankable V μ
+
+namespace IsTRankable
+
+theorem of_support (V : Nat → Nat) (μ : Distribution)
+    (h : ∀ x ∈ μ.support, rank μ x ≤ V (len x)) :
+    IsTRankable V μ := by
+  intro x
+  by_cases hx : x ∈ μ.support
+  · exact h x hx
+  · have hr : rank μ x = 0 := rank.zero μ x (μ.prob_zero_outside x hx)
+    rw [hr]
+    exact Nat.zero_le _
+
+end IsTRankable
+
+/--
+`DistTime T`: some running-time function witnesses `IsAvTime T f μ`.
+
+We do not yet tie `f` to a decider for `L`; see [`DEFINITION_FORKS.md`](../DEFINITION_FORKS.md).
+-/
+def DistTime (T : Nat → Nat) (prob : DistributionalProblem) : Prop :=
+  ∃ f : Bitstring → Nat, IsAvTime T f prob.μ
+
+namespace DistTime
+
+theorem of_avTime {T : Nat → Nat} {prob : DistributionalProblem} {f : Bitstring → Nat}
+    (h : IsAvTime T f prob.μ) : DistTime T prob :=
+  ⟨f, h⟩
+
+theorem zero (T : Nat → Nat) (prob : DistributionalProblem) : DistTime T prob :=
+  of_avTime (IsAvTime.zero T prob.μ)
+
+end DistTime
+
+/--
+`AvDTime T V`: `DistTime T` on problems whose distribution is `V`-rankable.
+Matches the report's `AvDTime(T, C)` with `C` instantiated as a rank bound.
+-/
+def AvDTime (T V : Nat → Nat) (prob : DistributionalProblem) : Prop :=
+  IsTRankable V prob.μ ∧ DistTime T prob
+
+namespace AvDTime
+
+theorem of_distTime {T V : Nat → Nat} {prob : DistributionalProblem}
+    (hV : IsTRankable V prob.μ) (hT : DistTime T prob) : AvDTime T V prob :=
+  ⟨hV, hT⟩
+
+end AvDTime
 
 /-! ## Phase 1D — AvP (depends on 1C) -/
 

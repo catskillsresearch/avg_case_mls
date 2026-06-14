@@ -35,7 +35,7 @@ Our Lean development should eventually either prove these statements from formal
 
 ### Phased plan
 
-Phases are numbered in **proof dependency order** (AvCom definitions before average-case theorems about MLS). **Do not swap Phase 1 and Phase 2:** hardness and completeness (Phases 4–5) need both layers, and TR1995-711 presents AvCom before the MLS application. Subphases track progress within each phase; §9 is the report card.
+Phases 1 and 2 appear in document order: **§2** is AvCom (Phase 1), **§3** is MLS (Phase 2). Hardness and completeness (Phases 4–5) need both layers. Subphases track progress within each phase; §9 is the report card.
 
 **Phase 0 — Infrastructure.** Lake project, smoke tests, paper synced to this document. *Status: complete.*
 
@@ -43,7 +43,7 @@ Phases are numbered in **proof dependency order** (AvCom definitions before aver
 
 | Subphase | Goal | Lean target |
 |----------|------|-------------|
-| **1A** | Inputs and distributions | `Bitstring`, `len`, `Distribution`, `DistributionalProblem`, `IsPolynomial` |
+| **1A** | Inputs and distributions (§2) | `Bitstring`, `len`, `Distribution`, `DistributionalProblem`, `IsPolynomial` |
 | **1B** | Rank and inverse bounds | `rank`, `T_inv` (no `sorry`; finite-support or explicit fork) |
 | **1C** | Average time and dist-time classes | `IsAvTime`, `DistTime`, `AvDTime` |
 | **1D** | Classes, reductions, completeness | `AvP`, `InDistNP`, `DistributionalReduction`, `IsNPAverageComplete` |
@@ -54,8 +54,8 @@ Phases are numbered in **proof dependency order** (AvCom definitions before aver
 
 | Subphase | Goal | Lean / doc |
 |----------|------|------------|
-| **2A** | MLS syntax + axiomatic semantics | §2, [`MLS.lean`](AvgCaseMls/MLS.lean)—`Term`, `Relation`, `Formula`, `evalTerm`, `evalFormula` |
-| **2B** | EMLS surface language | `EMLS.Literal`, `toMLS`, normalization to elementary conjuncts (§2 planned block) |
+| **2A** | MLS syntax + axiomatic semantics | §3, [`MLS.lean`](AvgCaseMls/MLS.lean)—`Term`, `Relation`, `Formula`, `evalTerm`, `evalFormula` |
+| **2B** | EMLS surface language | `EMLS.Literal`, `toMLS`, normalization to elementary conjuncts (§3 planned block) |
 | **2C** | Decision procedure for **satisfiability** | §7, [`DecideMLS.lean`](AvgCaseMls/DecideMLS.lean)—`decideMLSSat`, soundness/completeness on implemented fragment |
 | **2D** | Problem encoding and step count | `serializeFormula`, `SatMLS`, `stepsMLS` (remove axioms in §8) |
 
@@ -99,123 +99,7 @@ We grind on Phases 1→5 in dependency order (subphases may be implemented out o
 
 ---
 
-## 2. Multilevel Syllogistic (MLS): Grammar, Decision Procedures, and Lean Encoding
-
-### Syntax of MLS and EMLS
-Multilevel Syllogistic (MLS) is a decidable fragment of Zermelo-Fraenkel set theory. Its syntax allows set variables, the empty set ($`\emptyset`$), binary set operators (union $`\cup`$, intersection $`\cap`$, set difference $`\setminus`$), binary set relations (membership $`\in`$, non-membership $`\notin`$, equality $`=`$, inequality $`\neq`$), and standard propositional connectives.
-
-The grammar is formally defined as:
-*   **Terms:** $`T \to v_i \mid \emptyset \mid T \cup T \mid T \cap T \mid T \setminus T`$
-*   **Literals:** $`L \to T \in T \mid T \notin T \mid T = T \mid T \neq T`$
-*   **Formulas:** $`\Phi \to L \mid \neg \Phi \mid \Phi \land \Phi \mid \Phi \lor \Phi \mid \Phi \Rightarrow \Phi \mid \Phi \equiv \Phi`$
-
-**Elementary Multilevel Syllogistic (EMLS)** simplifies the terms by restricting conjuncts to "flat" elementary literals:
-
-
-```math
-v_i = \emptyset, \quad v_i = v_j \cup v_k, \quad v_i = v_j \setminus v_k, \quad v_i = v_j \cap v_k, \quad v_i \in v_j, \quad v_i \notin v_j, \quad v_i \neq v_j
-```
-
-
-### Decision Procedures
-The primary algorithm proposed to decide the satisfiability of MLS and EMLS formulas is the **model-graph algorithm** (originally analyzed by Ferro, Omodeo, and Schwartz [FOS80]). 
-
-To determine whether an EMLS formula $`\Phi`$ is satisfiable:
-1.  **Normalization:** Translate the formula into a conjunct of elementary literals.
-2.  **Graph Construction:** Build a directed model graph representing the membership and equality relations between set variables.
-3.  **Refinement:** Propagate set-theoretic axioms (such as extensionality: if two sets have the same elements, they are equal) through the graph to detect contradictions.
-4.  **Worst-Case Performance:** In the worst case, the number of distinct models that must be checked is $`2^{4n^3}`$ where $`n`$ is the number of variables, leading to an exponential worst-case runtime.
-
-### Lean encoding (Phase 2A)
-
-**Scope.** This subsection is **complete** for its current goal: a deep embedding of full MLS syntax and axiomatic set-theoretic semantics in Lean 4. [`AvgCaseMls/MLS.lean`](AvgCaseMls/MLS.lean) compiles with no `sorry`. Phase **2B** (EMLS literals and normalization, sketched below), **2C** (decision procedure, §7), and **2D** (serialization and step counting, §8) are separate obligations.
-
-Set variables are identified with natural-number indices (`Nat → ZFSet` environments), matching the report's $`v_i`$ notation. MLS formulas talk about membership chains $`v_i \in v_j \in v_k \in \cdots`$. We use a custom axiomatized `ZFSet` sort so the development is self-contained and `evalTerm`/`evalFormula` are explicitly `noncomputable` (axioms are not compiled). A Mathlib-backed refactor would replace `axiom ZFSet` with imports from `Mathlib.Data.ZFC.Basic`.
-
-The listing below matches [`AvgCaseMls/MLS.lean`](AvgCaseMls/MLS.lean).
-
-```lean
--- Define the logical and syntactic structures of MLS in Lean 4
-
-namespace MLS
-
-/- 1. Syntactic Terms -/
-inductive Term : Type
-  | var   : Nat → Term
-  | empty : Term
-  | union : Term → Term → Term
-  | inter : Term → Term → Term
-  | diff  : Term → Term → Term
-  deriving DecidableEq, Repr
-
-/- 2. Set-Theoretic Relations -/
-inductive Relation : Type
-  | mem     : Term → Term → Relation
-  | not_mem : Term → Term → Relation
-  | eq      : Term → Term → Relation
-  | neq     : Term → Term → Relation
-  deriving DecidableEq, Repr
-
-/- 3. Propositional Formulas -/
-inductive Formula : Type
-  | rel : Relation → Formula
-  | not : Formula → Formula
-  | and : Formula → Formula → Formula
-  | or  : Formula → Formula → Formula
-  | imp : Formula → Formula → Formula
-  | iff : Formula → Formula → Formula
-  deriving DecidableEq, Repr
-
-/- 4. Axiomatic Semantics -/
-axiom ZFSet : Type
-
-axiom ZFSet.empty : ZFSet
-axiom ZFSet.union : ZFSet → ZFSet → ZFSet
-axiom ZFSet.inter : ZFSet → ZFSet → ZFSet
-axiom ZFSet.diff  : ZFSet → ZFSet → ZFSet
-axiom ZFSet.mem   : ZFSet → ZFSet → Prop
-
-def Env : Type := Nat → ZFSet
-
-noncomputable def evalTerm (env : Env) : Term → ZFSet
-  | Term.var n       => env n
-  | Term.empty       => ZFSet.empty
-  | Term.union t1 t2 => ZFSet.union (evalTerm env t1) (evalTerm env t2)
-  | Term.inter t1 t2 => ZFSet.inter (evalTerm env t1) (evalTerm env t2)
-  | Term.diff t1 t2  => ZFSet.diff (evalTerm env t1) (evalTerm env t2)
-
-noncomputable def evalFormula (env : Env) : Formula → Prop
-  | Formula.rel (Relation.mem t1 t2)     => ZFSet.mem (evalTerm env t1) (evalTerm env t2)
-  | Formula.rel (Relation.not_mem t1 t2) => ¬ ZFSet.mem (evalTerm env t1) (evalTerm env t2)
-  | Formula.rel (Relation.eq t1 t2)      => evalTerm env t1 = evalTerm env t2
-  | Formula.rel (Relation.neq t1 t2)     => evalTerm env t1 ≠ evalTerm env t2
-  | Formula.not f                        => ¬ evalFormula env f
-  | Formula.and f1 f2                    => evalFormula env f1 ∧ evalFormula env f2
-  | Formula.or f1 f2                     => evalFormula env f1 ∨ evalFormula env f2
-  | Formula.imp f1 f2                    => evalFormula env f1 → evalFormula env f2
-  | Formula.iff f1 f2                    => evalFormula env f1 ↔ evalFormula env f2
-
-end MLS
-```
-
-**EMLS (Phase 2B — planned).** Elementary Multilevel Syllogistic restricts formulas to conjunctions of flat literals ($`v_i = \emptyset`$, $`v_i = v_j \cup v_k`$, $`v_i \in v_j`$, etc.). A natural Lean extension is a separate inductive type:
-
-```lean
-inductive EMLS.Literal : Type
-  | eq_empty   : Nat → Literal
-  | eq_union   : Nat → Nat → Nat → Literal
-  | eq_diff    : Nat → Nat → Nat → Literal
-  | eq_inter   : Nat → Nat → Nat → Literal
-  | mem        : Nat → Nat → Literal
-  | not_mem    : Nat → Nat → Literal
-  | neq        : Nat → Nat → Literal
-```
-
-with a translation `EMLS.toMLS : Literal → MLS.Formula` and a normalization function mapping general MLS formulas to EMLS conjuncts—the input shape expected by the model-graph procedure above.
-
----
-
-## 3. Average-Case Complexity (AvCom): Theory, Classes, and Lean Encoding
+## 2. Average-Case Complexity (AvCom): Theory, Classes, and Lean Encoding
 
 The formal definitions in this section follow TR1995-711 §3.2 ([`TR1995-711.pdf`](TR1995-711.pdf)). In the mid-1990s, structural average-case complexity was a young, highly mathematical field. Each mathematical definition below is paired with its Lean counterpart in [`AvgCaseMls/AvCom.lean`](AvgCaseMls/AvCom.lean) where it exists today. 
 
@@ -409,6 +293,122 @@ In this diagram, languages $`L_i`$ are mapped based on their worst-case complexi
 
 ---
 
+## 3. Multilevel Syllogistic (MLS): Grammar, Decision Procedures, and Lean Encoding
+
+### Syntax of MLS and EMLS
+Multilevel Syllogistic (MLS) is a decidable fragment of Zermelo-Fraenkel set theory. Its syntax allows set variables, the empty set ($`\emptyset`$), binary set operators (union $`\cup`$, intersection $`\cap`$, set difference $`\setminus`$), binary set relations (membership $`\in`$, non-membership $`\notin`$, equality $`=`$, inequality $`\neq`$), and standard propositional connectives.
+
+The grammar is formally defined as:
+*   **Terms:** $`T \to v_i \mid \emptyset \mid T \cup T \mid T \cap T \mid T \setminus T`$
+*   **Literals:** $`L \to T \in T \mid T \notin T \mid T = T \mid T \neq T`$
+*   **Formulas:** $`\Phi \to L \mid \neg \Phi \mid \Phi \land \Phi \mid \Phi \lor \Phi \mid \Phi \Rightarrow \Phi \mid \Phi \equiv \Phi`$
+
+**Elementary Multilevel Syllogistic (EMLS)** simplifies the terms by restricting conjuncts to "flat" elementary literals:
+
+
+```math
+v_i = \emptyset, \quad v_i = v_j \cup v_k, \quad v_i = v_j \setminus v_k, \quad v_i = v_j \cap v_k, \quad v_i \in v_j, \quad v_i \notin v_j, \quad v_i \neq v_j
+```
+
+
+### Decision Procedures
+The primary algorithm proposed to decide the satisfiability of MLS and EMLS formulas is the **model-graph algorithm** (originally analyzed by Ferro, Omodeo, and Schwartz [FOS80]). 
+
+To determine whether an EMLS formula $`\Phi`$ is satisfiable:
+1.  **Normalization:** Translate the formula into a conjunct of elementary literals.
+2.  **Graph Construction:** Build a directed model graph representing the membership and equality relations between set variables.
+3.  **Refinement:** Propagate set-theoretic axioms (such as extensionality: if two sets have the same elements, they are equal) through the graph to detect contradictions.
+4.  **Worst-Case Performance:** In the worst case, the number of distinct models that must be checked is $`2^{4n^3}`$ where $`n`$ is the number of variables, leading to an exponential worst-case runtime.
+
+### Lean encoding (Phase 2A)
+
+**Scope.** This subsection is **complete** for its current goal: a deep embedding of full MLS syntax and axiomatic set-theoretic semantics in Lean 4. [`AvgCaseMls/MLS.lean`](AvgCaseMls/MLS.lean) compiles with no `sorry`. Phase **2B** (EMLS literals and normalization, sketched below), **2C** (decision procedure, §7), and **2D** (serialization and step counting, §8) are separate obligations.
+
+Set variables are identified with natural-number indices (`Nat → ZFSet` environments), matching the report's $`v_i`$ notation. MLS formulas talk about membership chains $`v_i \in v_j \in v_k \in \cdots`$. We use a custom axiomatized `ZFSet` sort so the development is self-contained and `evalTerm`/`evalFormula` are explicitly `noncomputable` (axioms are not compiled). A Mathlib-backed refactor would replace `axiom ZFSet` with imports from `Mathlib.Data.ZFC.Basic`.
+
+The listing below matches [`AvgCaseMls/MLS.lean`](AvgCaseMls/MLS.lean).
+
+```lean
+-- Define the logical and syntactic structures of MLS in Lean 4
+
+namespace MLS
+
+/- 1. Syntactic Terms -/
+inductive Term : Type
+  | var   : Nat → Term
+  | empty : Term
+  | union : Term → Term → Term
+  | inter : Term → Term → Term
+  | diff  : Term → Term → Term
+  deriving DecidableEq, Repr
+
+/- 2. Set-Theoretic Relations -/
+inductive Relation : Type
+  | mem     : Term → Term → Relation
+  | not_mem : Term → Term → Relation
+  | eq      : Term → Term → Relation
+  | neq     : Term → Term → Relation
+  deriving DecidableEq, Repr
+
+/- 3. Propositional Formulas -/
+inductive Formula : Type
+  | rel : Relation → Formula
+  | not : Formula → Formula
+  | and : Formula → Formula → Formula
+  | or  : Formula → Formula → Formula
+  | imp : Formula → Formula → Formula
+  | iff : Formula → Formula → Formula
+  deriving DecidableEq, Repr
+
+/- 4. Axiomatic Semantics -/
+axiom ZFSet : Type
+
+axiom ZFSet.empty : ZFSet
+axiom ZFSet.union : ZFSet → ZFSet → ZFSet
+axiom ZFSet.inter : ZFSet → ZFSet → ZFSet
+axiom ZFSet.diff  : ZFSet → ZFSet → ZFSet
+axiom ZFSet.mem   : ZFSet → ZFSet → Prop
+
+def Env : Type := Nat → ZFSet
+
+noncomputable def evalTerm (env : Env) : Term → ZFSet
+  | Term.var n       => env n
+  | Term.empty       => ZFSet.empty
+  | Term.union t1 t2 => ZFSet.union (evalTerm env t1) (evalTerm env t2)
+  | Term.inter t1 t2 => ZFSet.inter (evalTerm env t1) (evalTerm env t2)
+  | Term.diff t1 t2  => ZFSet.diff (evalTerm env t1) (evalTerm env t2)
+
+noncomputable def evalFormula (env : Env) : Formula → Prop
+  | Formula.rel (Relation.mem t1 t2)     => ZFSet.mem (evalTerm env t1) (evalTerm env t2)
+  | Formula.rel (Relation.not_mem t1 t2) => ¬ ZFSet.mem (evalTerm env t1) (evalTerm env t2)
+  | Formula.rel (Relation.eq t1 t2)      => evalTerm env t1 = evalTerm env t2
+  | Formula.rel (Relation.neq t1 t2)     => evalTerm env t1 ≠ evalTerm env t2
+  | Formula.not f                        => ¬ evalFormula env f
+  | Formula.and f1 f2                    => evalFormula env f1 ∧ evalFormula env f2
+  | Formula.or f1 f2                     => evalFormula env f1 ∨ evalFormula env f2
+  | Formula.imp f1 f2                    => evalFormula env f1 → evalFormula env f2
+  | Formula.iff f1 f2                    => evalFormula env f1 ↔ evalFormula env f2
+
+end MLS
+```
+
+**EMLS (Phase 2B — planned).** Elementary Multilevel Syllogistic restricts formulas to conjunctions of flat literals ($`v_i = \emptyset`$, $`v_i = v_j \cup v_k`$, $`v_i \in v_j`$, etc.). A natural Lean extension is a separate inductive type:
+
+```lean
+inductive EMLS.Literal : Type
+  | eq_empty   : Nat → Literal
+  | eq_union   : Nat → Nat → Nat → Literal
+  | eq_diff    : Nat → Nat → Nat → Literal
+  | eq_inter   : Nat → Nat → Nat → Literal
+  | mem        : Nat → Nat → Literal
+  | not_mem    : Nat → Nat → Literal
+  | neq        : Nat → Nat → Literal
+```
+
+with a translation `EMLS.toMLS : Literal → MLS.Formula` and a normalization function mapping general MLS formulas to EMLS conjuncts—the input shape expected by the model-graph procedure above.
+
+---
+
 ## 4. Historical Context, Terminology, and Reception of TR1995-711
 
 Reviewer Martin Davis asked the authors to give a more pragmatic demonstration of their results before accepting the work into *Communications on Pure and Applied Mathematics* (CPAM). That demonstration never materialized; the concrete heuristics were weak, and the empirical machinery to test these algorithms on large datasets did not yet exist. The paper was never published in CPAM.
@@ -468,8 +468,8 @@ The specific marriage of AvCom to MLS decision procedures was largely abandoned 
 Through 2025–2026, Mathlib4 has begun to host **worst-case** complexity infrastructure (polynomial-time Turing machines, $`\text{P}`$, $`\text{NP}`$, and related material under active development). **Average-case complexity—distributional problems, rank functions, $`\text{Av}(T)`$, $`\text{DistTime}`$, distributional reductions, and $`\text{AvP}`$—is not yet a standard Mathlib layer.** TR1995-711 is therefore a natural stress test: it requires both a deep embedding of set-theoretic syntax *and* a bespoke AvCom library built on [RS93].
 
 Our approach mirrors [icon2lean](https://github.com/catskillsresearch/icon2lean):
-1. **Definitions first** — encode $`\text{rank}`$, $`\text{Av}(T)`$, $`\text{DistTime}(T)`$, $`\text{AvP}`$, and $`\text{distNP}`$ alongside the AvCom definitions in §3.
-2. **Deep embedding of MLS/EMLS** — inductive syntax + semantic evaluation in §2.
+1. **Definitions first** — encode $`\text{rank}`$, $`\text{Av}(T)`$, $`\text{DistTime}(T)`$, $`\text{AvP}`$, and $`\text{distNP}`$ alongside the AvCom definitions in §2.
+2. **Deep embedding of MLS/EMLS** — inductive syntax + semantic evaluation in §3.
 3. **Decision procedure skeleton** — a computable `decideMLS` with stated soundness/completeness for **satisfiability**, plus a future **step-counting** function to relate the model-graph algorithm to $`\text{Av}(T)`$ (§7).
 4. **Hardness statements** — structural theorems such as `SatMLS_average_hard` with explicit `sorry` placeholders until reductions from TR1995-711 are formalized (§8).
 
@@ -480,14 +480,14 @@ Our approach mirrors [icon2lean](https://github.com/catskillsresearch/icon2lean)
 | Distributions | `structure Distribution` with `Finset` sums $`\leq 1`$ | Avoids infinite sums; enough for rank-based definitions |
 | Rank | `noncomputable def rank` | Cardinality over all strings is not computable |
 | Set semantics | Axiomatic `MLS.ZFSet` + `noncomputable evalTerm` | Supports nested sets without committing to full ZF in Mathlib; `Mathlib.Data.ZFC.Basic` is an alternative for a future refactor |
-| EMLS | Elementary literals in §2 grammar; optional separate `EMLS.Literal` inductive (planned) | EMLS is the normal form the model-graph algorithm consumes |
+| EMLS | Elementary literals in §3 grammar; optional separate `EMLS.Literal` inductive (planned) | EMLS is the normal form the model-graph algorithm consumes |
 | Tests | `#eval` + `native_decide` on decidable fragments | Same regression pattern as `Icon2lean/Tests.lean` |
 
 ---
 
 ## 7. Coding the Decision Procedures for MLS in Lean 4
 
-Phase **2C.** The model-graph algorithm is described mathematically in §2; here we implement a Lean decision procedure skeleton. The full procedure from [FOS80]—normalization to elementary literals, graph construction, and refinement—is not yet executable; instead we define `decideMLS : Formula → Bool` and state **soundness** and **completeness** theorems for **satisfiability**:
+Phase **2C.** The model-graph algorithm is described mathematically in §3; here we implement a Lean decision procedure skeleton. The full procedure from [FOS80]—normalization to elementary literals, graph construction, and refinement—is not yet executable; instead we define `decideMLS : Formula → Bool` and state **soundness** and **completeness** theorems for **satisfiability**:
 
 * **Soundness:** if `decideMLS φ = true`, then $`\varphi`$ is satisfiable ($`\exists env,\ \text{evalFormula}\ env\ \varphi`$).
 * **Completeness:** if $`\varphi`$ is satisfiable, then `decideMLS φ = true`.
@@ -541,7 +541,7 @@ end MLS
 
 ## 8. Lean 4 Verification: Proving Average-Case Hardness Properties
 
-Phase **2D** (encoding) and **5B** (hardness theorem). The AvCom classes are defined in §3; MLS syntax is in §2. The 1995 paper proves that the satisfiability of MLS formulas is **NP-average complete**. Under the defined AvCom classes, this implies that MLS cannot belong to $`\text{AvP}`$ under certain rankable distributions unless the nondeterministic and deterministic exponential-time hierarchies collapse.
+Phase **2D** (encoding) and **5B** (hardness theorem). The AvCom classes are defined in §2; MLS syntax is in §3. The 1995 paper proves that the satisfiability of MLS formulas is **NP-average complete**. Under the defined AvCom classes, this implies that MLS cannot belong to $`\text{AvP}`$ under certain rankable distributions unless the nondeterministic and deterministic exponential-time hierarchies collapse.
 
 We can represent this theorem structurally in Lean 4:
 
@@ -583,8 +583,8 @@ theorem SatMLS_average_hard (μ : Distribution) (h_rank : ∃ T, IsPolynomial T 
 | **1B** | `rank`, `T_inv` without `sorry`; finite-support convention or fork documented | TBD |
 | **1C** | `IsAvTime`, `DistTime`, `AvDTime` | TBD |
 | **1D** | `AvP`, `InDistNP`, `DistributionalReduction`, `IsNPAverageComplete` | TBD |
-| **2A** | MLS syntax + axiomatic semantics (§2, [`MLS.lean`](AvgCaseMls/MLS.lean)) | Proofs check |
-| **2B** | EMLS literals, `toMLS`, normalization (§2 planned block) | TBD |
+| **2A** | MLS syntax + axiomatic semantics (§3, [`MLS.lean`](AvgCaseMls/MLS.lean)) | Proofs check |
+| **2B** | EMLS literals, `toMLS`, normalization (§3 planned block) | TBD |
 | **2C** | `decideMLSSat`, model-graph skeleton, soundness/completeness (§7) | TBD |
 | **2D** | `serializeFormula`, `SatMLS`, `stepsMLS` (§8 axioms removed) | TBD |
 | **3A** | `SatMLS ∈ NP` or Mathlib blocker | TBD |
@@ -610,7 +610,7 @@ Building on this integration of automated theorem proving and structural complex
 3.  **Extending Mathlib's Complexity Library:**
     The current complexity theory developments in Mathlib4 are focused on worst-case bounds. Standardizing Levin's structural average-case reductions, the domination condition, $`\text{DistTime}`$, $`\text{AvDTime}`$, and $`\text{AvP}`$ in Mathlib would provide a robust framework for certifying post-quantum security and for revisiting TR1995-711-style applied completeness proofs.
 4.  **Step-counting the model-graph procedure:**
-    Instrument `decideMLS` (or the full model-graph search) with a monadic step counter and prove `(stepsMLS, μ) ∈ Av(T)` for the rankable distributions used in the report—closing the loop between §3 complexity classes and §2 decision procedures.
+    Instrument `decideMLS` (or the full model-graph search) with a monadic step counter and prove `(stepsMLS, μ) ∈ Av(T)` for the rankable distributions used in the report—closing the loop between §2 complexity classes and §3 decision procedures.
 
 ---
 

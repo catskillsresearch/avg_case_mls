@@ -21,15 +21,15 @@ The goals of this paper are:
 
 ## Lean 4 formalization
 
-Lean code from [`arxiv.md`](arxiv.md) §§6–10 lives under [`AvgCaseMls/`](AvgCaseMls/). The project follows the same Lake + Mathlib layout as [icon2lean](https://github.com/catskillsresearch/icon2lean).
+Lean code from [`arxiv.md`](arxiv.md) §§2–3 (math + encoding), §§6–8 (strategy, decision, hardness) lives under [`AvgCaseMls/`](AvgCaseMls/). The project follows the same Lake + Mathlib layout as [icon2lean](https://github.com/catskillsresearch/icon2lean).
 
-| Module | Content |
-|--------|---------|
-| [`AvgCaseMls/MLS.lean`](AvgCaseMls/MLS.lean) | MLS syntax and axiomatic `ZFSet` semantics |
-| [`AvgCaseMls/DecideMLS.lean`](AvgCaseMls/DecideMLS.lean) | Mock decision procedure + soundness/completeness statements |
-| [`AvgCaseMls/AvCom.lean`](AvgCaseMls/AvCom.lean) | Distributions, rank, AvP |
-| [`AvgCaseMls/AverageHardness.lean`](AvgCaseMls/AverageHardness.lean) | `SatMLS` and average-case hardness theorem (proof sketch) |
-| [`AvgCaseMls/Tests.lean`](AvgCaseMls/Tests.lean) | Smoke tests (`#eval`, `native_decide`) |
+| Module | `arxiv.md` | Content |
+|--------|------------|---------|
+| [`AvgCaseMls/MLS.lean`](AvgCaseMls/MLS.lean) | §2 | MLS syntax and axiomatic `ZFSet` semantics |
+| [`AvgCaseMls/AvCom.lean`](AvgCaseMls/AvCom.lean) | §3 | Distributions, rank, AvP |
+| [`AvgCaseMls/DecideMLS.lean`](AvgCaseMls/DecideMLS.lean) | §7 | Mock decision procedure + soundness/completeness statements |
+| [`AvgCaseMls/AverageHardness.lean`](AvgCaseMls/AverageHardness.lean) | §8 | `SatMLS` and average-case hardness theorem (proof sketch) |
+| [`AvgCaseMls/Tests.lean`](AvgCaseMls/Tests.lean) | — | Smoke tests (`#eval`, `native_decide`) |
 
 **Setup:** see [`INSTALLING_LEAN.md`](INSTALLING_LEAN.md) for elan, `lake update`, and first build.
 
@@ -43,7 +43,7 @@ chmod +x run_lean_check.sh run_lean_tests.sh
 
 Most theorem proofs are still `sorry`; tests cover the MLS embedding and decidable fragments (`decideMLS` on empty-set cases, `len`, `IsPolynomial`).
 
-**Proof program:** See [`arxiv.md`](arxiv.md) §1 (charter) and §11 (results report card, updated as work progresses).
+**Proof program:** See [`arxiv.md`](arxiv.md) §1 (charter) and §9 (results report card, updated as work progresses).
 
 ## Contributions and Collaboration
 

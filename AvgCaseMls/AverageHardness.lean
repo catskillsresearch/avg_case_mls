@@ -10,7 +10,7 @@ import AvgCaseMls.AvCom
 /-!
 Structural statement of average-case hardness for MLS satisfiability.
 
-Extracted from [`arxiv.md`](../arxiv.md) §9. Proof is intentionally incomplete (`sorry`).
+Extracted from [`arxiv.md`](../arxiv.md) §8. Proof is intentionally incomplete (`sorry`).
 -/
 
 open MLS AvCom

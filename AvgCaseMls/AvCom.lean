@@ -10,7 +10,7 @@ import Mathlib.Algebra.BigOperators.Group.Finset.Basic
 /-!
 Average-case complexity definitions (Reischuk–Schindelhauer framework).
 
-Extracted from [`arxiv.md`](../arxiv.md) §8. Several definitions are still placeholders (`sorry`).
+Extracted from [`arxiv.md`](../arxiv.md) §3. Several definitions are still placeholders (`sorry`).
 -/
 
 open Finset

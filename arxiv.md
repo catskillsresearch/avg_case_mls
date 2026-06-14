@@ -600,7 +600,7 @@ theorem exists_simple_rankable_not_AvP (h : NEXP_neq_EXP) :
 | **2B** | `Literal`, `literalToFormula`, `conjunctToFormula`, `Literal.holds` ([`EMLS.lean`](AvgCaseMls/EMLS.lean)) | Proofs check |
 | **2C** | `decideMLSSat`, FOS80 Steps 2–4 partial ([`DecideMLS.lean`](AvgCaseMls/DecideMLS.lean)) | Proofs check |
 | **2D** | `serializeFormula`, `SatMLS`, `stepsMLS` (§8 axioms removed) | Proofs check |
-| **3A** | [`SatMLSChecker_in_NP`](AvgCaseMls/NPMembership.lean); checker vs semantic [`SatMLS`] fork | Proofs check (decode roundtrip `sorry`) |
+| **3A** | [`SatMLSChecker_in_NP`](AvgCaseMls/NPMembership.lean), [`decodeFormula?_serializeFormula`](AvgCaseMls/Serialization.lean); checker vs semantic [`SatMLS`] fork | Proofs check |
 | **3B** | [`encodingBound`], [`formulaSize_le_encodingBound`], [`encodingBound_poly`](AvgCaseMls/Serialization.lean) | Proofs check (`nodeBound_pair_le` `sorry`) |
 | **4A** | [`NBHChecker_in_NP`], [`μ₀_polRankable`], [`nbhProb_in_DistNP`](AvgCaseMls/NBH.lean) | Proofs check (`decode_encode` `sorry`) |
 | **4B** | [`nbhToSatMLS_red`], [`reduce_domination`](AvgCaseMls/Reduction.lean) | Proofs check (`reduce_correct` `sorry`) |
@@ -608,7 +608,7 @@ theorem exists_simple_rankable_not_AvP (h : NEXP_neq_EXP) :
 | **5A** | [`not_AvP_of_NPAverageComplete`](AvgCaseMls/NonAvP.lean), [`NEXP_eq_EXP_of_AvP_complete`](AvgCaseMls/NonAvP.lean) | Proofs check (`NEXP_eq_EXP_of_AvP_complete` `sorry`) |
 | **5B** | [`SatMLS_average_hard`](AvgCaseMls/NonAvP.lean), [`exists_simple_rankable_not_AvP`](AvgCaseMls/NonAvP.lean) | Proofs check (no `sorry` in main theorems; [`SatMLS_semantic_not_AvP`] `sorry`) |
 
-*Last updated: Phases **1A–1D**, **2A–2D**, **3A–3B (partial)**, **4A–4C (partial)**, **5A–5B (partial)** graded **Proofs check** where noted.*
+*Last updated: Phases **1A–1D**, **2A–2D**, **3A**, **3B (partial)**, **4A–4C (partial)**, **5A–5B (partial)** graded **Proofs check** where noted.*
 
 ---
 

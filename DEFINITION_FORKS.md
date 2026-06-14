@@ -114,7 +114,9 @@ When the literature leaves a choice implicit, we record it here.
 
 **Lean fork — `InNP`:** [`InNP`](AvgCaseMls/AvCom.lean) is certificate-based ($\\exists$ poly-bounded verify with $x \\in L \\iff \\exists$ cert, not semantic `True`).
 
-**Deferred:** [`decodeFormula?_serializeFormula`] and suffix decode lemmas remain `sorry` (partial-def proof friction); does not block the NP scaffold.
+**Lean fork — decoders:** [`decodeTerm?`], [`decodeRelation?`], [`decodeFormula?`] are fuel-based total functions (`decodeTermFuel`, etc.) so roundtrip lemmas are provable without `partial def` friction.
+
+**Proved:** [`decodeFormula?_serializeFormula`], [`decodeFormula?_suffix`], [`SatMLSChecker_in_NP`], [`SatMLSChecker_subset_SatMLS`] on the decide-sound fragment.
 
 **Rationale:** NP membership is for the poly-time checker on encodings, not full semantic satisfiability without completeness.
 

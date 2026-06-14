@@ -594,111 +594,138 @@ def decodeNat? : Bitstring → Option (Nat × Bitstring)
     | none => none
     | some (n, rest') => some (n + 1, rest')
 
-partial def decodeTerm? : Bitstring → Option (Term × Bitstring)
-  | bits =>
-    if h : bits.take 3 = [false, false, false] then
+mutual
+def decodeTermFuel (fuel : Nat) (bits : Bitstring) : Option (Term × Bitstring) :=
+  match fuel with
+  | 0 => none
+  | fuel + 1 =>
+    if bits.length < 3 then
+      none
+    else if bits.take 3 = [false, false, false] then
       match decodeNat? (bits.drop 3) with
       | some (n, rest) => some (.var n, rest)
       | none => none
-    else if h : bits.take 3 = [false, false, true] then
+    else if bits.take 3 = [false, false, true] then
       some (.empty, bits.drop 3)
-    else if h : bits.take 3 = [false, true, false] then
-      match decodeTerm? (bits.drop 3) with
+    else if bits.take 3 = [false, true, false] then
+      match decodeTermFuel fuel (bits.drop 3) with
       | some (t1, rest) =>
-        match decodeTerm? rest with
+        match decodeTermFuel fuel rest with
         | some (t2, rest') => some (.union t1 t2, rest')
         | none => none
       | none => none
-    else if h : bits.take 3 = [false, true, true] then
-      match decodeTerm? (bits.drop 3) with
+    else if bits.take 3 = [false, true, true] then
+      match decodeTermFuel fuel (bits.drop 3) with
       | some (t1, rest) =>
-        match decodeTerm? rest with
+        match decodeTermFuel fuel rest with
         | some (t2, rest') => some (.inter t1 t2, rest')
         | none => none
       | none => none
-    else if h : bits.take 3 = [true, false, false] then
-      match decodeTerm? (bits.drop 3) with
+    else if bits.take 3 = [true, false, false] then
+      match decodeTermFuel fuel (bits.drop 3) with
       | some (t1, rest) =>
-        match decodeTerm? rest with
+        match decodeTermFuel fuel rest with
         | some (t2, rest') => some (.diff t1 t2, rest')
         | none => none
       | none => none
     else
       none
 
-partial def decodeRelation? : Bitstring → Option (Relation × Bitstring)
-  | bits =>
-    if h : bits.take 2 = [false, false] then
-      match decodeTerm? (bits.drop 2) with
+def decodeRelationFuel (fuel : Nat) (bits : Bitstring) : Option (Relation × Bitstring) :=
+  match fuel with
+  | 0 => none
+  | fuel + 1 =>
+    if bits.length < 2 then
+      none
+    else if bits.take 2 = [false, false] then
+      match decodeTermFuel fuel (bits.drop 2) with
       | some (t1, rest) =>
-        match decodeTerm? rest with
+        match decodeTermFuel fuel rest with
         | some (t2, rest') => some (.mem t1 t2, rest')
         | none => none
       | none => none
-    else if h : bits.take 2 = [false, true] then
-      match decodeTerm? (bits.drop 2) with
+    else if bits.take 2 = [false, true] then
+      match decodeTermFuel fuel (bits.drop 2) with
       | some (t1, rest) =>
-        match decodeTerm? rest with
+        match decodeTermFuel fuel rest with
         | some (t2, rest') => some (.not_mem t1 t2, rest')
         | none => none
       | none => none
-    else if h : bits.take 2 = [true, false] then
-      match decodeTerm? (bits.drop 2) with
+    else if bits.take 2 = [true, false] then
+      match decodeTermFuel fuel (bits.drop 2) with
       | some (t1, rest) =>
-        match decodeTerm? rest with
+        match decodeTermFuel fuel rest with
         | some (t2, rest') => some (.eq t1 t2, rest')
         | none => none
       | none => none
-    else if h : bits.take 2 = [true, true] then
-      match decodeTerm? (bits.drop 2) with
+    else if bits.take 2 = [true, true] then
+      match decodeTermFuel fuel (bits.drop 2) with
       | some (t1, rest) =>
-        match decodeTerm? rest with
+        match decodeTermFuel fuel rest with
         | some (t2, rest') => some (.neq t1 t2, rest')
         | none => none
       | none => none
     else
       none
 
-partial def decodeFormula? : Bitstring → Option (Formula × Bitstring)
-  | bits =>
-    if h : bits.take 3 = [false, false, false] then
-      match decodeRelation? (bits.drop 3) with
+def decodeFormulaFuel (fuel : Nat) (bits : Bitstring) : Option (Formula × Bitstring) :=
+  match fuel with
+  | 0 => none
+  | fuel + 1 =>
+    if bits.length < 3 then
+      none
+    else if bits.take 3 = [false, false, false] then
+      match decodeRelationFuel fuel (bits.drop 3) with
       | some (r, rest) => some (.rel r, rest)
       | none => none
-    else if h : bits.take 3 = [false, false, true] then
-      match decodeFormula? (bits.drop 3) with
+    else if bits.take 3 = [false, false, true] then
+      match decodeFormulaFuel fuel (bits.drop 3) with
       | some (f, rest) => some (.not f, rest)
       | none => none
-    else if h : bits.take 3 = [false, true, false] then
-      match decodeFormula? (bits.drop 3) with
+    else if bits.take 3 = [false, true, false] then
+      match decodeFormulaFuel fuel (bits.drop 3) with
       | some (f1, rest) =>
-        match decodeFormula? rest with
+        match decodeFormulaFuel fuel rest with
         | some (f2, rest') => some (.and f1 f2, rest')
         | none => none
       | none => none
-    else if h : bits.take 3 = [false, true, true] then
-      match decodeFormula? (bits.drop 3) with
+    else if bits.take 3 = [false, true, true] then
+      match decodeFormulaFuel fuel (bits.drop 3) with
       | some (f1, rest) =>
-        match decodeFormula? rest with
+        match decodeFormulaFuel fuel rest with
         | some (f2, rest') => some (.or f1 f2, rest')
         | none => none
       | none => none
-    else if h : bits.take 3 = [true, false, false] then
-      match decodeFormula? (bits.drop 3) with
+    else if bits.take 3 = [true, false, false] then
+      match decodeFormulaFuel fuel (bits.drop 3) with
       | some (f1, rest) =>
-        match decodeFormula? rest with
+        match decodeFormulaFuel fuel rest with
         | some (f2, rest') => some (.imp f1 f2, rest')
         | none => none
       | none => none
-    else if h : bits.take 3 = [true, false, true] then
-      match decodeFormula? (bits.drop 3) with
+    else if bits.take 3 = [true, false, true] then
+      match decodeFormulaFuel fuel (bits.drop 3) with
       | some (f1, rest) =>
-        match decodeFormula? rest with
+        match decodeFormulaFuel fuel rest with
         | some (f2, rest') => some (.iff f1 f2, rest')
         | none => none
       | none => none
     else
       none
+termination_by fuel
+decreasing_by
+  all_goals simp_wf <;> split <;> omega
+
+def decodeTerm? (bits : Bitstring) : Option (Term × Bitstring) :=
+  decodeTermFuel bits.length bits
+
+def decodeRelation? (bits : Bitstring) : Option (Relation × Bitstring) :=
+  decodeRelationFuel bits.length bits
+
+def decodeFormula? (bits : Bitstring) : Option (Formula × Bitstring) :=
+  decodeFormulaFuel bits.length bits
+
+end
 
 theorem decodeNat?_encodeNat (n : Nat) : decodeNat? (encodeNat n) = some (n, []) := by
   induction n with
@@ -758,25 +785,307 @@ private theorem take_serializeFormula_prefix3 (f : Formula) (rest : Bitstring) :
   | and f1 f2 | or f1 f2 | imp f1 f2 | iff f1 f2 =>
     simp [serializeFormula, formulaTag, take_prefix3, len_formulaTag, List.append_assoc]
 
+private theorem drop3_termTag_append (tag mid rest : Bitstring) (h : len tag = 3) :
+    (tag ++ mid ++ rest).drop 3 = mid ++ rest := by
+  rw [len_eq] at h
+  simp [List.drop_append, h, List.append_assoc]
+
+private theorem drop3_serializeTerm (t : Term) (rest : Bitstring) :
+    (serializeTerm t ++ rest).drop 3 =
+      match t with
+      | .var n => encodeNat n ++ rest
+      | .empty => rest
+      | .union t1 t2 => serializeTerm t1 ++ serializeTerm t2 ++ rest
+      | .inter t1 t2 => serializeTerm t1 ++ serializeTerm t2 ++ rest
+      | .diff t1 t2 => serializeTerm t1 ++ serializeTerm t2 ++ rest := by
+  cases t <;> simp [serializeTerm, termTag, drop3_termTag_append, len_termTag, List.append_assoc]
+
+private theorem drop2_relationTag_append (tag mid rest : Bitstring) (h : len tag = 2) :
+    (tag ++ mid ++ rest).drop 2 = mid ++ rest := by
+  rw [len_eq] at h
+  simp [List.drop_append, h, List.append_assoc]
+
+private theorem drop2_serializeRelation (r : Relation) (rest : Bitstring) :
+    (serializeRelation r ++ rest).drop 2 =
+      match r with
+      | .mem t1 t2 => serializeTerm t1 ++ serializeTerm t2 ++ rest
+      | .not_mem t1 t2 => serializeTerm t1 ++ serializeTerm t2 ++ rest
+      | .eq t1 t2 => serializeTerm t1 ++ serializeTerm t2 ++ rest
+      | .neq t1 t2 => serializeTerm t1 ++ serializeTerm t2 ++ rest := by
+  cases r <;> simp [serializeRelation, relationTag, drop2_relationTag_append, len_relationTag,
+    List.append_assoc]
+
+private theorem drop3_formulaTag_append (tag mid rest : Bitstring) (h : len tag = 3) :
+    (tag ++ mid ++ rest).drop 3 = mid ++ rest := by
+  rw [len_eq] at h
+  simp [List.drop_append, h, List.append_assoc]
+
+private theorem drop3_serializeFormula (f : Formula) (rest : Bitstring) :
+    (serializeFormula f ++ rest).drop 3 =
+      match f with
+      | .rel r => serializeRelation r ++ rest
+      | .not f => serializeFormula f ++ rest
+      | .and f1 f2 => serializeFormula f1 ++ serializeFormula f2 ++ rest
+      | .or f1 f2 => serializeFormula f1 ++ serializeFormula f2 ++ rest
+      | .imp f1 f2 => serializeFormula f1 ++ serializeFormula f2 ++ rest
+      | .iff f1 f2 => serializeFormula f1 ++ serializeFormula f2 ++ rest := by
+  cases f <;> simp [serializeFormula, formulaTag, drop3_formulaTag_append, len_formulaTag,
+    List.append_assoc]
+
+theorem decodeTermFuel_suffix (fuel : Nat) (t : Term) (rest : Bitstring)
+    (h : wireSizeTerm t + rest.length ≤ fuel) :
+    decodeTermFuel fuel (serializeTerm t ++ rest) = some (t, rest) := by
+  induction t generalizing rest fuel with
+  | var n =>
+    have hlen : 3 ≤ (serializeTerm (.var n) ++ rest).length := by
+      simp [wireSizeTerm, length_serializeTerm, wireSizeNat, length_encodeNat]
+      omega
+    cases fuel with
+    | zero => simp [wireSizeTerm] at h
+    | succ fuel =>
+      simp [decodeTermFuel, serializeTerm, termTag, drop3_serializeTerm, hlen]
+      rw [decodeNat?_suffix n rest]
+  | empty =>
+    have hlen : 3 ≤ (serializeTerm .empty ++ rest).length := by
+      simp [wireSizeTerm, length_serializeTerm]
+    cases fuel with
+    | zero => simp [wireSizeTerm] at h
+    | succ fuel =>
+      simp [decodeTermFuel, serializeTerm, termTag, drop3_serializeTerm, hlen]
+  | union t1 t2 ih1 ih2 =>
+    have hlen : 3 ≤ (serializeTerm (.union t1 t2) ++ rest).length := by
+      simp [wireSizeTerm, length_serializeTerm]
+      have := wireSizeTerm_pos t1
+      omega
+    cases fuel with
+    | zero => simp [wireSizeTerm] at h
+    | succ fuel =>
+      have hf1 : wireSizeTerm t1 + (serializeTerm t2 ++ rest).length ≤ fuel := by
+        simp [wireSizeTerm, length_serializeTerm, List.length_append] at h ⊢; omega
+      have hf2 : wireSizeTerm t2 + rest.length ≤ fuel := by
+        have h1 := wireSizeTerm_pos t1
+        simp [wireSizeTerm, length_serializeTerm, List.length_append] at h ⊢; omega
+      simp [decodeTermFuel, serializeTerm, termTag, drop3_serializeTerm, hlen]
+      rw [ih1 fuel (serializeTerm t2 ++ rest) hf1]
+      simp
+      rw [ih2 fuel rest hf2]
+  | inter t1 t2 ih1 ih2 =>
+    have hlen : 3 ≤ (serializeTerm (.inter t1 t2) ++ rest).length := by
+      simp [wireSizeTerm, length_serializeTerm]
+      have := wireSizeTerm_pos t1
+      omega
+    cases fuel with
+    | zero => simp [wireSizeTerm] at h
+    | succ fuel =>
+      have hf1 : wireSizeTerm t1 + (serializeTerm t2 ++ rest).length ≤ fuel := by
+        simp [wireSizeTerm, length_serializeTerm, List.length_append] at h ⊢; omega
+      have hf2 : wireSizeTerm t2 + rest.length ≤ fuel := by
+        have h1 := wireSizeTerm_pos t1
+        simp [wireSizeTerm, length_serializeTerm, List.length_append] at h ⊢; omega
+      simp [decodeTermFuel, serializeTerm, termTag, drop3_serializeTerm, hlen]
+      rw [ih1 fuel (serializeTerm t2 ++ rest) hf1]
+      simp
+      rw [ih2 fuel rest hf2]
+  | diff t1 t2 ih1 ih2 =>
+    have hlen : 3 ≤ (serializeTerm (.diff t1 t2) ++ rest).length := by
+      simp [wireSizeTerm, length_serializeTerm]
+      have := wireSizeTerm_pos t1
+      omega
+    cases fuel with
+    | zero => simp [wireSizeTerm] at h
+    | succ fuel =>
+      have hf1 : wireSizeTerm t1 + (serializeTerm t2 ++ rest).length ≤ fuel := by
+        simp [wireSizeTerm, length_serializeTerm, List.length_append] at h ⊢; omega
+      have hf2 : wireSizeTerm t2 + rest.length ≤ fuel := by
+        have h1 := wireSizeTerm_pos t1
+        simp [wireSizeTerm, length_serializeTerm, List.length_append] at h ⊢; omega
+      simp [decodeTermFuel, serializeTerm, termTag, drop3_serializeTerm, hlen]
+      rw [ih1 fuel (serializeTerm t2 ++ rest) hf1]
+      simp
+      rw [ih2 fuel rest hf2]
+
 theorem decodeTerm?_suffix (t : Term) (rest : Bitstring) :
     decodeTerm? (serializeTerm t ++ rest) = some (t, rest) := by
-  sorry
+  simp [decodeTerm?, length_serializeTerm]
+  exact decodeTermFuel_suffix (wireSizeTerm t + rest.length) t rest le_rfl
 
 theorem decodeTerm?_serializeTerm (t : Term) :
     decodeTerm? (serializeTerm t) = some (t, []) := by
   simpa [List.append_nil] using decodeTerm?_suffix t []
 
+theorem decodeRelationFuel_suffix (fuel : Nat) (r : Relation) (rest : Bitstring)
+    (h : wireSizeRelation r + rest.length ≤ fuel) :
+    decodeRelationFuel fuel (serializeRelation r ++ rest) = some (r, rest) := by
+  cases r with
+  | mem t1 t2 =>
+    have hlen : 2 ≤ (serializeRelation (.mem t1 t2) ++ rest).length := by
+      simp [wireSizeRelation, length_serializeRelation, wireSizeTerm, wireSizeNat]
+      have := wireSizeTerm_pos t1; omega
+    cases fuel with
+    | zero => simp [wireSizeRelation] at h
+    | succ fuel =>
+      have hf1 : wireSizeTerm t1 + (serializeTerm t2 ++ rest).length ≤ fuel := by
+        simp [wireSizeRelation, length_serializeTerm, List.length_append] at h ⊢; omega
+      have hf2 : wireSizeTerm t2 + rest.length ≤ fuel := by
+        have h1 := wireSizeTerm_pos t1
+        simp [wireSizeRelation, length_serializeTerm, List.length_append] at h ⊢; omega
+      simp [decodeRelationFuel, serializeRelation, relationTag, drop2_serializeRelation, hlen]
+      rw [decodeTermFuel_suffix fuel t1 (serializeTerm t2 ++ rest) hf1]
+      simp
+      rw [decodeTermFuel_suffix fuel t2 rest hf2]
+  | not_mem t1 t2 =>
+    have hlen : 2 ≤ (serializeRelation (.not_mem t1 t2) ++ rest).length := by
+      simp [wireSizeRelation, length_serializeRelation, wireSizeTerm, wireSizeNat]
+      have := wireSizeTerm_pos t1; omega
+    cases fuel with
+    | zero => simp [wireSizeRelation] at h
+    | succ fuel =>
+      have hf1 : wireSizeTerm t1 + (serializeTerm t2 ++ rest).length ≤ fuel := by
+        simp [wireSizeRelation, length_serializeTerm, List.length_append] at h ⊢; omega
+      have hf2 : wireSizeTerm t2 + rest.length ≤ fuel := by
+        have h1 := wireSizeTerm_pos t1
+        simp [wireSizeRelation, length_serializeTerm, List.length_append] at h ⊢; omega
+      simp [decodeRelationFuel, serializeRelation, relationTag, drop2_serializeRelation, hlen]
+      rw [decodeTermFuel_suffix fuel t1 (serializeTerm t2 ++ rest) hf1]
+      simp
+      rw [decodeTermFuel_suffix fuel t2 rest hf2]
+  | eq t1 t2 =>
+    have hlen : 2 ≤ (serializeRelation (.eq t1 t2) ++ rest).length := by
+      simp [wireSizeRelation, length_serializeRelation, wireSizeTerm, wireSizeNat]
+      have := wireSizeTerm_pos t1; omega
+    cases fuel with
+    | zero => simp [wireSizeRelation] at h
+    | succ fuel =>
+      have hf1 : wireSizeTerm t1 + (serializeTerm t2 ++ rest).length ≤ fuel := by
+        simp [wireSizeRelation, length_serializeTerm, List.length_append] at h ⊢; omega
+      have hf2 : wireSizeTerm t2 + rest.length ≤ fuel := by
+        have h1 := wireSizeTerm_pos t1
+        simp [wireSizeRelation, length_serializeTerm, List.length_append] at h ⊢; omega
+      simp [decodeRelationFuel, serializeRelation, relationTag, drop2_serializeRelation, hlen]
+      rw [decodeTermFuel_suffix fuel t1 (serializeTerm t2 ++ rest) hf1]
+      simp
+      rw [decodeTermFuel_suffix fuel t2 rest hf2]
+  | neq t1 t2 =>
+    have hlen : 2 ≤ (serializeRelation (.neq t1 t2) ++ rest).length := by
+      simp [wireSizeRelation, length_serializeRelation, wireSizeTerm, wireSizeNat]
+      have := wireSizeTerm_pos t1; omega
+    cases fuel with
+    | zero => simp [wireSizeRelation] at h
+    | succ fuel =>
+      have hf1 : wireSizeTerm t1 + (serializeTerm t2 ++ rest).length ≤ fuel := by
+        simp [wireSizeRelation, length_serializeTerm, List.length_append] at h ⊢; omega
+      have hf2 : wireSizeTerm t2 + rest.length ≤ fuel := by
+        have h1 := wireSizeTerm_pos t1
+        simp [wireSizeRelation, length_serializeTerm, List.length_append] at h ⊢; omega
+      simp [decodeRelationFuel, serializeRelation, relationTag, drop2_serializeRelation, hlen]
+      rw [decodeTermFuel_suffix fuel t1 (serializeTerm t2 ++ rest) hf1]
+      simp
+      rw [decodeTermFuel_suffix fuel t2 rest hf2]
+
 theorem decodeRelation?_suffix (r : Relation) (rest : Bitstring) :
     decodeRelation? (serializeRelation r ++ rest) = some (r, rest) := by
-  sorry
+  simp [decodeRelation?, length_serializeRelation]
+  exact decodeRelationFuel_suffix (wireSizeRelation r + rest.length) r rest le_rfl
 
 theorem decodeRelation?_serializeRelation (r : Relation) :
     decodeRelation? (serializeRelation r) = some (r, []) := by
   simpa [List.append_nil] using decodeRelation?_suffix r []
 
+theorem decodeFormulaFuel_suffix (fuel : Nat) (f : Formula) (rest : Bitstring)
+    (h : wireSizeFormula f + rest.length ≤ fuel) :
+    decodeFormulaFuel fuel (serializeFormula f ++ rest) = some (f, rest) := by
+  induction f generalizing rest fuel with
+  | rel r =>
+    have hlen : 3 ≤ (serializeFormula (.rel r) ++ rest).length := by
+      simp [wireSizeFormula, length_serializeFormula, wireSizeRelation]
+      cases r with
+      | mem t1 _ | not_mem t1 _ | eq t1 _ | neq t1 _ =>
+        have := wireSizeTerm_pos t1; omega
+    cases fuel with
+    | zero => simp [wireSizeFormula, wireSizeRelation] at h
+    | succ fuel =>
+      have hrel : wireSizeRelation r + rest.length ≤ fuel := by
+        simp [wireSizeFormula, wireSizeRelation] at h ⊢; omega
+      simp [decodeFormulaFuel, serializeFormula, formulaTag, drop3_serializeFormula, hlen]
+      rw [decodeRelationFuel_suffix fuel r rest hrel]
+  | not f ih =>
+    have hlen : 3 ≤ (serializeFormula (.not f) ++ rest).length := by
+      simp [wireSizeFormula, length_serializeFormula]
+      have := formulaSize_pos f; omega
+    cases fuel with
+    | zero => simp [wireSizeFormula] at h
+    | succ fuel =>
+      simp [decodeFormulaFuel, serializeFormula, formulaTag, drop3_serializeFormula, hlen]
+      rw [ih fuel rest (by simp [wireSizeFormula] at h ⊢; omega)]
+  | and f1 f2 ih1 ih2 =>
+    have hlen : 3 ≤ (serializeFormula (f1.and f2) ++ rest).length := by
+      simp [wireSizeFormula, length_serializeFormula]
+      have := formulaSize_pos f1; omega
+    cases fuel with
+    | zero => simp [wireSizeFormula] at h
+    | succ fuel =>
+      have hf1 : wireSizeFormula f1 + (serializeFormula f2 ++ rest).length ≤ fuel := by
+        simp [wireSizeFormula, length_serializeFormula, List.length_append] at h ⊢; omega
+      have hf2 : wireSizeFormula f2 + rest.length ≤ fuel := by
+        have h1 := formulaSize_pos f1
+        simp [wireSizeFormula, length_serializeFormula, List.length_append] at h ⊢; omega
+      simp [decodeFormulaFuel, serializeFormula, formulaTag, drop3_serializeFormula, hlen]
+      rw [ih1 fuel (serializeFormula f2 ++ rest) hf1]
+      simp
+      rw [ih2 fuel rest hf2]
+  | or f1 f2 ih1 ih2 =>
+    have hlen : 3 ≤ (serializeFormula (f1.or f2) ++ rest).length := by
+      simp [wireSizeFormula, length_serializeFormula]
+      have := formulaSize_pos f1; omega
+    cases fuel with
+    | zero => simp [wireSizeFormula] at h
+    | succ fuel =>
+      have hf1 : wireSizeFormula f1 + (serializeFormula f2 ++ rest).length ≤ fuel := by
+        simp [wireSizeFormula, length_serializeFormula, List.length_append] at h ⊢; omega
+      have hf2 : wireSizeFormula f2 + rest.length ≤ fuel := by
+        have h1 := formulaSize_pos f1
+        simp [wireSizeFormula, length_serializeFormula, List.length_append] at h ⊢; omega
+      simp [decodeFormulaFuel, serializeFormula, formulaTag, drop3_serializeFormula, hlen]
+      rw [ih1 fuel (serializeFormula f2 ++ rest) hf1]
+      simp
+      rw [ih2 fuel rest hf2]
+  | imp f1 f2 ih1 ih2 =>
+    have hlen : 3 ≤ (serializeFormula (f1.imp f2) ++ rest).length := by
+      simp [wireSizeFormula, length_serializeFormula]
+      have := formulaSize_pos f1; omega
+    cases fuel with
+    | zero => simp [wireSizeFormula] at h
+    | succ fuel =>
+      have hf1 : wireSizeFormula f1 + (serializeFormula f2 ++ rest).length ≤ fuel := by
+        simp [wireSizeFormula, length_serializeFormula, List.length_append] at h ⊢; omega
+      have hf2 : wireSizeFormula f2 + rest.length ≤ fuel := by
+        have h1 := formulaSize_pos f1
+        simp [wireSizeFormula, length_serializeFormula, List.length_append] at h ⊢; omega
+      simp [decodeFormulaFuel, serializeFormula, formulaTag, drop3_serializeFormula, hlen]
+      rw [ih1 fuel (serializeFormula f2 ++ rest) hf1]
+      simp
+      rw [ih2 fuel rest hf2]
+  | iff f1 f2 ih1 ih2 =>
+    have hlen : 3 ≤ (serializeFormula (f1.iff f2) ++ rest).length := by
+      simp [wireSizeFormula, length_serializeFormula]
+      have := formulaSize_pos f1; omega
+    cases fuel with
+    | zero => simp [wireSizeFormula] at h
+    | succ fuel =>
+      have hf1 : wireSizeFormula f1 + (serializeFormula f2 ++ rest).length ≤ fuel := by
+        simp [wireSizeFormula, length_serializeFormula, List.length_append] at h ⊢; omega
+      have hf2 : wireSizeFormula f2 + rest.length ≤ fuel := by
+        have h1 := formulaSize_pos f1
+        simp [wireSizeFormula, length_serializeFormula, List.length_append] at h ⊢; omega
+      simp [decodeFormulaFuel, serializeFormula, formulaTag, drop3_serializeFormula, hlen]
+      rw [ih1 fuel (serializeFormula f2 ++ rest) hf1]
+      simp
+      rw [ih2 fuel rest hf2]
+
 theorem decodeFormula?_suffix (f : Formula) (rest : Bitstring) :
     decodeFormula? (serializeFormula f ++ rest) = some (f, rest) := by
-  sorry
+  simp [decodeFormula?, length_serializeFormula]
+  exact decodeFormulaFuel_suffix (wireSizeFormula f + rest.length) f rest le_rfl
 
 theorem decodeFormula?_serializeFormula (f : Formula) :
     decodeFormula? (serializeFormula f) = some (f, []) := by

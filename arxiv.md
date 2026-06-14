@@ -126,26 +126,9 @@ Cox, Ericson, and Mishra apply this structure to show that program-verification 
 ### The Concept of "The Nose"
 The paper features a key visualization of the average-case landscape of NP-complete languages (Figure 1, page 13).
 
-```
-  Worst-Case 
-  Complexity (V)
-       ▲
-       │             L4       L3
-       │            /        /    L2
-   Pol ┼───────────┼────────┼────/──────
-       │           │       /    /  L1
-       │           │      /    /  /
-  h(T) ┼───────────┼─────┼────┼──/──────
-       │          /     /    /  /
-     N ┼─────────┼─────┼────┼──/────────
-       │        /     /    /  / 
-       │       /     /____/  /
-       │      /     /     \ /
-       │     /     / Nose  *
-       │    /     /________/
-       └────┴─────┴────────┼──────────► Average-Case Complexity (T)
-            N    Pol      Pol
-```
+![The average-case complexity "nose" diagram (TR1995-711, Figure 1)](figures/nose.png)
+
+*Figure 1 (schematic). Languages $L_i$ are plotted by worst-case complexity $V$ (vertical) and average-case complexity $T$ (horizontal). The shaded **nose** is the tractable region in the polynomial–polynomial corner. Regenerate with `python3 scripts/plot_nose.py`.*
 
 In this diagram, languages $L_i$ are mapped based on their worst-case complexity $V$ (vertical axis) and their average-case complexity $T$ (horizontal axis). 
 *   **The Nose** represents the sweet spot of tractability: the shaded region where the worst-case complexity of the ranking function $V$ is bounded by $h(T)$, such that the language still possesses an efficient average-case algorithm.

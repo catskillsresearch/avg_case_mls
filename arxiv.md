@@ -101,7 +101,7 @@ We grind on Phases 1→5 in dependency order (subphases may be implemented out o
 ## 2. Historical Context, Terminology, and Reception of TR1995-711
 
 ### Application and Findings
-Cox, Ericson, and Mishra apply this structure to show that program-verification sublanguages cannot be easily bypassed using typical average-case heuristics. They prove that **EMLS, MLS, and FP/LP are $`\text{NP}`$-average complete**. This implies there are simple, rankable distributions that will frustrate any decision algorithm for these problems, forcing super-polynomial average-case running times unless deterministic and nondeterministic exponential time are equal ($`\text{NEXP} = \text{EXP}`$).
+Cox, Ericson, and Mishra prove that **EMLS, MLS, and FP/LP are $`\text{NP}`$-average complete**. This implies there are simple, rankable distributions that will frustrate any decision algorithm for these problems, forcing super-polynomial average-case running times unless deterministic and nondeterministic exponential time are equal ($`\text{NEXP} = \text{EXP}`$).
 
 ### The Concept of "The Nose"
 The paper features a key visualization of the average-case landscape of NP-complete languages (Figure 1, page 13).

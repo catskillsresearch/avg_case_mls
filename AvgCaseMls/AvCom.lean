@@ -392,6 +392,17 @@ theorem refl (p : DistributionalProblem) : DistributionalReduction p p := by
     · omega
     · exact Nat.le_mul_of_pos_left (rank p.μ x) (lenBot_ne_zero x)
 
+/--
+Compose distributional reductions (TR1995-711 §3.2 transitivity).
+
+Requires a polynomial bound on `lenBot (f x)` in terms of `lenBot x`; deferred until
+`DistributionalReduction` records poly-time map length (see [`DEFINITION_FORKS.md`](../DEFINITION_FORKS.md)).
+-/
+theorem trans {p1 p2 p3 : DistributionalProblem}
+    (h12 : DistributionalReduction p1 p2) (h23 : DistributionalReduction p2 p3) :
+    DistributionalReduction p1 p3 := by
+  sorry
+
 end DistributionalReduction
 
 /--
@@ -423,6 +434,17 @@ theorem intro {target : DistributionalProblem} (h : InDistNP target)
     (hred : ∀ source, InDistNP source → DistributionalReduction source target) :
     IsNPAverageComplete target :=
   ⟨h, hred⟩
+
+/--
+If `mid` is NP-average complete and `mid` reduces to `target`, then `target` is complete.
+Corollary 5.1 pipeline: distNP-complete NBH core → MLS target.
+-/
+theorem of_reductor {mid target : DistributionalProblem}
+    (hTarget : InDistNP target) (hMid : IsNPAverageComplete mid)
+    (hRed : DistributionalReduction mid target) :
+    IsNPAverageComplete target :=
+  intro hTarget fun source hsource =>
+    DistributionalReduction.trans (hMid.2 source hsource) hRed
 
 end IsNPAverageComplete
 

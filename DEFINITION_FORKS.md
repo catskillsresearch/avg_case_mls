@@ -146,6 +146,18 @@ When the literature leaves a choice implicit, we record it here.
 
 **Rationale:** Wires Phase **4A** into the MLS target for Phase **4C** completeness; honest gap on general checker correctness matches Phase **3A** checker fork.
 
+## NP-average completeness (Phase 4C)
+
+**Literature:** TR1995-711 Corollary 5.1 — MLS satisfiability is NP-average complete via NBH.
+
+**Lean fork — pipeline:** [`IsNPAverageComplete.of_reductor`] composes a complete intermediate problem with a distributional reduction; [`satMLSProb_NPAverageComplete`] applies this to [`nbhProb_NPAverageComplete`] and [`nbhToSatMLS_red`].
+
+**Lean fork — gaps:** [`DistributionalReduction.trans`] `sorry` (needs poly bound on `lenBot (f x)`); [`nbhProb_NPAverageComplete`] `sorry` (Levin universal reduction into NBH deferred).
+
+**Proved:** [`IsNPAverageComplete.of_reductor`], [`satMLSProb_NPAverageComplete`] (modulo the two `sorry`s above).
+
+**Rationale:** Delivers the Corollary 5.1 proof skeleton for Phase **5** conditional non-AvP; separates compositional logic from Mathlib NTM / poly-time infrastructure.
+
 ## Encoding size bounds (Phase 3B)
 
 **Literature:** $\\Vert\\varphi\\Vert$ is polynomially bounded in syntax size (TR1995-711 / §8).

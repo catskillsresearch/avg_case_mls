@@ -11,6 +11,7 @@ import AvgCaseMls.Serialization
 import AvgCaseMls.NPMembership
 import AvgCaseMls.NBH
 import AvgCaseMls.Reduction
+import AvgCaseMls.Completeness
 import AvgCaseMls.AvCom
 
 /-!
@@ -213,6 +214,14 @@ example :
 
 example : reduceNBHToSatMLS (NBHInstance.encode trivialInstance) = satTargetEnc := by
   simp [reduceNBHToSatMLS, μ₀Support]
+
+/-! ### Phase 4C — NP-average completeness (Corollary 5.1) -/
+
+open Completeness
+
+example : IsNPAverageComplete satMLSProb := satMLSProb_NPAverageComplete
+
+example : InDistNP satMLSProb := satMLSProb_in_DistNP
 
 #eval verifyNBH (NBHInstance.encode trivialInstance) trivialCert
 

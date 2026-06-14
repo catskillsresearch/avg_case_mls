@@ -613,11 +613,11 @@ theorem SatMLS_average_hard (μ : Distribution) (h_rank : ∃ T, IsPolynomial T 
 | **3B** | [`encodingBound`], [`formulaSize_le_encodingBound`], [`encodingBound_poly`](AvgCaseMls/Serialization.lean) | Proofs check (`nodeBound_pair_le` `sorry`) |
 | **4A** | [`NBHChecker_in_NP`], [`μ₀_polRankable`], [`nbhProb_in_DistNP`](AvgCaseMls/NBH.lean) | Proofs check (`decode_encode` `sorry`) |
 | **4B** | [`nbhToSatMLS_red`], [`reduce_domination`](AvgCaseMls/Reduction.lean) | Proofs check (`reduce_correct` `sorry`) |
-| **4C** | NP-average completeness (Corollary 5.1) | TBD |
+| **4C** | [`satMLSProb_NPAverageComplete`](AvgCaseMls/Completeness.lean), [`IsNPAverageComplete.of_reductor`](AvgCaseMls/AvCom.lean) | Proofs check (`nbhProb_NPAverageComplete`, `DistributionalReduction.trans` `sorry`) |
 | **5A** | Conditional non-AvP from completeness | TBD |
 | **5B** | `SatMLS_average_hard` without `sorry` | TBD |
 
-*Last updated: Phases **1A–1D**, **2A–2D**, **3A–3B (partial)**, **4A–4B (partial)** graded **Proofs check** where noted; remaining subphases TBD.*
+*Last updated: Phases **1A–1D**, **2A–2D**, **3A–3B (partial)**, **4A–4C (partial)** graded **Proofs check** where noted; remaining subphases TBD.*
 
 ---
 

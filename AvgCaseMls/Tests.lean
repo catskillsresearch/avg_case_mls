@@ -5,6 +5,7 @@ Authors: Lars Warren Ericson, Catskills Research Company
 -/
 
 import AvgCaseMls.MLS
+import AvgCaseMls.EMLS
 import AvgCaseMls.DecideMLS
 import AvgCaseMls.AvCom
 
@@ -22,15 +23,27 @@ lake build AvgCaseMls.Tests 2>&1 | grep "^info: AvgCaseMls/Tests"
 
 namespace AvgCaseMls.Tests
 
-open MLS AvCom
+open MLS EMLS AvCom
 
 /-! ### MLS embedding (§6) -/
 
-example : decideMLS (Formula.rel (Relation.eq Term.empty Term.empty)) = true := rfl
+example : decideMLSSat (Formula.rel (Relation.eq Term.empty Term.empty)) = true := rfl
 
-example : decideMLS (Formula.rel (Relation.neq Term.empty Term.empty)) = false := rfl
+example : decideMLSSat (Formula.rel (Relation.neq Term.empty Term.empty)) = false := rfl
 
-example : decideMLS (Formula.rel (Relation.mem Term.empty Term.empty)) = false := rfl
+example : decideMLSSat (Formula.rel (Relation.mem Term.empty Term.empty)) = false := rfl
+
+/-! ### FOS80 EMLS conjuncts (§7) -/
+
+example : decideConjunct [.neq 0 0] = false := rfl
+
+example : decideConjunct [.mem 0 1, .notMem 0 1] = false := rfl
+
+example : decideConjunct [.eqEmpty 0] = true := rfl
+
+example :
+    decideMLSSat (Formula.and (Formula.rel (Relation.mem (Term.var 0) (Term.var 1)))
+      (Formula.rel (Relation.not_mem (Term.var 0) (Term.var 1)))) = false := rfl
 
 /-! ### AvCom helpers (§5) -/
 
@@ -43,8 +56,9 @@ example : IsPolynomial (fun n => n + 1) := by
   intro n
   simp
 
-#eval decideMLS (Formula.rel (Relation.eq Term.empty Term.empty))
-#eval decideMLS (Formula.rel (Relation.neq Term.empty Term.empty))
+#eval decideMLSSat (Formula.rel (Relation.eq Term.empty Term.empty))
+#eval decideConjunct [.mem 0 1]
+#eval decideConjunct [.mem 0 0]
 #eval len ([] : Bitstring)
 #eval len [true, false, true]
 

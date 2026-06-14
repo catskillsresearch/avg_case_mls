@@ -125,8 +125,8 @@ If you see a multi-gigabyte `.lake/` folder after setup, that is normal. It is i
 |--------------------|--------|--------|
 | §2–4 Context and Lean strategy | (prose in [`arxiv.md`](arxiv.md)) | Historical background, field evolution, roadmap |
 | §5 AvCom (math + Lean encoding) | [`AvgCaseMls/AvCom.lean`](AvgCaseMls/AvCom.lean) | `rank`, `T_inv` still `sorry` |
-| §6 MLS (math + Lean encoding) | [`AvgCaseMls/MLS.lean`](AvgCaseMls/MLS.lean) | Phase 2A complete; no `sorry` |
-| §7 Decision procedure | [`AvgCaseMls/DecideMLS.lean`](AvgCaseMls/DecideMLS.lean) | Mock `decideMLS`; proofs are `sorry` |
+| §6 MLS grammar + [`EMLS.lean`](AvgCaseMls/EMLS.lean) | [`AvgCaseMls/MLS.lean`](AvgCaseMls/MLS.lean), [`AvgCaseMls/EMLS.lean`](AvgCaseMls/EMLS.lean) | Phase 2A complete; EMLS literals in Lean |
+| §7 Decision procedure ([FOS80](3-540-10009-1_8.pdf)) | [`AvgCaseMls/DecideMLS.lean`](AvgCaseMls/DecideMLS.lean) | FOS80 Steps 2–4 partial; proofs `sorry` |
 | §8 Average-case hardness | [`AvgCaseMls/AverageHardness.lean`](AvgCaseMls/AverageHardness.lean) | Theorem statement; proof is `sorry` |
 | Smoke tests | [`AvgCaseMls/Tests.lean`](AvgCaseMls/Tests.lean) | `native_decide` / `#eval` on decidable fragments |
 

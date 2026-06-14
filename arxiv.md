@@ -54,8 +54,8 @@ Context and Lean infrastructure appear in **§§2–4**; Phase 1 (AvCom) is **§
 | Subphase | Goal | Lean / doc |
 |----------|------|------------|
 | **2A** | MLS syntax + axiomatic semantics | §6, [`MLS.lean`](AvgCaseMls/MLS.lean)—`Term`, `Relation`, `Formula`, `evalTerm`, `evalFormula` |
-| **2B** | EMLS surface language | `EMLS.Literal`, `toMLS`, normalization to elementary conjuncts (§6 planned block) |
-| **2C** | Decision procedure for **satisfiability** | §7, [`DecideMLS.lean`](AvgCaseMls/DecideMLS.lean)—`decideMLSSat`, soundness/completeness on implemented fragment |
+| **2B** | EMLS literals, `literalToFormula`, `conjunctToFormula` | [`EMLS.lean`](AvgCaseMls/EMLS.lean), §6 |
+| **2C** | FOS80 decision procedure for **satisfiability** | [`DecideMLS.lean`](AvgCaseMls/DecideMLS.lean), §7 |
 | **2D** | Problem encoding and step count | `serializeFormula`, `SatMLS`, `stepsMLS` (remove axioms in §8) |
 
 *Exit criterion (Phase 2):* 2A–2D complete; no `sorry` on soundness for the proved decision fragment; completeness scoped honestly.
@@ -370,7 +370,7 @@ def AvP (prob : DistributionalProblem) : Prop :=
 
 ---
 
-## 6. Multilevel Syllogistic (MLS): Grammar, Decision Procedures, and Lean Encoding
+## 6. Multilevel Syllogistic (MLS): Grammar and Lean Encoding
 
 ### Syntax of MLS and EMLS
 Multilevel Syllogistic (MLS) is a decidable fragment of Zermelo-Fraenkel set theory. Its syntax allows set variables, the empty set ($`\emptyset`$), binary set operators (union $`\cup`$, intersection $`\cap`$, set difference $`\setminus`$), binary set relations (membership $`\in`$, non-membership $`\notin`$, equality $`=`$, inequality $`\neq`$), and standard propositional connectives.
@@ -388,18 +388,9 @@ v_i = \emptyset, \quad v_i = v_j \cup v_k, \quad v_i = v_j \setminus v_k, \quad 
 ```
 
 
-### Decision Procedures
-The primary algorithm proposed to decide the satisfiability of MLS and EMLS formulas is the **model-graph algorithm** (originally analyzed by Ferro, Omodeo, and Schwartz [FOS80]). 
-
-To determine whether an EMLS formula $`\Phi`$ is satisfiable:
-1.  **Normalization:** Translate the formula into a conjunct of elementary literals.
-2.  **Graph Construction:** Build a directed model graph representing the membership and equality relations between set variables.
-3.  **Refinement:** Propagate set-theoretic axioms (such as extensionality: if two sets have the same elements, they are equal) through the graph to detect contradictions.
-4.  **Worst-Case Performance:** In the worst case, the number of distinct models that must be checked is $`2^{4n^3}`$ where $`n`$ is the number of variables, leading to an exponential worst-case runtime.
-
 ### Lean encoding (Phase 2A)
 
-**Scope.** This subsection is **complete** for its current goal: a deep embedding of full MLS syntax and axiomatic set-theoretic semantics in Lean 4. [`AvgCaseMls/MLS.lean`](AvgCaseMls/MLS.lean) compiles with no `sorry`. Phase **2B** (EMLS literals and normalization, sketched below), **2C** (decision procedure, §7), and **2D** (serialization and step counting, §8) are separate obligations.
+**Scope.** This subsection is **complete** for its current goal: a deep embedding of full MLS syntax and axiomatic set-theoretic semantics in Lean 4. [`AvgCaseMls/MLS.lean`](AvgCaseMls/MLS.lean) compiles with no `sorry`. Phase **2B** (EMLS literals in [`AvgCaseMls/EMLS.lean`](AvgCaseMls/EMLS.lean)), **2C** (decision procedure, §7), and **2D** (serialization and step counting, §8) are separate obligations.
 
 Set variables are identified with natural-number indices (`Nat → ZFSet` environments), matching the report's $`v_i`$ notation. MLS formulas talk about membership chains $`v_i \in v_j \in v_k \in \cdots`$. We use a custom axiomatized `ZFSet` sort so the development is self-contained and `evalTerm`/`evalFormula` are explicitly `noncomputable` (axioms are not compiled). A Mathlib-backed refactor would replace `axiom ZFSet` with imports from `Mathlib.Data.ZFC.Basic`.
 
@@ -469,73 +460,84 @@ noncomputable def evalFormula (env : Env) : Formula → Prop
 end MLS
 ```
 
-**EMLS (Phase 2B — planned).** Elementary Multilevel Syllogistic restricts formulas to conjunctions of flat literals ($`v_i = \emptyset`$, $`v_i = v_j \cup v_k`$, $`v_i \in v_j`$, etc.). A natural Lean extension is a separate inductive type:
+**EMLS (Phase 2B).** Elementary literals and translation into MLS live in [`AvgCaseMls/EMLS.lean`](AvgCaseMls/EMLS.lean), following Ferro–Omodeo–Schwartz [FOS80] §3 ([`3-540-10009-1_8.pdf`](3-540-10009-1_8.pdf)):
 
 ```lean
-inductive EMLS.Literal : Type
-  | eq_empty   : Nat → Literal
-  | eq_union   : Nat → Nat → Nat → Literal
-  | eq_diff    : Nat → Nat → Nat → Literal
-  | eq_inter   : Nat → Nat → Nat → Literal
-  | mem        : Nat → Nat → Literal
-  | not_mem    : Nat → Nat → Literal
-  | neq        : Nat → Nat → Literal
+inductive BinOp | union | inter | diff
+
+inductive Literal
+  | eqOp    : Nat → Nat → Nat → BinOp → Literal  -- x = y ∪/∩/\ z
+  | eqEmpty : Nat → Literal
+  | mem | notMem | neq : Nat → Nat → Literal
+
+def literalToFormula : Literal → Formula
+def conjunctToFormula : List Literal → Option Formula
 ```
 
-with a translation `EMLS.toMLS : Literal → MLS.Formula` and a normalization function mapping general MLS formulas to EMLS conjuncts—the input shape expected by the model-graph procedure above.
+Normalization from general MLS formulas to EMLS conjuncts remains partial (`formulaToConjunct?` in §7); the model-graph decision procedure is §7 only.
 
 ---
 
-## 7. Coding the Decision Procedures for MLS in Lean 4
-Phase **2C.** The model-graph algorithm is described mathematically in §6; here we implement a Lean decision procedure skeleton. The full procedure from [FOS80]—normalization to elementary literals, graph construction, and refinement—is not yet executable; instead we define `decideMLS : Formula → Bool` and state **soundness** and **completeness** theorems for **satisfiability**:
+## 7. Decision Procedures for MLS and EMLS in Lean 4
 
-* **Soundness:** if `decideMLS φ = true`, then $`\varphi`$ is satisfiable ($`\exists env,\ \text{evalFormula}\ env\ \varphi`$).
-* **Completeness:** if $`\varphi`$ is satisfiable, then `decideMLS φ = true`.
+Phase **2C.** This section merges the decision-procedure mathematics with the Lean encoding. The primary reference is Ferro, Omodeo, and Schwartz [FOS80]—*Decision procedures for some fragments of set theory*—as reproduced in [`3-540-10009-1_8.pdf`](3-540-10009-1_8.pdf) (§3: multilevel syllogistic without singleton or cardinality). TR1995-711 and §6 cite the same **model-graph / elementary-literal** pipeline.
 
-The listing below uses universal validity in the theorem statements (as in an early draft); aligning the statements with satisfiability and wiring a **step-counting** function `stepsMLS : Formula → Nat` is the next formalization step needed to prove that the procedure lies in a stated $`\text{Av}(T)`$ class. The live file is [`AvgCaseMls/DecideMLS.lean`](AvgCaseMls/DecideMLS.lean).
+### Problem shape (FOS80 §3)
+
+Validity of an MLS formula reduces to satisfiability of a **conjunction** $`q`$ of elementary literals over set variables $`x,y,z,\ldots`$:
+
+| Form | Literal |
+|------|---------|
+| $(*)$ | $`x = y \diamond z`$ with $`\diamond \in \{\cup,\cap,\setminus\}`$ |
+| $(\in)$ | $`x \in y`$ |
+| $(\notin)$ | $`x \notin y`$ |
+| $(\neq)$ | $`x \neq y`$ |
+
+Let $`q^*`$ be the sub-conjunction of $(*)$ literals, $`V_{\in}`$ the variables appearing on the left of $(\in)$ / $(\notin)$ literals, and $`L_x`$ the literals whose left-hand side is $`x`$.
+
+### Algorithm outline ([FOS80] §3)
+
+1. **Step 1 (substitution):** For each $`x \in V_{\in}`$, expand $`L_x`$ using $(\neq)$ literals and merge equivalence classes from $`q^*`$; replace membership literals $`x \in y`$, $`x \notin y`$ accordingly.
+2. **Step 2:** If any literal $`x \neq x`$ appears, return **UNSATISFIABLE**.
+3. **Step 3:** If $`V_{\in}`$ is empty, return **SATISFIABLE**.
+4. **Step 4:** Search for a **singleton model** (every variable interpreted as a subset of $`\{\emptyset\}`$) by assigning an ordering $`x < y`$ when $`M(x) \in M(y)`$; detect cycles (e.g. $`x \in y \land y \in z \land z \in x`$) as unsatisfiable. In the worst case TR1995-711 cites $`2^{4n^3}`$ candidate models for $`n`$ variables.
+
+[FOS80] §4 extends the language with singletons, cardinality, and arithmetic; we do **not** encode that extension yet.
+
+### Lean modules
+
+| File | Role |
+|------|------|
+| [`AvgCaseMls/EMLS.lean`](AvgCaseMls/EMLS.lean) | `Literal`, `Conjunct`, `literalToFormula`, `conjunctToFormula` |
+| [`AvgCaseMls/DecideMLS.lean`](AvgCaseMls/DecideMLS.lean) | `formulaToConjunct?`, `decideConjunct`, `decideMLSSat`, soundness/completeness |
+
+**Implemented today:** partial normalization (`formulaToConjunct?` on conjunctions of flat literals), FOS80 **Step 2** contradictions ($`x \neq x`$, $`x \in y \land x \notin y`$), **Step 3** (no membership literals ⇒ SAT), and a **partial Step 4** (membership-order cycle detection). **Open:** full Step 1 substitution, complete singleton-model search, and proofs.
+
+**Satisfiability** (not validity):
+
+* **Soundness:** if `decideMLSSat φ = true`, then $`\exists env,\ \text{evalFormula}\ env\ \varphi`$.
+* **Completeness:** if $`\varphi`$ is satisfiable, then `decideMLSSat φ = true` (on the implemented fragment).
 
 ```lean
 namespace MLS
 
-/- A mock representation of a decision procedure for MLS formulas. -/
-def decideMLS : Formula → Bool
-  | Formula.rel (Relation.eq (Term.empty) (Term.empty)) => true
-  | Formula.rel (Relation.neq (Term.empty) (Term.empty)) => false
-  | _ => false -- In a full implementation, this runs the model-graph search.
+open EMLS
 
-/- Soundness: If the decision procedure returns true, the formula is valid. -/
-theorem decideMLS_sound (f : Formula) (h : decideMLS f = true) :
-    ∀ (env : Env), evalFormula env f := by
-  intro env
-  induction f with
-  | rel r => 
-    cases r with
-    | eq t1 t2 => 
-      sorry
-    | neq t1 t2 => 
-      sorry
-    | mem t1 t2 => 
-      sorry
-    | not_mem t1 t2 => 
-      sorry
-  | not f' ih => 
-    sorry
-  | and f1 f2 ih1 ih2 => 
-    sorry
-  | or f1 f2 ih1 ih2 => 
-    sorry
-  | imp f1 f2 ih1 ih2 => 
-    sorry
-  | iff f1 f2 ih1 ih2 => 
-    sorry
+def decideConjunct (c : Conjunct) : Bool := …  -- Steps 2–4 (partial)
 
-/- Completeness: If the formula is valid, the decision procedure must return true. -/
-theorem decideMLS_complete (f : Formula) (h : ∀ (env : Env), evalFormula env f) :
-    decideMLS f = true := by
-  sorry
+def decideMLSSat (f : Formula) : Bool :=
+  match formulaToConjunct? f with
+  | some c => decideConjunct c
+  | none => …  -- fallback on degenerate literals
 
-end MLS
+theorem decideMLSSat_sound (f : Formula) (h : decideMLSSat f = true) :
+    ∃ (env : Env), evalFormula env f := by sorry
+
+theorem decideMLSSat_complete (f : Formula) (h : ∃ (env : Env), evalFormula env f) :
+    decideMLSSat f = true := by sorry
 ```
+
+The live implementation is [`AvgCaseMls/DecideMLS.lean`](AvgCaseMls/DecideMLS.lean). A **step-counting** function `stepsMLS` (Phase 2D) will relate the procedure to $`\mathrm{Av}(T)`$ in §5.
 
 ---
 
@@ -582,8 +584,8 @@ theorem SatMLS_average_hard (μ : Distribution) (h_rank : ∃ T, IsPolynomial T 
 | **1C** | `IsAvTime`, `DistTime`, `AvDTime` | TBD |
 | **1D** | `AvP`, `InDistNP`, `DistributionalReduction`, `IsNPAverageComplete` | TBD |
 | **2A** | MLS syntax + axiomatic semantics (§6, [`MLS.lean`](AvgCaseMls/MLS.lean)) | Proofs check |
-| **2B** | EMLS literals, `toMLS`, normalization (§6 planned block) | TBD |
-| **2C** | `decideMLSSat`, model-graph skeleton, soundness/completeness (§7) | TBD |
+| **2B** | EMLS literals, `literalToFormula`, `conjunctToFormula` ([`EMLS.lean`](AvgCaseMls/EMLS.lean)) | TBD |
+| **2C** | `decideMLSSat`, FOS80 Steps 2–4 partial ([`DecideMLS.lean`](AvgCaseMls/DecideMLS.lean)) | TBD |
 | **2D** | `serializeFormula`, `SatMLS`, `stepsMLS` (§8 axioms removed) | TBD |
 | **3A** | `SatMLS ∈ NP` or Mathlib blocker | TBD |
 | **3B** | Encoding size / $`|\varphi|`$ lemmas | TBD |

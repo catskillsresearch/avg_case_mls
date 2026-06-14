@@ -25,9 +25,10 @@ Lean code from [`arxiv.md`](arxiv.md) §§5–6 (math + encoding), §4 (strategy
 
 | Module | `arxiv.md` | Content |
 |--------|------------|---------|
-| [`AvgCaseMls/AvCom.lean`](AvgCaseMls/AvCom.lean) | §5 | Distributions, rank, AvP |
+| [`AvgCaseMls/EMLS.lean`](AvgCaseMls/EMLS.lean) | §6–7 | EMLS literals, `conjunctToFormula` |
 | [`AvgCaseMls/MLS.lean`](AvgCaseMls/MLS.lean) | §6 | MLS syntax and axiomatic `ZFSet` semantics |
-| [`AvgCaseMls/DecideMLS.lean`](AvgCaseMls/DecideMLS.lean) | §7 | Mock decision procedure + soundness/completeness statements |
+| [`AvgCaseMls/DecideMLS.lean`](AvgCaseMls/DecideMLS.lean) | §7 | FOS80 decision skeleton + soundness/completeness |
+| [`AvgCaseMls/AvCom.lean`](AvgCaseMls/AvCom.lean) | §5 | Distributions, rank, AvP |
 | [`AvgCaseMls/AverageHardness.lean`](AvgCaseMls/AverageHardness.lean) | §8 | `SatMLS` and average-case hardness theorem (proof sketch) |
 | [`AvgCaseMls/Tests.lean`](AvgCaseMls/Tests.lean) | — | Smoke tests (`#eval`, `native_decide`) |
 
@@ -41,7 +42,7 @@ chmod +x run_lean_check.sh run_lean_tests.sh
 ./run_lean_tests.sh     # print #eval output from Tests.lean
 ```
 
-Most theorem proofs are still `sorry`; tests cover the MLS embedding and decidable fragments (`decideMLS` on empty-set cases, `len`, `IsPolynomial`).
+Most theorem proofs are still `sorry`; tests cover the MLS embedding, FOS80 conjunct fragments, and AvCom helpers.
 
 **Proof program:** See [`arxiv.md`](arxiv.md) §1 (charter) and §9 (results report card, updated as work progresses).
 

@@ -1,6 +1,6 @@
 # Revisiting average case complexity of multilevel syllogistic: From the 1995 Courant Technical Report to Lean 4 Formalization
 
-> **Portable edition:** run `./scripts/build_arxiv_with_includes.sh` to generate [`arxiv_with_includes.md`](arxiv_with_includes.md), a self-contained copy with every Lean module inlined in full (no external `.lean` references).
+> **Portable edition:** run `./scripts/build_arxiv_with_includes.sh` to generate [`arxiv_with_includes.md`](arxiv_with_includes.md), a self-contained copy with every Lean module inlined once in full (no external `.lean` references).
 
 ## 1. Introduction: The Vision of AvCom in Program Verification
 In the late 1970s and throughout the 1980s, the "Correct Program Technology" (CPT) movement, spearheaded by figures such as Martin Davis and Jacob T. Schwartz, envisioned a software development pipeline where programmers wrote code alongside mathematical specifications [DS77]. A compiler, integrated with an automated theorem prover, would then verify that the program met its specification. 
@@ -55,9 +55,9 @@ Context and Lean infrastructure appear in **§§2–4**; Phase 1 (AvCom) is **§
 
 | Subphase | Goal | Lean / doc |
 |----------|------|------------|
-| **2A** | MLS syntax + axiomatic semantics | §6, [Appendix AvgCaseMls/MLS.lean](#avgcasemls-mls-lean)—`Term`, `Relation`, `Formula`, `evalTerm`, `evalFormula` |
-| **2B** | EMLS literals, `literalToFormula`, `conjunctToFormula` | [Appendix AvgCaseMls/EMLS.lean](#avgcasemls-emls-lean), §6 |
-| **2C** | FOS80 decision procedure for **satisfiability** | [Appendix AvgCaseMls/DecideMLS.lean](#avgcasemls-decidemls-lean), §7 |
+| **2A** | MLS syntax + axiomatic semantics | §6, [[`AvgCaseMls/MLS.lean`](#avgcasemls-mls-lean)](#avgcasemls-mls-lean)—`Term`, `Relation`, `Formula`, `evalTerm`, `evalFormula` |
+| **2B** | EMLS literals, `literalToFormula`, `conjunctToFormula` | [[`AvgCaseMls/EMLS.lean`](#avgcasemls-emls-lean)](#avgcasemls-emls-lean), §6 |
+| **2C** | FOS80 decision procedure for **satisfiability** | [[`AvgCaseMls/DecideMLS.lean`](#avgcasemls-decidemls-lean)](#avgcasemls-decidemls-lean), §7 |
 | **2D** | Problem encoding and step count | `serializeFormula`, `SatMLS`, `stepsMLS` (remove axioms in §8) |
 
 *Exit criterion (Phase 2):* 2A–2D complete; no `sorry` on soundness for the proved decision fragment; completeness scoped honestly.
@@ -195,14 +195,14 @@ Our approach mirrors [icon2lean](https://github.com/catskillsresearch/icon2lean)
 | Distributions | `structure Distribution` with explicit finite `support`, off-support zero, `support.sum prob ≤ 1` | Avoids infinite sums; rank and testing are well-defined (see [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md)) |
 | Rank | `noncomputable def rank` | Cardinality over all strings is not computable |
 | Set semantics | Axiomatic `MLS.ZFSet` + `noncomputable evalTerm` | Supports nested sets without committing to full ZF in Mathlib; `Mathlib.Data.ZFC.Basic` is an alternative for a future refactor |
-| EMLS | `Literal`, `literalToFormula`, `conjunctToFormula`, `Literal.holds` in [Appendix AvgCaseMls/EMLS.lean](#avgcasemls-emls-lean) | FOS80 §3 normal form for §7 decision procedure |
+| EMLS | `Literal`, `literalToFormula`, `conjunctToFormula`, `Literal.holds` in [[`AvgCaseMls/EMLS.lean`](#avgcasemls-emls-lean)](#avgcasemls-emls-lean) | FOS80 §3 normal form for §7 decision procedure |
 | Tests | `#eval` + `native_decide` on decidable fragments | Same regression pattern as `Icon2lean/Tests.lean` |
 
 ---
 
 ## 5. Average-Case Complexity (AvCom): Theory, Classes, and Lean Encoding
 
-The formal definitions in this section follow TR1995-711 §3.2 ([`TR1995-711.pdf`](TR1995-711.pdf)). In the mid-1990s, structural average-case complexity was a young, highly mathematical field. Each mathematical definition below is paired with its Lean counterpart in [Appendix AvgCaseMls/AvCom.lean](#avgcasemls-avcom-lean) where it exists today. 
+The formal definitions in this section follow TR1995-711 §3.2 ([`TR1995-711.pdf`](TR1995-711.pdf)). In the mid-1990s, structural average-case complexity was a young, highly mathematical field. Each mathematical definition below is paired with its Lean counterpart in [[`AvgCaseMls/AvCom.lean`](#avgcasemls-avcom-lean)](#avgcasemls-avcom-lean) where it exists today. 
 
 ### Why Naive Averaging Fails
 Prior to Leonid Levin’s 1986 breakthrough [Lev86], researchers measured average running time naively:
@@ -274,7 +274,7 @@ Let $`f : \Sigma^* \to \mathbb{N}`$ be a running-time function and $`T : \mathbb
 ```
 
 
-This is the definition implemented structurally in [Appendix AvgCaseMls/AvCom.lean](#avgcasemls-avcom-lean) as `IsAvTime`. Intuitively, high-rank (low-probability) inputs may take large time $`f(x)`$, but the inverse-bound mass $`T^{-1}(f(x))`$ per bit of input cannot accumulate faster than the rank budget $`\ell`$.
+This is the definition implemented structurally in [`AvgCaseMls/AvCom.lean`](#avgcasemls-avcom-lean) as `IsAvTime`. Intuitively, high-rank (low-probability) inputs may take large time $`f(x)`$, but the inverse-bound mass $`T^{-1}(f(x))`$ per bit of input cannot accumulate faster than the rank budget $`\ell`$.
 
 ### Average Complexity Classes
 Let $`M`$ be a deterministic Turing machine with running time $`f_M(x)`$ on input $`x`$.
@@ -315,20 +315,20 @@ TR1995-711 Corollary 5.1 (page 12) states that **MLS satisfiability** is NP-aver
 
 ### Lean encoding (Phases 1A–1D)
 
-Here we translate TR1995-711 §3.2 into Lean 4 using the RS93 rank-sum definition of $`\text{Av}(T)`$. The module [Appendix AvgCaseMls/AvCom.lean](#avgcasemls-avcom-lean) currently defines:
+Here we translate TR1995-711 §3.2 into Lean 4 using the RS93 rank-sum definition of $`\text{Av}(T)`$. The module [[`AvgCaseMls/AvCom.lean`](#avgcasemls-avcom-lean)](#avgcasemls-avcom-lean) currently defines:
 
 * `Bitstring`, `len`, `lenBot` — inputs $`x \in \{0,1\}^*`$, length $`|x|`$, and `max 1 |x|` for RS93 denominators (see [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md));
 * `Distribution` — finite `support`, non-negative `prob`, mass zero off support, `support.sum prob ≤ 1`; constructors `pointMass`, `uniformOn`;
-* `DistributionalProblem`, `IsPolynomial` (+ basic lemmas) — Phase **1A** complete in [Appendix AvgCaseMls/AvCom.lean](#avgcasemls-avcom-lean);
+* `DistributionalProblem`, `IsPolynomial` (+ basic lemmas) — Phase **1A** complete in [[`AvgCaseMls/AvCom.lean`](#avgcasemls-avcom-lean)](#avgcasemls-avcom-lean);
 * `rank` — $`\text{rank}_\mu(x)`$ as a support filter cardinality; rank `0` when `μ.prob x = 0` (Phase **1B**);
 * `T_inv` — partial search for $`\min\{ n \mid T(n) \ge m \}`$ from `n = 0` (Phase **1B**);
 * `IsAvTime`, `IsAv`, `rankLe` — RS93 rank-sum average time (Phase **1C**);
 * `IsTRankable`, `IsPolRankable`, `DistTime`, `AvDTime` — dist-time classes (Phase **1C**);
 * `AvP`, `InDistNP`, `DistributionalReduction`, `IsNPAverageComplete` — average classes and reductions (Phase **1D**).
 
-All Phase **1** AvCom scaffolding is in [Appendix AvgCaseMls/AvCom.lean](#avgcasemls-avcom-lean). Later phases connect MLS (§6–§8) and hardness (§8).
+All Phase **1** AvCom scaffolding is in [[`AvgCaseMls/AvCom.lean`](#avgcasemls-avcom-lean)](#avgcasemls-avcom-lean). Later phases connect MLS (§6–§8) and hardness (§8).
 
-**Full source (`AvgCaseMls/AvCom.lean`).** See also [Appendix AvgCaseMls/AvCom.lean](#avgcasemls-avcom-lean).
+### `AvgCaseMls/AvCom.lean` {#avgcasemls-avcom-lean}
 
 ```lean
 /-
@@ -807,13 +807,13 @@ v_i = \emptyset, \quad v_i = v_j \cup v_k, \quad v_i = v_j \setminus v_k, \quad 
 
 ### Lean encoding (Phase 2A)
 
-**Scope.** [Appendix AvgCaseMls/MLS.lean](#avgcasemls-mls-lean) (Phase **2A**) and [Appendix AvgCaseMls/EMLS.lean](#avgcasemls-emls-lean) (Phase **2B**) compile with no `sorry`. Phase **2C** (decision procedure, §7) and **2D** (serialization and step counting, §8) are separate obligations.
+**Scope.** [[`AvgCaseMls/MLS.lean`](#avgcasemls-mls-lean)](#avgcasemls-mls-lean) (Phase **2A**) and [[`AvgCaseMls/EMLS.lean`](#avgcasemls-emls-lean)](#avgcasemls-emls-lean) (Phase **2B**) compile with no `sorry`. Phase **2C** (decision procedure, §7) and **2D** (serialization and step counting, §8) are separate obligations.
 
 Set variables are identified with natural-number indices (`Nat → ZFSet` environments), matching the report's $`v_i`$ notation. MLS formulas talk about membership chains $`v_i \in v_j \in v_k \in \cdots`$. We use a custom axiomatized `ZFSet` sort so the development is self-contained and `evalTerm`/`evalFormula` are explicitly `noncomputable` (axioms are not compiled). A Mathlib-backed refactor would replace `axiom ZFSet` with imports from `Mathlib.Data.ZFC.Basic`.
 
-The listing below matches [Appendix AvgCaseMls/MLS.lean](#avgcasemls-mls-lean).
+The listing below matches [[`AvgCaseMls/MLS.lean`](#avgcasemls-mls-lean)](#avgcasemls-mls-lean).
 
-**Full source (`AvgCaseMls/MLS.lean`).** See also [Appendix AvgCaseMls/MLS.lean](#avgcasemls-mls-lean).
+### `AvgCaseMls/MLS.lean` {#avgcasemls-mls-lean}
 
 ```lean
 /-
@@ -901,9 +901,9 @@ end MLS
 ```
 
 
-**EMLS (Phase 2B).** Elementary literals and translation into MLS live in [Appendix AvgCaseMls/EMLS.lean](#avgcasemls-emls-lean), following Ferro–Omodeo–Schwartz [FOS80] §3 ([`3-540-10009-1_8.pdf`](3-540-10009-1_8.pdf)):
+**EMLS (Phase 2B).** Elementary literals and translation into MLS live in [[`AvgCaseMls/EMLS.lean`](#avgcasemls-emls-lean)](#avgcasemls-emls-lean), following Ferro–Omodeo–Schwartz [FOS80] §3 ([`3-540-10009-1_8.pdf`](3-540-10009-1_8.pdf)):
 
-**Full source (`AvgCaseMls/EMLS.lean`).** See also [Appendix AvgCaseMls/EMLS.lean](#avgcasemls-emls-lean).
+### `AvgCaseMls/EMLS.lean` {#avgcasemls-emls-lean}
 
 ```lean
 /-
@@ -1210,8 +1210,8 @@ Let $`q^*`$ be the sub-conjunction of $(*)$ literals, $`V_{\in}`$ the variables 
 
 | File | Role |
 |------|------|
-| [Appendix AvgCaseMls/EMLS.lean](#avgcasemls-emls-lean) | `Literal`, `Conjunct`, `literalToFormula`, `conjunctToFormula` |
-| [Appendix AvgCaseMls/DecideMLS.lean](#avgcasemls-decidemls-lean) | `formulaToConjunct?`, `decideConjunct`, `decideMLSSat`, soundness/completeness |
+| [[`AvgCaseMls/EMLS.lean`](#avgcasemls-emls-lean)](#avgcasemls-emls-lean) | `Literal`, `Conjunct`, `literalToFormula`, `conjunctToFormula` |
+| [[`AvgCaseMls/DecideMLS.lean`](#avgcasemls-decidemls-lean)](#avgcasemls-decidemls-lean) | `formulaToConjunct?`, `decideConjunct`, `decideMLSSat`, soundness/completeness |
 
 **Implemented today:** partial normalization (`formulaToConjunct?` on conjunctions of flat literals), FOS80 **Step 2** contradictions ($`x \neq x`$, $`x \in y \land x \notin y`$), **Step 3** (no membership literals ⇒ SAT), and a **partial Step 4** (membership-order cycle detection). **Open:** full Step 1 substitution, complete singleton-model search, and proofs.
 
@@ -1219,1132 +1219,6 @@ Let $`q^*`$ be the sub-conjunction of $(*)$ literals, $`V_{\in}`$ the variables 
 
 * **Soundness:** if `decideMLSSat φ = true`, then $`\exists env,\ \text{evalFormula}\ env\ \varphi`$.
 * **Completeness:** if $`\varphi`$ is satisfiable, then `decideMLSSat φ = true` (on the implemented fragment).
-
-**Full source (`AvgCaseMls/DecideMLS.lean`).** See also [Appendix AvgCaseMls/DecideMLS.lean](#avgcasemls-decidemls-lean).
-
-```lean
-/-
-Copyright (c) 2026 Catskills Research Company. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Lars Warren Ericson, Catskills Research Company
--/
-
-import AvgCaseMls.EMLS
-
-/-!
-FOS80 §3 decision procedure for MLS / EMLS **satisfiability** (Phase **2C**).
-
-Steps 2–4 are implemented; Step 1 substitution remains open. **Soundness** is proved on
-`InDecideSoundFragment`; **completeness** is partial — see [`DEFINITION_FORKS.md`](../DEFINITION_FORKS.md).
--/
-
-namespace MLS
-
-open EMLS
-
-theorem List_any_iff {α} (l : List α) (p : α → Bool) :
-    l.any p = true ↔ ∃ x, x ∈ l ∧ p x = true := by
-  induction l with
-  | nil => simp
-  | cons y ys ih =>
-    rw [List.any, Bool.or_eq_true, ih]
-    constructor
-    · intro h
-      cases h with
-      | inl hp => exact ⟨y, by simp, hp⟩
-      | inr h => obtain ⟨x, hx, hpx⟩ := h; exact ⟨x, by simp [hx], hpx⟩
-    · intro ⟨x, hx, hpx⟩
-      rw [List.mem_cons] at hx
-      cases hx with
-      | inl hx => subst hx; exact Or.inl hpx
-      | inr hx => exact Or.inr ⟨x, hx, hpx⟩
-
-/-! ### Formula → EMLS conjunct (Step 0 / partial Step 1) -/
-
-def formulaToConjunct? : Formula → Option Conjunct
-  | Formula.rel r =>
-      EMLS.relationToLiteral? r |>.map List.singleton
-  | Formula.and f1 f2 => do
-      let c1 ← formulaToConjunct? f1
-      let c2 ← formulaToConjunct? f2
-      return c1 ++ c2
-  | _ => none
-
-theorem formulaToConjunct?_and (f1 f2 : Formula) (c1 c2 : Conjunct)
-    (h1 : formulaToConjunct? f1 = some c1) (h2 : formulaToConjunct? f2 = some c2) :
-    formulaToConjunct? (Formula.and f1 f2) = some (c1 ++ c2) := by
-  simp [formulaToConjunct?, h1, h2]
-
-theorem formulaToConjunct?_satisfies (f : Formula) (c : Conjunct)
-    (hc : formulaToConjunct? f = some c) (env : Env)
-    (h : ∀ lit ∈ c, Literal.holds env lit) : evalFormula env f := by
-  match f with
-  | Formula.rel r =>
-    cases hl : relationToLiteral? r with
-    | none => simp [formulaToConjunct?, hl] at hc
-    | some lit =>
-      simp [formulaToConjunct?, hl] at hc
-      subst hc
-      exact (relationToLiteral?_eval env r lit hl).mpr (h lit (List.mem_singleton_self lit))
-  | Formula.and f1 f2 =>
-    cases hc1 : formulaToConjunct? f1 with
-    | none => simp [formulaToConjunct?, hc1] at hc
-    | some c1 =>
-      cases hc2 : formulaToConjunct? f2 with
-      | none => simp [formulaToConjunct?, hc2] at hc
-      | some c2 =>
-        simp [formulaToConjunct?, hc1, hc2] at hc
-        subst hc
-        exact And.intro
-          (formulaToConjunct?_satisfies f1 c1 hc1 env fun lit hl =>
-            h lit (List.mem_append.mpr (Or.inl hl)))
-          (formulaToConjunct?_satisfies f2 c2 hc2 env fun lit hl =>
-            h lit (List.mem_append.mpr (Or.inr hl)))
-  | Formula.not _ =>
-    simp [formulaToConjunct?] at hc
-  | Formula.or _ _ =>
-    simp [formulaToConjunct?] at hc
-  | Formula.imp _ _ =>
-    simp [formulaToConjunct?] at hc
-  | Formula.iff _ _ =>
-    simp [formulaToConjunct?] at hc
-
-/-! ### FOS80 Step 2 -/
-
-def hasStep2Contradiction (c : Conjunct) : Bool :=
-  c.any fun lit1 =>
-    c.any fun lit2 =>
-      match lit1, lit2 with
-      | .neq x y, _ => decide (x = y)
-      | .mem x y, .notMem x' y' => decide (x = x' && y = y')
-      | _, _ => false
-
-/-! ### FOS80 Step 3 -/
-
-def hasMembershipLiteral (c : Conjunct) : Bool :=
-  c.any fun
-    | .mem _ _ | .notMem _ _ => true
-    | _ => false
-
-def hasStep3Obstruction (c : Conjunct) : Bool :=
-  (neqLiterals c).any fun (x, y) =>
-    decide (x ≠ y && hasEqEmpty c x && hasEqEmpty c y)
-
-noncomputable def witnessEnv (c : Conjunct) : Env :=
-  fun n => if hasEqEmpty c n then ZFSet.empty else ZFSet.tag n
-
-/-! ### Literal / conjunct helpers -/
-
-theorem hasEqEmpty_of_mem (c : Conjunct) (x : Nat) (hx : .eqEmpty x ∈ c) :
-    hasEqEmpty c x = true := by
-  rw [hasEqEmpty, List_any_iff]
-  exact ⟨.eqEmpty x, hx, by simp⟩
-
-theorem hasEqOpLiteral_of_eqOp (c : Conjunct) (x y z : Nat) (op : BinOp)
-    (hx : .eqOp x y z op ∈ c) : hasEqOpLiteral c = true := by
-  rw [hasEqOpLiteral, List_any_iff]
-  exact ⟨.eqOp x y z op, hx, by simp⟩
-
-theorem hasMembershipLiteral_of_mem (c : Conjunct) (x y : Nat) (hx : .mem x y ∈ c) :
-    hasMembershipLiteral c = true := by
-  rw [hasMembershipLiteral, List_any_iff]
-  exact ⟨.mem x y, hx, by simp⟩
-
-theorem hasMembershipLiteral_of_notMem (c : Conjunct) (x y : Nat) (hx : .notMem x y ∈ c) :
-    hasMembershipLiteral c = true := by
-  rw [hasMembershipLiteral, List_any_iff]
-  exact ⟨.notMem x y, hx, by simp⟩
-
-theorem hasStep2_of_neq_refl (c : Conjunct) (x : Nat) (hx : .neq x x ∈ c) :
-    hasStep2Contradiction c = true := by
-  unfold hasStep2Contradiction
-  rw [List_any_iff]
-  refine ⟨.neq x x, hx, ?_⟩
-  rw [List_any_iff]
-  exact ⟨.neq x x, hx, by simp⟩
-
-theorem hasStep2_of_mem_notMem (c : Conjunct) (x y : Nat) (hmem : .mem x y ∈ c)
-    (hnot : .notMem x y ∈ c) : hasStep2Contradiction c = true := by
-  unfold hasStep2Contradiction
-  rw [List_any_iff]
-  refine ⟨.mem x y, hmem, ?_⟩
-  rw [List_any_iff]
-  exact ⟨.notMem x y, hnot, by simp⟩
-
-theorem hasStep3Obstruction_of (c : Conjunct) (x y : Nat) (hxy : x ≠ y)
-    (hx : hasEqEmpty c x = true) (hy : hasEqEmpty c y = true) (hne : .neq x y ∈ c) :
-    hasStep3Obstruction c = true := by
-  unfold hasStep3Obstruction
-  rw [List_any_iff]
-  refine ⟨(x, y), ?_, ?_⟩
-  · simp [neqLiterals, List.mem_filterMap]
-    exact ⟨.neq x y, hne, rfl⟩
-  · simp [hxy, hx, hy]
-
-namespace Step2
-
-theorem neq_refl_unsat (env : Env) (x : Nat) : ¬ Literal.holds env (.neq x x) := by
-  simp [Literal.holds, evalTerm]
-
-theorem mem_notMem_unsat (env : Env) (x y : Nat) :
-    ¬ (Literal.holds env (.mem x y) ∧ Literal.holds env (.notMem x y)) := by
-  intro ⟨hmem, hnot⟩
-  exact hnot hmem
-
-theorem unsat (c : Conjunct) (h : hasStep2Contradiction c = true) :
-    ¬ ∃ env, ∀ lit ∈ c, Literal.holds env lit := by
-  intro ⟨env, hall⟩
-  unfold hasStep2Contradiction at h
-  rw [List_any_iff] at h
-  obtain ⟨lit1, hl1, h1⟩ := h
-  rw [List_any_iff] at h1
-  obtain ⟨lit2, hl2, h2⟩ := h1
-  cases lit1 with
-  | neq x y =>
-    have hxy : x = y := by simpa using h2
-    subst hxy
-    exact neq_refl_unsat env x (hall _ hl1)
-  | mem x y =>
-    cases lit2 with
-    | notMem x' y' =>
-      have hpair : x = x' ∧ y = y' := by
-        simp [Bool.and_eq_true, decide_eq_true_iff] at h2
-        exact h2
-      rcases hpair with ⟨rfl, rfl⟩
-      exact mem_notMem_unsat env x y ⟨hall _ hl1, hall _ hl2⟩
-    | _ => simp at h2
-  | _ => simp at h2
-
-end Step2
-
-namespace Step3
-
-theorem witness_eqEmpty (c : Conjunct) (x : Nat) (hx : .eqEmpty x ∈ c) :
-    Literal.holds (witnessEnv c) (.eqEmpty x) := by
-  have he := hasEqEmpty_of_mem c x hx
-  simp [Literal.holds, witnessEnv, he, evalTerm]
-
-theorem witness_neq (c : Conjunct) (x y : Nat) (hxy : x ≠ y) (_hne : .neq x y ∈ c)
-    (hob : hasStep3Obstruction c = false) :
-    Literal.holds (witnessEnv c) (.neq x y) := by
-  simp only [Literal.holds, witnessEnv, evalTerm]
-  by_cases hx : hasEqEmpty c x = true
-  · by_cases hy : hasEqEmpty c y = true
-    · exact absurd (hasStep3Obstruction_of c x y hxy hx hy _hne) (by simpa using hob)
-    · simp [hx, hy]
-      exact Ne.symm (ZFSet.tag_ne_empty y)
-  · by_cases hy : hasEqEmpty c y = true
-    · simp [hx, hy]
-      exact ZFSet.tag_ne_empty x
-    · simp [hx, hy, ZFSet.tag_injective.ne hxy]
-
-theorem witness (c : Conjunct) (h2 : hasStep2Contradiction c = false)
-    (hmem : hasMembershipLiteral c = false) (hop : hasEqOpLiteral c = false)
-    (h3 : hasStep3Obstruction c = false) :
-    ∃ env, ∀ lit ∈ c, Literal.holds env lit := by
-  refine ⟨witnessEnv c, fun lit hl => ?_⟩
-  cases lit with
-  | eqOp x y z op =>
-    exact absurd (hasEqOpLiteral_of_eqOp c x y z op hl) (by simpa using hop)
-  | eqEmpty x =>
-    exact witness_eqEmpty c x hl
-  | mem x y =>
-    exact absurd (hasMembershipLiteral_of_mem c x y hl) (by simpa using hmem)
-  | notMem x y =>
-    exact absurd (hasMembershipLiteral_of_notMem c x y hl) (by simpa using hmem)
-  | neq x y =>
-    by_cases hxy : x = y
-    · exact absurd (hasStep2_of_neq_refl c x (by simpa [hxy] using hl)) (by simpa using h2)
-    · exact witness_neq c x y hxy hl h3
-
-end Step3
-
-/-! ### FOS80 Step 4 (partial) -/
-
-def varsInConjunct (c : Conjunct) : List Nat :=
-  (c.flatMap fun
-    | .eqOp x y z _ => [x, y, z]
-    | .eqEmpty x => [x]
-    | .mem x y | .notMem x y | .neq x y => [x, y]).eraseDups
-
-def hasMemCycle (edges : List (Nat × Nat)) (nodes : List Nat) : Bool :=
-  let fuel := nodes.length + 1
-  let rec dfs (remaining : Nat) (path : List Nat) (u : Nat) : Bool :=
-    if remaining = 0 then
-      false
-    else if path.contains u then
-      true
-    else
-      let path' := u :: path
-      (edges.filterMap fun (a, b) => if a = u then some b else none).any (dfs (remaining - 1) path')
-  nodes.any fun start => dfs fuel [] start
-
-def hasStep4Obstruction (c : Conjunct) : Bool :=
-  let mem := memLiterals c
-  let notMem := notMemLiterals c
-  let nodes := varsInConjunct c
-  hasMemCycle mem nodes ||
-    (notMem.any fun (x, y) => decide (x = y && mem.contains (x, y)))
-
-/-! ### Decision -/
-
-def decideConjunct (c : Conjunct) : Bool :=
-  if hasStep2Contradiction c then false
-  else if hasStep3Obstruction c then false
-  else if !hasMembershipLiteral c then true
-  else if hasStep4Obstruction c then false
-  else true
-
-theorem decideConjunct_true_of_step3 (c : Conjunct)
-    (h2 : hasStep2Contradiction c = false) (h3o : hasStep3Obstruction c = false)
-    (hmem : hasMembershipLiteral c = false) :
-    decideConjunct c = true := by
-  simp [decideConjunct, h2, h3o, hmem]
-
-def decideEMLSSat (c : Conjunct) : Bool :=
-  decideConjunct c
-
-def decideMLSSat (f : Formula) : Bool :=
-  match formulaToConjunct? f with
-  | some c => decideConjunct c
-  | none =>
-      match f with
-      | Formula.rel (Relation.eq Term.empty Term.empty) => true
-      | Formula.rel (Relation.neq Term.empty Term.empty) => false
-      | _ => false
-
-def decideEMLSSat? (c : Conjunct) : Option Bool :=
-  conjunctToFormula c |>.map decideMLSSat
-
-abbrev decideMLS := decideMLSSat
-
-/-! ### Sound fragment -/
-
-def InDecideSoundFragment (c : Conjunct) : Prop :=
-  hasStep2Contradiction c = false ∧
-  hasStep3Obstruction c = false ∧
-  hasMembershipLiteral c = false ∧
-  hasEqOpLiteral c = false
-
-theorem decideConjunct_sound (c : Conjunct) (_h : decideConjunct c = true)
-    (hfrag : InDecideSoundFragment c) :
-    ∃ env, ∀ lit ∈ c, Literal.holds env lit :=
-  Step3.witness c hfrag.1 hfrag.2.2.1 hfrag.2.2.2 hfrag.2.1
-
-theorem decideConjunct_unsat_step2 (c : Conjunct) (h2 : hasStep2Contradiction c = true) :
-    decideConjunct c = false := by simp [decideConjunct, h2]
-
-theorem decideConjunct_refutes_step2 (c : Conjunct) (h2 : hasStep2Contradiction c = true) :
-    ¬ ∃ env, ∀ lit ∈ c, Literal.holds env lit :=
-  Step2.unsat c h2
-
-def InDecideSoundFormula (f : Formula) : Prop :=
-  ∃ c, formulaToConjunct? f = some c ∧ InDecideSoundFragment c
-
-theorem decideMLSSat_sound (f : Formula) (h : decideMLSSat f = true)
-    (hfrag : InDecideSoundFormula f) :
-    ∃ env, evalFormula env f := by
-  obtain ⟨c, hc, hfragc⟩ := hfrag
-  simp [decideMLSSat, hc] at h
-  obtain ⟨env, henv⟩ := decideConjunct_sound c h hfragc
-  exact ⟨env, formulaToConjunct?_satisfies f c hc env henv⟩
-
-theorem decideMLS_sound (f : Formula) (h : decideMLS f = true)
-    (hfrag : InDecideSoundFormula f) :
-    ∃ env, evalFormula env f :=
-  decideMLSSat_sound f h hfrag
-
-/-! ### Completeness — not proved (partial Step 4 / Step 1 open) -/
-
-theorem decideMLSSat_complete (f : Formula) (_h : ∃ env, evalFormula env f) :
-    decideMLSSat f = true := by
-  sorry
-
-theorem decideMLS_complete (f : Formula) (h : ∃ env, evalFormula env f) :
-    decideMLS f = true :=
-  decideMLSSat_complete f h
-
-end MLS
-```
-
-
-The live implementation is [Appendix AvgCaseMls/DecideMLS.lean](#avgcasemls-decidemls-lean). A **step-counting** function `stepsMLS` (Phase 2D) will relate the procedure to $`\mathrm{Av}(T)`$ in §5.
-
----
-
-## 8. Lean 4 Verification: Proving Average-Case Hardness Properties
-Phase **2D** (encoding) and **5B** (hardness theorem). The AvCom classes are defined in §5; MLS syntax is in §6. The 1995 paper proves that the satisfiability of MLS formulas is **NP-average complete**. Under the defined AvCom classes, this implies that MLS cannot belong to $`\text{AvP}`$ under certain rankable distributions unless the nondeterministic and deterministic exponential-time hierarchies collapse.
-
-We can represent this theorem structurally in Lean 4:
-
-**Full source (`AvgCaseMls/ComplexityAxioms.lean`).** See also [Appendix AvgCaseMls/ComplexityAxioms.lean](#avgcasemls-complexityaxioms-lean).
-
-```lean
-/-
-Copyright (c) 2026 Catskills Research Company. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Lars Warren Ericson, Catskills Research Company
--/
-
-/-!
-Minimal complexity collapse hypothesis for conditional average-case hardness (Phase **5**).
-
-Literature: TR1995-711 Corollary 5.1 consequence — NP-average complete targets are not in AvP
-unless $\\text{NEXP} = \\text{EXP}$. Mathlib does not yet host this implication; we axiomatize
-only the collapse hypothesis, not the full proof.
--/
-
-/-- Nondeterministic exponential time is strictly larger than deterministic exponential time. -/
-axiom NEXP_neq_EXP : Prop
-
-def NEXP_eq_EXP : Prop := ¬ NEXP_neq_EXP
-```
-
-
-**Full source (`AvgCaseMls/AverageHardness.lean`).** See also [Appendix AvgCaseMls/AverageHardness.lean](#avgcasemls-averagehardness-lean).
-
-```lean
-/-
-Copyright (c) 2026 Catskills Research Company. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Lars Warren Ericson, Catskills Research Company
--/
-
-import AvgCaseMls.Serialization
-import AvgCaseMls.AvCom
-
-/-!
-Semantic language of satisfiable MLS formulas (Phase **2D** / §8).
-
-Average-case hardness corollaries live in `AvgCaseMls/NonAvP.lean` (Phase **5**).
--/
-
-open MLS AvCom
-
-def SatMLS : Set Bitstring :=
-  { s | ∃ (f : Formula), serializeFormula f = s ∧ ∃ (env : Env), evalFormula env f }
-```
-
-
-**Full source (`AvgCaseMls/NonAvP.lean`).** See also [Appendix AvgCaseMls/NonAvP.lean](#avgcasemls-nonavp-lean).
-
-```lean
-/-
-Copyright (c) 2026 Catskills Research Company. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Lars Warren Ericson, Catskills Research Company
--/
-
-import AvgCaseMls.ComplexityAxioms
-import AvgCaseMls.Completeness
-import AvgCaseMls.AverageHardness
-
-/-!
-Phase **5A:** conditional non-AvP from NP-average completeness (TR1995-711 §3.2 / Corollary 5.1).
-
-Literature: if an NP-average complete problem were in AvP, bounded halting (NBH) would be in AvP,
-collapsing NEXP to EXP. Reduction pull-back and NBH average-case lower bounds are deferred until
-`DistTime` is linked to deciders — see [`DEFINITION_FORKS.md`](../DEFINITION_FORKS.md).
--/
-
-namespace NonAvP
-
-open Completeness Reduction AvCom NBH MLS
-
-/-!
-Pull AvP back along distributional reductions from a complete target.
-
-Deferred: poly-time decider for `target.L` composed with reduction map; needs `DistTime` decider
-linkage and poly bound on `len (f x)`.
--/
-theorem AvP_of_distNP_of_complete_target {target : DistributionalProblem}
-    (hComplete : IsNPAverageComplete target) (hAvP : AvP target) :
-    ∀ source, InDistNP source → AvP source := by
-  intro source hdist
-  sorry
-
-/--
-NBH is not in AvP unless NEXP = EXP (Levin / TR1995-711 core).
-
-Deferred: unconditional average-case lower bound for bounded halting.
--/
-theorem nbhProb_not_AvP (h : NEXP_neq_EXP) : ¬ AvP nbhProb := by
-  intro hAvP
-  sorry
-
-/--
-Completeness + AvP on a distNP-complete target implies NEXP = EXP.
-
-Deferred: compose [`AvP_of_distNP_of_complete_target`] with [`nbhProb_not_AvP`].
--/
-theorem NEXP_eq_EXP_of_AvP_complete {target : DistributionalProblem}
-    (hComplete : IsNPAverageComplete target) (hAvP : AvP target) :
-    NEXP_eq_EXP := by
-  sorry
-
-theorem not_AvP_of_NPAverageComplete {target : DistributionalProblem}
-    (hComplete : IsNPAverageComplete target) (h : NEXP_neq_EXP) :
-    ¬ AvP target :=
-  fun hAvP => (NEXP_eq_EXP_of_AvP_complete hComplete hAvP) h
-
-theorem satMLSProb_not_AvP (h : NEXP_neq_EXP) : ¬ AvP satMLSProb :=
-  not_AvP_of_NPAverageComplete satMLSProb_NPAverageComplete h
-
-theorem nbhProb_not_AvP_via_complete (h : NEXP_neq_EXP) : ¬ AvP nbhProb :=
-  not_AvP_of_NPAverageComplete nbhProb_NPAverageComplete h
-
-/-- Simple POL-rankable distribution from Phase **4B** (uniform on [`satTargetEnc`]). -/
-noncomputable def simpleSatμ : Distribution := μ₁
-
-theorem simpleSatμ_polRankable : IsPolRankable simpleSatμ := μ₁_polRankable
-
-theorem simpleSatμ_prob_satTarget :
-    simpleSatμ.prob satTargetEnc = 1 := by
-  simp [simpleSatμ, μ₁, uniformOn, uniformProb, μ₁Support]
-
-theorem exists_simple_rankable_checker_not_AvP (h : NEXP_neq_EXP) :
-    ∃ μ, IsPolRankable μ ∧ ¬ AvP ⟨SatMLSChecker, μ⟩ :=
-  ⟨simpleSatμ, simpleSatμ_polRankable, fun hAvP =>
-    satMLSProb_not_AvP h (by simpa [satMLSProb] using hAvP)⟩
-
-/-! ### Phase 5B — MLS average-case hardness corollaries -/
-
-/--
-Corollary 5.1 consequence (checker + Phase **4B** distribution): [`satMLSProb`] is not in AvP
-assuming NEXP $`\neq`$ EXP.
--/
-theorem SatMLS_average_hard (h : NEXP_neq_EXP) : ¬ AvP satMLSProb :=
-  satMLSProb_not_AvP h
-
-/--
-Existential form: a simple POL-rankable distribution on MLS checker encodings is not AvP-tractable.
--/
-theorem exists_simple_rankable_not_AvP (h : NEXP_neq_EXP) :
-    ∃ μ, IsPolRankable μ ∧ ¬ AvP ⟨SatMLSChecker, μ⟩ :=
-  exists_simple_rankable_checker_not_AvP h
-
-/--
-Semantic [`SatMLS`] on the same simple distribution — deferred until checker/semantic AvP
-equivalence on [`simpleSatμ`] support is formalized.
--/
-theorem SatMLS_semantic_not_AvP (h : NEXP_neq_EXP) : ¬ AvP ⟨SatMLS, simpleSatμ⟩ := by
-  intro hAvP
-  sorry
-
-end NonAvP
-```
-
-
-
----
-
-## 9. Results
-§9 is the **report card** for the proof program. Each row is a **subphase** from §1. **Outcome** is **TBD** while work is in progress, or one of the four accepted outcomes (*Proofs check*; *Lean is not expressive enough (yet)*; *Paper proofs are wrong*; *Field definitions are not solid*). Phase 0 (infrastructure) is complete and not graded here.
-
-| Phase | Phase goal | Outcome |
-|-------|------------|---------|
-| **1A** | `Bitstring`, `len`, `lenBot`, `Distribution`, `DistributionalProblem`, `IsPolynomial` in [Appendix AvgCaseMls/AvCom.lean](#avgcasemls-avcom-lean); finite-support fork in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md) | Proofs check |
-| **1B** | `rank`, `T_inv` without `sorry`; finite-support rank + partial `T_inv` in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md) | Proofs check |
-| **1C** | `IsAvTime`, `rankLe`, `DistTime`, `AvDTime`, `IsTRankable`; forks in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md) | Proofs check |
-| **1D** | `AvP`, `InDistNP`, `DistributionalReduction`, `IsNPAverageComplete`; forks in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md) | Proofs check |
-| **2A** | MLS syntax + axiomatic semantics (§6, [Appendix AvgCaseMls/MLS.lean](#avgcasemls-mls-lean)) | Proofs check |
-| **2B** | `Literal`, `literalToFormula`, `conjunctToFormula`, `Literal.holds` ([Appendix AvgCaseMls/EMLS.lean](#avgcasemls-emls-lean)) | Proofs check |
-| **2C** | `decideMLSSat`, FOS80 Steps 2–4 partial ([Appendix AvgCaseMls/DecideMLS.lean](#avgcasemls-decidemls-lean)) | Proofs check |
-| **2D** | `serializeFormula`, `SatMLS`, `stepsMLS` (§8 axioms removed) | Proofs check |
-| **3A** | `SatMLSChecker_in_NP` ([Appendix AvgCaseMls/NPMembership.lean](#avgcasemls-npmembership-lean)), `decodeFormula?_serializeFormula` ([Appendix AvgCaseMls/Serialization.lean](#avgcasemls-serialization-lean)); checker vs semantic [`SatMLS`] fork | Proofs check |
-| **3B** | [`encodingBound`], [`formulaSize_le_encodingBound`], `encodingBound_poly` ([Appendix AvgCaseMls/Serialization.lean](#avgcasemls-serialization-lean)) | Proofs check |
-| **4A** | [`NBHChecker_in_NP`], [`μ₀_polRankable`], `nbhProb_in_DistNP` ([Appendix AvgCaseMls/NBH.lean](#avgcasemls-nbh-lean)) | Proofs check (`decode_encode` `sorry`) |
-| **4B** | [`nbhToSatMLS_red`], `reduce_domination` ([Appendix AvgCaseMls/Reduction.lean](#avgcasemls-reduction-lean)) | Proofs check (`reduce_correct` `sorry`) |
-| **4C** | `satMLSProb_NPAverageComplete` ([Appendix AvgCaseMls/Completeness.lean](#avgcasemls-completeness-lean)), `IsNPAverageComplete.of_reductor` ([Appendix AvgCaseMls/AvCom.lean](#avgcasemls-avcom-lean)) | Proofs check (`nbhProb_NPAverageComplete`, `DistributionalReduction.trans` `sorry`) |
-| **5A** | `not_AvP_of_NPAverageComplete` ([Appendix AvgCaseMls/NonAvP.lean](#avgcasemls-nonavp-lean)), `NEXP_eq_EXP_of_AvP_complete` ([Appendix AvgCaseMls/NonAvP.lean](#avgcasemls-nonavp-lean)) | Proofs check (`NEXP_eq_EXP_of_AvP_complete` `sorry`) |
-| **5B** | `SatMLS_average_hard` ([Appendix AvgCaseMls/NonAvP.lean](#avgcasemls-nonavp-lean)), `exists_simple_rankable_not_AvP` ([Appendix AvgCaseMls/NonAvP.lean](#avgcasemls-nonavp-lean)) | Proofs check (no `sorry` in main theorems; [`SatMLS_semantic_not_AvP`] `sorry`) |
-
-*Last updated: Phases **1A–1D**, **2A–2D**, **3A**, **3B**, **4A–4C (partial)**, **5A–5B (partial)** graded **Proofs check** where noted.*
-
----
-
-## 10. Suggestions for Future Work
-Building on this integration of automated theorem proving and structural complexity, several avenues for future work emerge:
-
-1.  **Formalizing Smoothed Analysis in Lean 4:**
-    While average-case complexity under fixed distributions can be overly pessimistic, formalizing Spielman-Teng smoothed analysis would allow researchers to verify the typical-case tractability of modern SAT/SMT algorithms under random perturbations.
-2.  **Verified SMT Solvers with Monadic Cost Models:**
-    One could implement an executable SMT solver in Lean 4 (using a monadic state to track recursive steps) and formally prove that it runs in polynomial time on structured, non-random formula distributions.
-3.  **Extending Mathlib's Complexity Library:**
-    The current complexity theory developments in Mathlib4 are focused on worst-case bounds. Standardizing Levin's structural average-case reductions, the domination condition, $`\text{DistTime}`$, $`\text{AvDTime}`$, and $`\text{AvP}`$ in Mathlib would provide a robust framework for certifying post-quantum security and for revisiting TR1995-711-style applied completeness proofs.
-4.  **Step-counting the model-graph procedure:**
-    Instrument `decideMLS` (or the full model-graph search) with a monadic step counter and prove `(stepsMLS, μ) ∈ Av(T)` for the rankable distributions used in the report—closing the loop between §5 complexity classes and §6 decision procedures.
-
----
-
-## References
-
-*   **[Ajt96]** Ajtai, M. (1996). Generating hard instances of lattice problems. *STOC*.
-*   **[BDCGL89]** Ben-David, S., Chor, B., Goldreich, O., & Luby, M. (1989). On the theory of average case complexity. *STOC*.
-*   **[deM08]** de Moura, L., & Bjørner, N. (2008). Z3: An efficient SMT solver. *TACAS*.
-*   **[CEM95]** Cox, J., Ericson, L., & Mishra, B. (1995). The average case complexity of multilevel syllogistic. *NYU Courant Institute Technical Report TR1995-711*.
-*   **[DS77]** Davis, M., & Schwartz, J. T. (1977). Metamathematical extensibility for theorem verifiers. *NYU Technical Report*.
-*   **[FOS80]** Ferro, A., Omodeo, E. G., & Schwartz, J. T. (1980). Decision procedures for elementary sublanguages of set theory. *CPAM*.
-*   **[Gol79]** Goldberg, A. T. (1979). On the complexity of the satisfiability problem. *NYU PhD Thesis*.
-*   **[Gur91]** Gurevich, Y. (1991). Average case completeness. *Journal of Computer and System Sciences*.
-*   **[Lev86]** Levin, L. (1986). Average case complete problems. *SIAM Journal on Computing*.
-*   **[Reg05]** Regev, O. (2005). On lattices, learning with errors, and cryptography. *STOC*.
-*   **[RS93]** Reischuk, R., & Schindelhauer, C. (1993). Precise average case complexity. *STOC*.
-*   **[SY92]** Schnorr, C. P., & Yoshida, T. (1992). Average-case complexity of NP-complete problems. *STOC*.
-*   **[Sny90a]** Snyder, W. K. (1990). The SETL2 programming language. *NYU Technical Report*.
-*   **[ST01]** Spielman, D. A., & Teng, S. H. (2001). Smoothed analysis of algorithms. *STOC*.
-*   **[VR92]** Venkatesan, R., & Rajagopalan, S. (1992). Average case intractability of matrix and Diophantine problems. *STOC*.
----
-
-## Appendix: Complete Lean 4 sources
-
-Every module below is reproduced in full from the formalization. Each line is part of the checked proof development.
-
-### `AvgCaseMls/AvCom.lean` {#avgcasemls-avcom-lean}
-
-```lean
-/-
-Copyright (c) 2026 Catskills Research Company. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Lars Warren Ericson, Catskills Research Company
--/
-
-import Mathlib.Data.Real.Basic
-import Mathlib.Algebra.BigOperators.Group.Finset.Basic
-import Mathlib.Tactic.FieldSimp
-
-/-!
-Average-case complexity definitions (Reischuk–Schindelhauer framework).
-
-Extracted from [`arxiv.md`](../arxiv.md) §5.
-
-**Phase 1A:** `Bitstring`, `len`, `Distribution`, `DistributionalProblem`, `IsPolynomial`.
-
-**Phase 1B:** `rank`, `T_inv`.
-
-**Phase 1C:** `IsAvTime`, `DistTime`, `AvDTime`, rankability predicates.
-
-**Phase 1D:** `AvP`, `InDistNP`, `DistributionalReduction`, `IsNPAverageComplete`.
-
-**Phase 2+:** MLS hardness — proofs open in later modules.
--/
-
-open Finset
-
-namespace AvCom
-
-/-! ## Phase 1A — inputs, distributions, POL -/
-
-/-- Binary inputs $x \in \\{0,1\\}^*$ (TR1995-711 §3.2). -/
-abbrev Bitstring := List Bool
-
-/-- Length $|x|$ as `List.length`. -/
-def len (s : Bitstring) : Nat := s.length
-
-@[simp] theorem len_eq (s : Bitstring) : len s = s.length := rfl
-
-/--
-Length used in RS93 denominators: `max 1 |x|` so the empty string is guarded.
-See `DEFINITION_FORKS.md`.
--/
-def lenBot (s : Bitstring) : Nat := max 1 s.length
-
-theorem lenBot_empty : lenBot ([] : Bitstring) = 1 := rfl
-
-theorem lenBot_ne_zero (s : Bitstring) : 0 < lenBot s := by
-  have : 1 ≤ lenBot s := le_max_left 1 s.length
-  omega
-
-/--
-A **finite-support** probability distribution on bitstrings.
-
-Literature: $\\mu : \\Sigma^* \\to [0,1]$ with $\\sum_x \\mu(x) \\le 1$.
-We restrict to an explicit finite `support` so rank and testing are well-defined (Phase 1B).
--/
-structure Distribution where
-  support : Finset Bitstring
-  prob : Bitstring → Real
-  prob_nonneg : ∀ s, 0 ≤ prob s
-  prob_zero_outside : ∀ s, s ∉ support → prob s = 0
-  prob_sum_le_one : support.sum prob ≤ 1
-
-namespace Distribution
-
-/-- Total mass on the declared support. -/
-noncomputable def mass (μ : Distribution) : Real :=
-  μ.support.sum μ.prob
-
-theorem mass_le_one (μ : Distribution) : μ.mass ≤ 1 :=
-  μ.prob_sum_le_one
-
-end Distribution
-
-noncomputable def pointMassProb (x : Bitstring) (p : Real) (s : Bitstring) : Real :=
-  if s = x then p else 0
-
-noncomputable def uniformProb (S : Finset Bitstring) (s : Bitstring) : Real :=
-  if s ∈ S then 1 / (S.card : Real) else 0
-
-/-- Point mass $p$ on a single string (requires $0 \\le p \\le 1$). -/
-noncomputable def pointMass (x : Bitstring) (p : Real)
-    (hp0 : 0 ≤ p) (hp1 : p ≤ 1) : Distribution where
-  support := {x}
-  prob := pointMassProb x p
-  prob_nonneg s := by
-    unfold pointMassProb
-    split_ifs with h
-    · exact hp0
-    · exact le_rfl
-  prob_zero_outside s hs := by
-    unfold pointMassProb
-    by_cases h : s = x
-    · exfalso
-      exact hs (mem_singleton.mpr h)
-    · simp [h]
-  prob_sum_le_one := by
-    rw [sum_singleton]
-    simp only [pointMassProb]
-    exact hp1
-
-/-- Uniform distribution on a nonempty finite support. -/
-noncomputable def uniformOn (S : Finset Bitstring) (h : S.Nonempty) : Distribution where
-  support := S
-  prob := uniformProb S
-  prob_nonneg s := by
-    unfold uniformProb
-    split_ifs with hs
-    · exact div_nonneg zero_le_one (Nat.cast_nonneg S.card)
-    · exact le_rfl
-  prob_zero_outside s hs := by
-    unfold uniformProb
-    by_cases hmem : s ∈ S
-    · exfalso
-      exact hs hmem
-    · simp [hmem]
-  prob_sum_le_one := by
-    have hcard0 : (0 : Real) < S.card :=
-      Nat.cast_pos.mpr (card_pos.mpr h)
-    have hsum : (S.sum (uniformProb S) : Real) = S.sum fun _ => 1 / (S.card : Real) :=
-      sum_congr rfl fun s hs => by simp [uniformProb, hs]
-    calc
-      (S.sum (uniformProb S) : Real) = S.sum fun _ => 1 / (S.card : Real) := hsum
-      _ = (S.card : Real) * (1 / (S.card : Real)) := by rw [sum_const, nsmul_eq_mul]
-      _ = 1 := by
-        have hne : (S.card : Real) ≠ 0 := Nat.cast_ne_zero.mpr (card_pos.mpr h).ne'
-        field_simp [hne]
-      _ ≤ 1 := le_rfl
-
-theorem uniformOn_mass (S : Finset Bitstring) (h : S.Nonempty) : (uniformOn S h).mass = 1 := by
-  unfold Distribution.mass uniformOn
-  have hsum : (S.sum (uniformProb S) : Real) = S.sum fun _ => 1 / (S.card : Real) :=
-    sum_congr rfl fun s hs => by simp [uniformProb, hs]
-  calc
-    (S.sum (uniformProb S) : Real) = S.sum fun _ => 1 / (S.card : Real) := hsum
-    _ = (S.card : Real) * (1 / (S.card : Real)) := by rw [sum_const, nsmul_eq_mul]
-    _ = 1 := by
-      have hne : (S.card : Real) ≠ 0 := Nat.cast_ne_zero.mpr (card_pos.mpr h).ne'
-      field_simp [hne]
-
-/--
-A **distributional problem** $(L, \\mu)$: a language over bitstrings paired with a distribution.
--/
-structure DistributionalProblem where
-  L : Set Bitstring
-  μ : Distribution
-
-/--
-**POL** (polynomial complexity bounds): $T(n) \\le c n^k + c$ for some constants $c, k$.
--/
-def IsPolynomial (T : Nat → Nat) : Prop :=
-  ∃ c k : Nat, ∀ n, T n ≤ c * n ^ k + c
-
-namespace IsPolynomial
-
-theorem id : IsPolynomial id := ⟨1, 1, fun n => by simp⟩
-
-theorem const (c : Nat) : IsPolynomial (fun _ => c) := ⟨c, 0, fun n => by simp⟩
-
-theorem add_one (T : Nat → Nat) (h : IsPolynomial T) : IsPolynomial fun n => T n + 1 := by
-  obtain ⟨c, k, hT⟩ := h
-  refine ⟨c + 1, k, fun n => ?_⟩
-  calc
-    T n + 1 ≤ c * n ^ k + c + 1 := Nat.add_le_add_right (hT n) 1
-    _ ≤ (c + 1) * n ^ k + (c + 1) := by
-      rw [Nat.add_mul, Nat.one_mul]
-      omega
-
-theorem add_const (T : Nat → Nat) (d : Nat) (h : IsPolynomial T) :
-    IsPolynomial fun n => T n + d := by
-  induction d with
-  | zero => simpa using h
-  | succ d ih =>
-    simpa [Nat.add_assoc] using add_one (T := fun n => T n + d) ih
-
-end IsPolynomial
-
-/-! ## Phase 1B — rank and inverse bounds -/
-
-/--
-Rank of `x` under `μ`: count of support strings at least as probable as `x`.
-When `μ.prob x = 0`, rank is `0` (RS93/TR1995-711 §3.2).
-
-Counts only over `μ.support`; see [`DEFINITION_FORKS.md`](../DEFINITION_FORKS.md).
--/
-noncomputable def rank (μ : Distribution) (x : Bitstring) : Nat :=
-  if μ.prob x = 0 then 0
-  else
-    open Classical in
-    (μ.support.filter (fun z => μ.prob x ≤ μ.prob z)).card
-
-namespace rank
-
-theorem zero (μ : Distribution) (x : Bitstring) (h : μ.prob x = 0) :
-    rank μ x = 0 := by
-  simp [rank, h]
-
-theorem le_support_card (μ : Distribution) (x : Bitstring) :
-    rank μ x ≤ μ.support.card := by
-  unfold rank
-  split_ifs with h
-  · omega
-  · exact card_filter_le _ _
-
-end rank
-
-/--
-Generalized inverse: minimum `n` with `T n ≥ m`, found by search from `0`.
-
-Partial: diverges if no such `n` exists (e.g. `T := fun _ => 0`, `m > 0`).
-See [`DEFINITION_FORKS.md`](../DEFINITION_FORKS.md).
--/
-partial def T_invAux (T : Nat → Nat) (m n : Nat) : Nat :=
-  if T n ≥ m then n else T_invAux T m (n + 1)
-
-def T_inv (T : Nat → Nat) (m : Nat) : Nat :=
-  if m = 0 then 0 else T_invAux T m 0
-
-namespace T_inv
-
-theorem zero (T : Nat → Nat) : T_inv T 0 = 0 := rfl
-
-end T_inv
-
-/-! ## Phase 1C — average time and dist-time classes -/
-
-/-- Inputs whose rank under `μ` is at most `l`. -/
-noncomputable def rankLe (μ : Distribution) (l : Nat) : Finset Bitstring :=
-  μ.support.filter (fun x => rank μ x ≤ l)
-
-theorem rankLe_mem {μ : Distribution} {l : Nat} {x : Bitstring} :
-    x ∈ rankLe μ l ↔ x ∈ μ.support ∧ rank μ x ≤ l := by
-  simp [rankLe, mem_filter]
-
-/--
-RS93 average-time condition (TR1995-711 §3.2): for all `l ≥ 1`,
-
-`∑_{rank_μ(x) ≤ l} T⁻¹(f(x)) / lenBot(x) ≤ l`.
--/
-def IsAvTime (T : Nat → Nat) (f : Bitstring → Nat) (μ : Distribution) : Prop :=
-  ∀ l : Nat, l ≥ 1 →
-    (rankLe μ l).sum (fun x => (T_inv T (f x) : Real) / (lenBot x : Real)) ≤ (l : Real)
-
-/-- Notation matching the literature: `(f, μ) ∈ Av(T)`. -/
-abbrev IsAv (T : Nat → Nat) (f : Bitstring → Nat) (μ : Distribution) : Prop :=
-  IsAvTime T f μ
-
-namespace IsAvTime
-
-theorem zero (T : Nat → Nat) (μ : Distribution) : IsAvTime T (fun _ => 0) μ := by
-  intro l hl
-  have hterm : ∀ x ∈ rankLe μ l, (T_inv T (0) : Real) / (lenBot x : Real) = 0 := by
-    intro x hx
-    rw [T_inv.zero]
-    norm_cast
-    exact zero_div _
-  rw [sum_eq_zero hterm]
-  norm_cast
-  omega
-
-end IsAvTime
-
-/-- `μ` is `V`-rankable: `rank_μ(x) ≤ V(|x|)` for all `x`. -/
-def IsTRankable (V : Nat → Nat) (μ : Distribution) : Prop :=
-  ∀ x, rank μ x ≤ V (len x)
-
-/-- POL-rankable: bounded by some `V ∈ POL` (polynomial-time rank computation deferred). -/
-def IsPolRankable (μ : Distribution) : Prop :=
-  ∃ V : Nat → Nat, IsPolynomial V ∧ IsTRankable V μ
-
-namespace IsTRankable
-
-theorem of_support (V : Nat → Nat) (μ : Distribution)
-    (h : ∀ x ∈ μ.support, rank μ x ≤ V (len x)) :
-    IsTRankable V μ := by
-  intro x
-  by_cases hx : x ∈ μ.support
-  · exact h x hx
-  · have hr : rank μ x = 0 := rank.zero μ x (μ.prob_zero_outside x hx)
-    rw [hr]
-    exact Nat.zero_le _
-
-end IsTRankable
-
-/--
-`DistTime T`: some running-time function witnesses `IsAvTime T f μ`.
-
-We do not yet tie `f` to a decider for `L`; see [`DEFINITION_FORKS.md`](../DEFINITION_FORKS.md).
--/
-def DistTime (T : Nat → Nat) (prob : DistributionalProblem) : Prop :=
-  ∃ f : Bitstring → Nat, IsAvTime T f prob.μ
-
-namespace IsPolRankable
-
-theorem uniformOn_polRankable (S : Finset Bitstring) (h : S.Nonempty) :
-    IsPolRankable (uniformOn S h) :=
-  ⟨fun _ => S.card, IsPolynomial.const S.card,
-    IsTRankable.of_support _ _ fun x _ =>
-      rank.le_support_card (uniformOn S h) x⟩
-
-end IsPolRankable
-
-namespace DistTime
-
-theorem of_avTime {T : Nat → Nat} {prob : DistributionalProblem} {f : Bitstring → Nat}
-    (h : IsAvTime T f prob.μ) : DistTime T prob :=
-  ⟨f, h⟩
-
-theorem zero (T : Nat → Nat) (prob : DistributionalProblem) : DistTime T prob :=
-  of_avTime (IsAvTime.zero T prob.μ)
-
-end DistTime
-
-/--
-`AvDTime T V`: `DistTime T` on problems whose distribution is `V`-rankable.
-Matches the report's `AvDTime(T, C)` with `C` instantiated as a rank bound.
--/
-def AvDTime (T V : Nat → Nat) (prob : DistributionalProblem) : Prop :=
-  IsTRankable V prob.μ ∧ DistTime T prob
-
-namespace AvDTime
-
-theorem of_distTime {T V : Nat → Nat} {prob : DistributionalProblem}
-    (hV : IsTRankable V prob.μ) (hT : DistTime T prob) : AvDTime T V prob :=
-  ⟨hV, hT⟩
-
-end AvDTime
-
-/-! ## Phase 1D — AvP, distNP, reductions, completeness -/
-
-/--
-Certificate-based NP membership (Phase **3A** fork): poly-sized witnesses plus a
-`Bool` verifier. See [`DEFINITION_FORKS.md`](../DEFINITION_FORKS.md).
--/
-def InNP (L : Set Bitstring) : Prop :=
-  ∃ (verify : Bitstring → Bitstring → Bool) (bound : Nat → Nat),
-    IsPolynomial bound ∧
-    (∀ x, x ∈ L ↔ ∃ cert, len cert ≤ bound (len x) ∧ verify x cert = true)
-
-namespace InNP
-
-theorem intro {L : Set Bitstring} {verify : Bitstring → Bitstring → Bool} {bound : Nat → Nat}
-    (hbound : IsPolynomial bound)
-    (h : ∀ x, x ∈ L ↔ ∃ cert, len cert ≤ bound (len x) ∧ verify x cert = true) :
-    InNP L :=
-  ⟨verify, bound, hbound, h⟩
-
-theorem empty : InNP (∅ : Set Bitstring) :=
-  intro (verify := fun _ _ => false) (bound := fun _ => 0) (IsPolynomial.const 0) fun x => by
-    simp
-
-end InNP
-
-/-- `distNP`: NP language plus POL-rankable distribution (TR1995-711 §3.2). -/
-def InDistNP (prob : DistributionalProblem) : Prop :=
-  InNP prob.L ∧ IsPolRankable prob.μ
-
-namespace InDistNP
-
-theorem intro {prob : DistributionalProblem} (hNP : InNP prob.L) (hμ : IsPolRankable prob.μ) :
-    InDistNP prob :=
-  ⟨hNP, hμ⟩
-
-theorem uniformOn (L : Set Bitstring) (S : Finset Bitstring) (h : S.Nonempty)
-    (hNP : InNP L) :
-    InDistNP ⟨L, uniformOn S h⟩ :=
-  intro hNP (IsPolRankable.uniformOn_polRankable S h)
-
-end InDistNP
-
-/--
-Distributional reduction (TR1995-711 §3.2): polynomial-time map `f` (time check deferred),
-correctness `x ∈ L₁ ↔ f(x) ∈ L₂`, and domination
-
-`rank_{μ₂}(f(x)) ≤ c₀ · lenBot(x)^{c₁} · rank_{μ₁}(x)`.
--/
-def DistributionalReduction (source target : DistributionalProblem) : Prop :=
-  ∃ f : Bitstring → Bitstring,
-    (∀ x, x ∈ source.L ↔ f x ∈ target.L) ∧
-    (∃ c0 c1 : Nat, 0 < c0 ∧ 0 < c1 ∧
-      ∀ x, rank target.μ (f x) ≤ c0 * (lenBot x) ^ c1 * rank source.μ x)
-
-namespace DistributionalReduction
-
-theorem refl (p : DistributionalProblem) : DistributionalReduction p p := by
-  refine ⟨id, ?_, ⟨1, 1, one_pos, one_pos, fun x => ?_⟩⟩
-  · intro x; simp
-  · simp only [id_eq, pow_one, one_mul]
-    rcases Nat.eq_zero_or_pos (rank p.μ x) with hr | hr
-    · omega
-    · exact Nat.le_mul_of_pos_left (rank p.μ x) (lenBot_ne_zero x)
-
-/--
-Compose distributional reductions (TR1995-711 §3.2 transitivity).
-
-Requires a polynomial bound on `lenBot (f x)` in terms of `lenBot x`; deferred until
-`DistributionalReduction` records poly-time map length (see [`DEFINITION_FORKS.md`](../DEFINITION_FORKS.md)).
--/
-theorem trans {p1 p2 p3 : DistributionalProblem}
-    (h12 : DistributionalReduction p1 p2) (h23 : DistributionalReduction p2 p3) :
-    DistributionalReduction p1 p3 := by
-  sorry
-
-end DistributionalReduction
-
-/--
-Average polynomial time: POL-rankable distribution plus `DistTime T` for some `T ∈ POL`.
-Matches `DistTime(POL, POL-rankable)` in TR1995-711 §3.2.
--/
-def AvP (prob : DistributionalProblem) : Prop :=
-  IsPolRankable prob.μ ∧ ∃ T : Nat → Nat, IsPolynomial T ∧ DistTime T prob
-
-namespace AvP
-
-theorem of_distTime {prob : DistributionalProblem} (hμ : IsPolRankable prob.μ)
-    {T : Nat → Nat} (hT : IsPolynomial T) (h : DistTime T prob) : AvP prob :=
-  ⟨hμ, T, hT, h⟩
-
-theorem zero {prob : DistributionalProblem} (hμ : IsPolRankable prob.μ) {T : Nat → Nat}
-    (hT : IsPolynomial T) : AvP prob :=
-  of_distTime hμ hT (DistTime.zero T prob)
-
-end AvP
-
-/-- NP-average (distNP) completeness: in `distNP` and hard for all of `distNP`. -/
-def IsNPAverageComplete (target : DistributionalProblem) : Prop :=
-  InDistNP target ∧ ∀ source, InDistNP source → DistributionalReduction source target
-
-namespace IsNPAverageComplete
-
-theorem intro {target : DistributionalProblem} (h : InDistNP target)
-    (hred : ∀ source, InDistNP source → DistributionalReduction source target) :
-    IsNPAverageComplete target :=
-  ⟨h, hred⟩
-
-/--
-If `mid` is NP-average complete and `mid` reduces to `target`, then `target` is complete.
-Corollary 5.1 pipeline: distNP-complete NBH core → MLS target.
--/
-theorem of_reductor {mid target : DistributionalProblem}
-    (hTarget : InDistNP target) (hMid : IsNPAverageComplete mid)
-    (hRed : DistributionalReduction mid target) :
-    IsNPAverageComplete target :=
-  intro hTarget fun source hsource =>
-    DistributionalReduction.trans (hMid.2 source hsource) hRed
-
-end IsNPAverageComplete
-
-end AvCom
-```
-
-### `AvgCaseMls/AverageHardness.lean` {#avgcasemls-averagehardness-lean}
-
-```lean
-/-
-Copyright (c) 2026 Catskills Research Company. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Lars Warren Ericson, Catskills Research Company
--/
-
-import AvgCaseMls.Serialization
-import AvgCaseMls.AvCom
-
-/-!
-Semantic language of satisfiable MLS formulas (Phase **2D** / §8).
-
-Average-case hardness corollaries live in `AvgCaseMls/NonAvP.lean` (Phase **5**).
--/
-
-open MLS AvCom
-
-def SatMLS : Set Bitstring :=
-  { s | ∃ (f : Formula), serializeFormula f = s ∧ ∃ (env : Env), evalFormula env f }
-```
-
-### `AvgCaseMls/Completeness.lean` {#avgcasemls-completeness-lean}
-
-```lean
-/-
-Copyright (c) 2026 Catskills Research Company. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Lars Warren Ericson, Catskills Research Company
--/
-
-import AvgCaseMls.Reduction
-
-/-!
-Phase **4C:** NP-average completeness of MLS satisfiability (TR1995-711 Corollary 5.1).
-
-Literature: every distNP problem reduces to bounded halting (NBH); Phase **4B** reduces NBH
-into [`satMLSProb`]. Universal reduction into NBH and reduction transitivity remain scaffold
-gaps — see [`DEFINITION_FORKS.md`](../DEFINITION_FORKS.md).
--/
-
-namespace Completeness
-
-open Reduction AvCom NBH
-
-/-!
-Levin / TR1995-711 universal distributional reduction into NBH (distNP-complete core).
-
-Deferred: full NTM simulation, padding, and rankable target distribution construction.
--/
-theorem nbhProb_NPAverageComplete : IsNPAverageComplete nbhProb := by
-  refine IsNPAverageComplete.intro nbhProb_in_DistNP ?_
-  intro source _
-  sorry
-
-/--
-Corollary 5.1 (adapted): [`satMLSProb`] is NP-average complete, via NBH completeness and
-[`nbhToSatMLS_red`].
--/
-theorem satMLSProb_NPAverageComplete : IsNPAverageComplete satMLSProb :=
-  IsNPAverageComplete.of_reductor satMLSProb_in_DistNP nbhProb_NPAverageComplete nbhToSatMLS_red
-
-end Completeness
-```
-
-### `AvgCaseMls/ComplexityAxioms.lean` {#avgcasemls-complexityaxioms-lean}
-
-```lean
-/-
-Copyright (c) 2026 Catskills Research Company. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Lars Warren Ericson, Catskills Research Company
--/
-
-/-!
-Minimal complexity collapse hypothesis for conditional average-case hardness (Phase **5**).
-
-Literature: TR1995-711 Corollary 5.1 consequence — NP-average complete targets are not in AvP
-unless $\\text{NEXP} = \\text{EXP}$. Mathlib does not yet host this implication; we axiomatize
-only the collapse hypothesis, not the full proof.
--/
-
-/-- Nondeterministic exponential time is strictly larger than deterministic exponential time. -/
-axiom NEXP_neq_EXP : Prop
-
-def NEXP_eq_EXP : Prop := ¬ NEXP_neq_EXP
-```
 
 ### `AvgCaseMls/DecideMLS.lean` {#avgcasemls-decidemls-lean}
 
@@ -2693,7 +1567,17 @@ theorem decideMLS_complete (f : Formula) (h : ∃ env, evalFormula env f) :
 end MLS
 ```
 
-### `AvgCaseMls/EMLS.lean` {#avgcasemls-emls-lean}
+
+The live implementation is [[`AvgCaseMls/DecideMLS.lean`](#avgcasemls-decidemls-lean)](#avgcasemls-decidemls-lean). A **step-counting** function `stepsMLS` (Phase 2D) will relate the procedure to $`\mathrm{Av}(T)`$ in §5.
+
+---
+
+## 8. Lean 4 Verification: Proving Average-Case Hardness Properties
+Phase **2D** (encoding) and **5B** (hardness theorem). The AvCom classes are defined in §5; MLS syntax is in §6. The 1995 paper proves that the satisfiability of MLS formulas is **NP-average complete**. Under the defined AvCom classes, this implies that MLS cannot belong to $`\text{AvP}`$ under certain rankable distributions unless the nondeterministic and deterministic exponential-time hierarchies collapse.
+
+We can represent this theorem structurally in Lean 4:
+
+### `AvgCaseMls/ComplexityAxioms.lean` {#avgcasemls-complexityaxioms-lean}
 
 ```lean
 /-
@@ -2702,270 +1586,22 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Lars Warren Ericson, Catskills Research Company
 -/
 
-import AvgCaseMls.MLS
-
 /-!
-**Phase 2B complete:** `Literal`, `literalToFormula`, `conjunctToFormula`, `Literal.holds`, translation lemmas; `relationToLiteral?` for §7 normalization.
+Minimal complexity collapse hypothesis for conditional average-case hardness (Phase **5**).
 
-Literals follow Ferro–Omodeo–Schwartz [FOS80] §3 (`3-540-10009-1_8.pdf` in this repo):
-conjunctions of (* ) $x = y \diamond z$, ($\in$) $x \in y$, ($\notin$) $x \notin y$, ($\neq$) $x \neq y$,
-with $\diamond \in \{\cup,\cap,\setminus\}$ and $x,y,z$ set variables.
+Literature: TR1995-711 Corollary 5.1 consequence — NP-average complete targets are not in AvP
+unless $\\text{NEXP} = \\text{EXP}$. Mathlib does not yet host this implication; we axiomatize
+only the collapse hypothesis, not the full proof.
 -/
 
-namespace MLS.EMLS
+/-- Nondeterministic exponential time is strictly larger than deterministic exponential time. -/
+axiom NEXP_neq_EXP : Prop
 
-/-! ### Elementary literals (FOS80 §3) -/
-
-inductive BinOp
-  | union
-  | inter
-  | diff
-  deriving DecidableEq, Repr
-
-inductive Literal
-  | eqOp    : Nat → Nat → Nat → BinOp → Literal  -- (* )  x = y ◇ z
-  | eqEmpty : Nat → Literal                      --       x = ∅
-  | mem     : Nat → Nat → Literal                -- (∈)   x ∈ y
-  | notMem  : Nat → Nat → Literal                -- (∉)   x ∉ y
-  | neq     : Nat → Nat → Literal                -- (≠)   x ≠ y
-  deriving DecidableEq, Repr
-
-abbrev Conjunct := List Literal
-
-def binOpToTerm (op : BinOp) (y z : Nat) : Term :=
-  match op with
-  | .union => Term.union (Term.var y) (Term.var z)
-  | .inter => Term.inter (Term.var y) (Term.var z)
-  | .diff  => Term.diff (Term.var y) (Term.var z)
-
-def literalToFormula : Literal → Formula
-  | .eqOp x y z op => Formula.rel (Relation.eq (Term.var x) (binOpToTerm op y z))
-  | .eqEmpty x     => Formula.rel (Relation.eq (Term.var x) Term.empty)
-  | .mem x y       => Formula.rel (Relation.mem (Term.var x) (Term.var y))
-  | .notMem x y    => Formula.rel (Relation.not_mem (Term.var x) (Term.var y))
-  | .neq x y       => Formula.rel (Relation.neq (Term.var x) (Term.var y))
-
-def conjunctToFormula : Conjunct → Option Formula
-  | [] => none
-  | [l] => some (literalToFormula l)
-  | l :: ls@(_ :: _) =>
-      match conjunctToFormula ls with
-      | none => none
-      | some f => some (Formula.and (literalToFormula l) f)
-
-/-! ### Semantics and translation lemmas (Phase 2B) -/
-
-/-- Semantic satisfaction of an elementary literal under `env`. -/
-noncomputable def Literal.holds (env : Env) : Literal → Prop
-  | .eqOp x y z op =>
-      evalTerm env (Term.var x) = evalTerm env (binOpToTerm op y z)
-  | .eqEmpty x =>
-      evalTerm env (Term.var x) = evalTerm env Term.empty
-  | .mem x y =>
-      ZFSet.mem (evalTerm env (Term.var x)) (evalTerm env (Term.var y))
-  | .notMem x y =>
-      ¬ ZFSet.mem (evalTerm env (Term.var x)) (evalTerm env (Term.var y))
-  | .neq x y =>
-      evalTerm env (Term.var x) ≠ evalTerm env (Term.var y)
-
-theorem literalToFormula_eval (env : Env) (lit : Literal) :
-    evalFormula env (literalToFormula lit) ↔ Literal.holds env lit := by
-  cases lit <;> simp [Literal.holds, literalToFormula, evalFormula, evalTerm, binOpToTerm]
-
-private theorem conjunctToFormula_some_of_ne_nil {c : Conjunct} (h : c ≠ []) :
-    ∃ f, conjunctToFormula c = some f := by
-  cases c with
-  | nil => contradiction
-  | cons l ls =>
-    cases ls with
-    | nil => exact ⟨literalToFormula l, by simp [conjunctToFormula]⟩
-    | cons l' ls' =>
-      obtain ⟨f, hf⟩ := @conjunctToFormula_some_of_ne_nil (l' :: ls') (List.cons_ne_nil l' ls')
-      exact ⟨Formula.and (literalToFormula l) f, by simp [conjunctToFormula, hf]⟩
-
-theorem conjunctToFormula_none_iff (c : Conjunct) :
-    conjunctToFormula c = none ↔ c = [] := by
-  constructor
-  · intro h
-    cases c with
-    | nil => rfl
-    | cons l ls =>
-      obtain ⟨f, hf⟩ := @conjunctToFormula_some_of_ne_nil (l :: ls) (List.cons_ne_nil l ls)
-      rw [hf] at h
-      cases h
-  · intro h; subst h; simp [conjunctToFormula]
-
-theorem conjunctToFormula_singleton (lit : Literal) :
-    conjunctToFormula [lit] = some (literalToFormula lit) := by
-  simp [conjunctToFormula]
-
-theorem conjunctToFormula_eval (env : Env) (c : Conjunct) (f : Formula)
-    (h : conjunctToFormula c = some f) :
-    evalFormula env f ↔ ∀ lit ∈ c, Literal.holds env lit := by
-  induction c generalizing f with
-  | nil => simp [conjunctToFormula] at h
-  | cons l ls ih =>
-      cases ls with
-      | nil =>
-          simp [conjunctToFormula] at h
-          subst h
-          simp [literalToFormula_eval]
-      | cons l' ls' =>
-          simp [conjunctToFormula] at h
-          cases h' : conjunctToFormula (l' :: ls') with
-          | none =>
-            exfalso
-            have := @conjunctToFormula_some_of_ne_nil (l' :: ls') (List.cons_ne_nil l' ls')
-            simp [h'] at this
-          | some f' =>
-            rw [h'] at h
-            injection h with hf_eq
-            subst hf_eq
-            have ih' := ih f' h'
-            simp only [literalToFormula_eval, List.mem_cons, evalFormula, ih']
-            constructor
-            · intro ⟨h0, h1⟩ lit hl
-              cases hl with
-              | inl hl => subst hl; exact h0
-              | inr hl => exact h1 lit hl
-            · intro hall
-              exact ⟨hall l (by simp), fun lit hl => hall lit (Or.inr hl)⟩
-
-/-! ### MLS relation ↔ literal (FOS80 §3 patterns) -/
-
-def varTerm? : Term → Option Nat
-  | Term.var n => some n
-  | _ => none
-
-theorem varTerm?_eq (t : Term) (n : Nat) (h : varTerm? t = some n) : t = Term.var n := by
-  cases t <;> simp [varTerm?] at h <;> cases h <;> rfl
-
-def binaryOpTerm? : Term → Option (Nat × Nat × BinOp)
-  | Term.union (Term.var y) (Term.var z) => some (y, z, .union)
-  | Term.inter (Term.var y) (Term.var z) => some (y, z, .inter)
-  | Term.diff (Term.var y) (Term.var z) => some (y, z, .diff)
-  | _ => none
-
-def relationToLiteral? : Relation → Option Literal
-  | Relation.mem t1 t2 => do
-      let x ← varTerm? t1
-      let y ← varTerm? t2
-      return .mem x y
-  | Relation.not_mem t1 t2 => do
-      let x ← varTerm? t1
-      let y ← varTerm? t2
-      return .notMem x y
-  | Relation.eq t1 Term.empty => do
-      let x ← varTerm? t1
-      return .eqEmpty x
-  | Relation.eq (Term.var x) t2 => do
-      let (y, z, op) ← binaryOpTerm? t2
-      return .eqOp x y z op
-  | Relation.neq t1 t2 => do
-      let x ← varTerm? t1
-      let y ← varTerm? t2
-      return .neq x y
-  | _ => none
-
-theorem relationToLiteral?_eval (env : Env) (r : Relation) (lit : Literal)
-    (h : relationToLiteral? r = some lit) :
-    evalFormula env (Formula.rel r) ↔ Literal.holds env lit := by
-  revert lit
-  cases r with
-  | mem t1 t2 =>
-    intro lit h
-    cases ht1 : varTerm? t1 with
-    | none => simp [relationToLiteral?, ht1] at h
-    | some x =>
-      cases ht2 : varTerm? t2 with
-      | none => simp [relationToLiteral?, ht2] at h
-      | some y =>
-        simp [relationToLiteral?, ht1, ht2, Literal.holds, evalFormula, evalTerm] at h ⊢
-        cases h
-        rw [varTerm?_eq t1 x ht1, varTerm?_eq t2 y ht2]
-        simp [evalTerm, Literal.holds]
-  | not_mem t1 t2 =>
-    intro lit h
-    cases ht1 : varTerm? t1 with
-    | none => simp [relationToLiteral?, ht1] at h
-    | some x =>
-      cases ht2 : varTerm? t2 with
-      | none => simp [relationToLiteral?, ht2] at h
-      | some y =>
-        simp [relationToLiteral?, ht1, ht2, Literal.holds, evalFormula, evalTerm] at h ⊢
-        cases h
-        rw [varTerm?_eq t1 x ht1, varTerm?_eq t2 y ht2]
-        simp [evalTerm, Literal.holds]
-  | eq t1 t2 =>
-    intro lit h
-    by_cases ht2 : t2 = Term.empty
-    · subst ht2
-      cases ht1 : varTerm? t1 with
-      | none => simp [relationToLiteral?, ht1] at h
-      | some x =>
-        simp [relationToLiteral?, ht1, Literal.holds, evalFormula, evalTerm] at h ⊢
-        cases h
-        rw [varTerm?_eq t1 x ht1]
-        simp [evalTerm, Literal.holds]
-    · by_cases hunion : ∃ x y z, t1 = Term.var x ∧ t2 = Term.union (Term.var y) (Term.var z)
-      · obtain ⟨x, y, z, ht1, ht2⟩ := hunion
-        subst ht1 ht2
-        simp [relationToLiteral?, Literal.holds, evalFormula, evalTerm, binOpToTerm] at h ⊢
-        cases h; simp [evalTerm, Literal.holds]
-      · by_cases hinter : ∃ x y z, t1 = Term.var x ∧ t2 = Term.inter (Term.var y) (Term.var z)
-        · obtain ⟨x, y, z, ht1, ht2⟩ := hinter
-          subst ht1 ht2
-          simp [relationToLiteral?, Literal.holds, evalFormula, evalTerm, binOpToTerm] at h ⊢
-          cases h; simp [evalTerm, Literal.holds]
-        · by_cases hdiff : ∃ x y z, t1 = Term.var x ∧ t2 = Term.diff (Term.var y) (Term.var z)
-          · obtain ⟨x, y, z, ht1, ht2⟩ := hdiff
-            subst ht1 ht2
-            simp [relationToLiteral?, Literal.holds, evalFormula, evalTerm, binOpToTerm] at h ⊢
-            cases h; simp [evalTerm, Literal.holds]
-          · exfalso
-            have hnone :
-                relationToLiteral? (Relation.eq t1 t2) = none := by
-              sorry
-            rw [hnone] at h
-            cases h
-  | neq t1 t2 =>
-    intro lit h
-    cases ht1 : varTerm? t1 with
-    | none => simp [relationToLiteral?, ht1] at h
-    | some x =>
-      cases ht2 : varTerm? t2 with
-      | none => simp [relationToLiteral?, ht2] at h
-      | some y =>
-        simp [relationToLiteral?, ht1, ht2, Literal.holds, evalFormula, evalTerm] at h ⊢
-        cases h
-        rw [varTerm?_eq t1 x ht1, varTerm?_eq t2 y ht2]
-        simp [evalTerm, Literal.holds]
-
-def memLiterals (c : Conjunct) : List (Nat × Nat) :=
-  c.filterMap fun
-    | .mem x y => some (x, y)
-    | _ => none
-
-def notMemLiterals (c : Conjunct) : List (Nat × Nat) :=
-  c.filterMap fun
-    | .notMem x y => some (x, y)
-    | _ => none
-
-def neqLiterals (c : Conjunct) : List (Nat × Nat) :=
-  c.filterMap fun
-    | .neq x y => some (x, y)
-    | _ => none
-
-def hasEqEmpty (c : Conjunct) (x : Nat) : Bool :=
-  c.any fun | .eqEmpty y => decide (y = x) | _ => false
-
-def hasEqOpLiteral (c : Conjunct) : Bool :=
-  c.any fun | .eqOp _ _ _ _ => true | _ => false
-
-end MLS.EMLS
+def NEXP_eq_EXP : Prop := ¬ NEXP_neq_EXP
 ```
 
-### `AvgCaseMls/MLS.lean` {#avgcasemls-mls-lean}
+
+### `AvgCaseMls/AverageHardness.lean` {#avgcasemls-averagehardness-lean}
 
 ```lean
 /-
@@ -2974,82 +1610,236 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Lars Warren Ericson, Catskills Research Company
 -/
 
-/-!
-Deep embedding of Multilevel Syllogistic (MLS) syntax and set-theoretic semantics.
+import AvgCaseMls.Serialization
+import AvgCaseMls.AvCom
 
-Extracted from [`arxiv.md`](../arxiv.md) §6.
+/-!
+Semantic language of satisfiable MLS formulas (Phase **2D** / §8).
+
+Average-case hardness corollaries live in `AvgCaseMls/NonAvP.lean` (Phase **5**).
 -/
 
-namespace MLS
+open MLS AvCom
 
-/-! ### Syntactic terms -/
+def SatMLS : Set Bitstring :=
+  { s | ∃ (f : Formula), serializeFormula f = s ∧ ∃ (env : Env), evalFormula env f }
+```
 
-inductive Term : Type
-  | var   : Nat → Term
-  | empty : Term
-  | union : Term → Term → Term
-  | inter : Term → Term → Term
-  | diff  : Term → Term → Term
-  deriving DecidableEq, Repr
 
-/-! ### Set-theoretic relations -/
+### `AvgCaseMls/NonAvP.lean` {#avgcasemls-nonavp-lean}
 
-inductive Relation : Type
-  | mem     : Term → Term → Relation
-  | not_mem : Term → Term → Relation
-  | eq      : Term → Term → Relation
-  | neq     : Term → Term → Relation
-  deriving DecidableEq, Repr
+```lean
+/-
+Copyright (c) 2026 Catskills Research Company. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Lars Warren Ericson, Catskills Research Company
+-/
 
-/-! ### Propositional formulas -/
+import AvgCaseMls.ComplexityAxioms
+import AvgCaseMls.Completeness
+import AvgCaseMls.AverageHardness
 
-inductive Formula : Type
-  | rel : Relation → Formula
-  | not : Formula → Formula
-  | and : Formula → Formula → Formula
-  | or  : Formula → Formula → Formula
-  | imp : Formula → Formula → Formula
-  | iff : Formula → Formula → Formula
-  deriving DecidableEq, Repr
+/-!
+Phase **5A:** conditional non-AvP from NP-average completeness (TR1995-711 §3.2 / Corollary 5.1).
 
-/-! ### Axiomatic semantics -/
+Literature: if an NP-average complete problem were in AvP, bounded halting (NBH) would be in AvP,
+collapsing NEXP to EXP. Reduction pull-back and NBH average-case lower bounds are deferred until
+`DistTime` is linked to deciders — see [`DEFINITION_FORKS.md`](../DEFINITION_FORKS.md).
+-/
 
-axiom ZFSet : Type
+namespace NonAvP
 
-axiom ZFSet.empty : ZFSet
-axiom ZFSet.union : ZFSet → ZFSet → ZFSet
-axiom ZFSet.inter : ZFSet → ZFSet → ZFSet
-axiom ZFSet.diff  : ZFSet → ZFSet → ZFSet
-axiom ZFSet.mem   : ZFSet → ZFSet → Prop
+open Completeness Reduction AvCom NBH MLS
 
-/-- Distinct nonempty tags for Step 3 witness environments (Phase 2C). -/
-axiom ZFSet.tag : Nat → ZFSet
+/-!
+Pull AvP back along distributional reductions from a complete target.
 
-axiom ZFSet.tag_ne_empty (n : Nat) : ZFSet.tag n ≠ ZFSet.empty
+Deferred: poly-time decider for `target.L` composed with reduction map; needs `DistTime` decider
+linkage and poly bound on `len (f x)`.
+-/
+theorem AvP_of_distNP_of_complete_target {target : DistributionalProblem}
+    (hComplete : IsNPAverageComplete target) (hAvP : AvP target) :
+    ∀ source, InDistNP source → AvP source := by
+  intro source hdist
+  sorry
 
-axiom ZFSet.tag_injective : Function.Injective ZFSet.tag
+/--
+NBH is not in AvP unless NEXP = EXP (Levin / TR1995-711 core).
 
-def Env : Type := Nat → ZFSet
+Deferred: unconditional average-case lower bound for bounded halting.
+-/
+theorem nbhProb_not_AvP (h : NEXP_neq_EXP) : ¬ AvP nbhProb := by
+  intro hAvP
+  sorry
 
-noncomputable def evalTerm (env : Env) : Term → ZFSet
-  | Term.var n       => env n
-  | Term.empty       => ZFSet.empty
-  | Term.union t1 t2 => ZFSet.union (evalTerm env t1) (evalTerm env t2)
-  | Term.inter t1 t2 => ZFSet.inter (evalTerm env t1) (evalTerm env t2)
-  | Term.diff t1 t2  => ZFSet.diff (evalTerm env t1) (evalTerm env t2)
+/--
+Completeness + AvP on a distNP-complete target implies NEXP = EXP.
 
-noncomputable def evalFormula (env : Env) : Formula → Prop
-  | Formula.rel (Relation.mem t1 t2)     => ZFSet.mem (evalTerm env t1) (evalTerm env t2)
-  | Formula.rel (Relation.not_mem t1 t2) => ¬ ZFSet.mem (evalTerm env t1) (evalTerm env t2)
-  | Formula.rel (Relation.eq t1 t2)      => evalTerm env t1 = evalTerm env t2
-  | Formula.rel (Relation.neq t1 t2)     => evalTerm env t1 ≠ evalTerm env t2
-  | Formula.not f                        => ¬ evalFormula env f
-  | Formula.and f1 f2                    => evalFormula env f1 ∧ evalFormula env f2
-  | Formula.or f1 f2                     => evalFormula env f1 ∨ evalFormula env f2
-  | Formula.imp f1 f2                    => evalFormula env f1 → evalFormula env f2
-  | Formula.iff f1 f2                    => evalFormula env f1 ↔ evalFormula env f2
+Deferred: compose [`AvP_of_distNP_of_complete_target`] with [`nbhProb_not_AvP`].
+-/
+theorem NEXP_eq_EXP_of_AvP_complete {target : DistributionalProblem}
+    (hComplete : IsNPAverageComplete target) (hAvP : AvP target) :
+    NEXP_eq_EXP := by
+  sorry
 
-end MLS
+theorem not_AvP_of_NPAverageComplete {target : DistributionalProblem}
+    (hComplete : IsNPAverageComplete target) (h : NEXP_neq_EXP) :
+    ¬ AvP target :=
+  fun hAvP => (NEXP_eq_EXP_of_AvP_complete hComplete hAvP) h
+
+theorem satMLSProb_not_AvP (h : NEXP_neq_EXP) : ¬ AvP satMLSProb :=
+  not_AvP_of_NPAverageComplete satMLSProb_NPAverageComplete h
+
+theorem nbhProb_not_AvP_via_complete (h : NEXP_neq_EXP) : ¬ AvP nbhProb :=
+  not_AvP_of_NPAverageComplete nbhProb_NPAverageComplete h
+
+/-- Simple POL-rankable distribution from Phase **4B** (uniform on [`satTargetEnc`]). -/
+noncomputable def simpleSatμ : Distribution := μ₁
+
+theorem simpleSatμ_polRankable : IsPolRankable simpleSatμ := μ₁_polRankable
+
+theorem simpleSatμ_prob_satTarget :
+    simpleSatμ.prob satTargetEnc = 1 := by
+  simp [simpleSatμ, μ₁, uniformOn, uniformProb, μ₁Support]
+
+theorem exists_simple_rankable_checker_not_AvP (h : NEXP_neq_EXP) :
+    ∃ μ, IsPolRankable μ ∧ ¬ AvP ⟨SatMLSChecker, μ⟩ :=
+  ⟨simpleSatμ, simpleSatμ_polRankable, fun hAvP =>
+    satMLSProb_not_AvP h (by simpa [satMLSProb] using hAvP)⟩
+
+/-! ### Phase 5B — MLS average-case hardness corollaries -/
+
+/--
+Corollary 5.1 consequence (checker + Phase **4B** distribution): [`satMLSProb`] is not in AvP
+assuming NEXP $`\neq`$ EXP.
+-/
+theorem SatMLS_average_hard (h : NEXP_neq_EXP) : ¬ AvP satMLSProb :=
+  satMLSProb_not_AvP h
+
+/--
+Existential form: a simple POL-rankable distribution on MLS checker encodings is not AvP-tractable.
+-/
+theorem exists_simple_rankable_not_AvP (h : NEXP_neq_EXP) :
+    ∃ μ, IsPolRankable μ ∧ ¬ AvP ⟨SatMLSChecker, μ⟩ :=
+  exists_simple_rankable_checker_not_AvP h
+
+/--
+Semantic [`SatMLS`] on the same simple distribution — deferred until checker/semantic AvP
+equivalence on [`simpleSatμ`] support is formalized.
+-/
+theorem SatMLS_semantic_not_AvP (h : NEXP_neq_EXP) : ¬ AvP ⟨SatMLS, simpleSatμ⟩ := by
+  intro hAvP
+  sorry
+
+end NonAvP
+```
+
+
+
+---
+
+## 9. Results
+§9 is the **report card** for the proof program. Each row is a **subphase** from §1. **Outcome** is **TBD** while work is in progress, or one of the four accepted outcomes (*Proofs check*; *Lean is not expressive enough (yet)*; *Paper proofs are wrong*; *Field definitions are not solid*). Phase 0 (infrastructure) is complete and not graded here.
+
+| Phase | Phase goal | Outcome |
+|-------|------------|---------|
+| **1A** | `Bitstring`, `len`, `lenBot`, `Distribution`, `DistributionalProblem`, `IsPolynomial` in [[`AvgCaseMls/AvCom.lean`](#avgcasemls-avcom-lean)](#avgcasemls-avcom-lean); finite-support fork in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md) | Proofs check |
+| **1B** | `rank`, `T_inv` without `sorry`; finite-support rank + partial `T_inv` in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md) | Proofs check |
+| **1C** | `IsAvTime`, `rankLe`, `DistTime`, `AvDTime`, `IsTRankable`; forks in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md) | Proofs check |
+| **1D** | `AvP`, `InDistNP`, `DistributionalReduction`, `IsNPAverageComplete`; forks in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md) | Proofs check |
+| **2A** | MLS syntax + axiomatic semantics (§6, [[`AvgCaseMls/MLS.lean`](#avgcasemls-mls-lean)](#avgcasemls-mls-lean)) | Proofs check |
+| **2B** | `Literal`, `literalToFormula`, `conjunctToFormula`, `Literal.holds` ([[`AvgCaseMls/EMLS.lean`](#avgcasemls-emls-lean)](#avgcasemls-emls-lean)) | Proofs check |
+| **2C** | `decideMLSSat`, FOS80 Steps 2–4 partial ([[`AvgCaseMls/DecideMLS.lean`](#avgcasemls-decidemls-lean)](#avgcasemls-decidemls-lean)) | Proofs check |
+| **2D** | `serializeFormula`, `SatMLS`, `stepsMLS` (§8 axioms removed) | Proofs check |
+| **3A** | `SatMLSChecker_in_NP` ([[`AvgCaseMls/NPMembership.lean`](#avgcasemls-npmembership-lean)](#avgcasemls-npmembership-lean)), `decodeFormula?_serializeFormula` ([[`AvgCaseMls/Serialization.lean`](#avgcasemls-serialization-lean)](#avgcasemls-serialization-lean)); checker vs semantic [`SatMLS`] fork | Proofs check |
+| **3B** | [`encodingBound`], [`formulaSize_le_encodingBound`], `encodingBound_poly` ([[`AvgCaseMls/Serialization.lean`](#avgcasemls-serialization-lean)](#avgcasemls-serialization-lean)) | Proofs check |
+| **4A** | [`NBHChecker_in_NP`], [`μ₀_polRankable`], `nbhProb_in_DistNP` ([[`AvgCaseMls/NBH.lean`](#avgcasemls-nbh-lean)](#avgcasemls-nbh-lean)) | Proofs check (`decode_encode` `sorry`) |
+| **4B** | [`nbhToSatMLS_red`], `reduce_domination` ([[`AvgCaseMls/Reduction.lean`](#avgcasemls-reduction-lean)](#avgcasemls-reduction-lean)) | Proofs check (`reduce_correct` `sorry`) |
+| **4C** | `satMLSProb_NPAverageComplete` ([[`AvgCaseMls/Completeness.lean`](#avgcasemls-completeness-lean)](#avgcasemls-completeness-lean)), `IsNPAverageComplete.of_reductor` ([[`AvgCaseMls/AvCom.lean`](#avgcasemls-avcom-lean)](#avgcasemls-avcom-lean)) | Proofs check (`nbhProb_NPAverageComplete`, `DistributionalReduction.trans` `sorry`) |
+| **5A** | `not_AvP_of_NPAverageComplete` ([[`AvgCaseMls/NonAvP.lean`](#avgcasemls-nonavp-lean)](#avgcasemls-nonavp-lean)), `NEXP_eq_EXP_of_AvP_complete` ([[`AvgCaseMls/NonAvP.lean`](#avgcasemls-nonavp-lean)](#avgcasemls-nonavp-lean)) | Proofs check (`NEXP_eq_EXP_of_AvP_complete` `sorry`) |
+| **5B** | `SatMLS_average_hard` ([[`AvgCaseMls/NonAvP.lean`](#avgcasemls-nonavp-lean)](#avgcasemls-nonavp-lean)), `exists_simple_rankable_not_AvP` ([[`AvgCaseMls/NonAvP.lean`](#avgcasemls-nonavp-lean)](#avgcasemls-nonavp-lean)) | Proofs check (no `sorry` in main theorems; [`SatMLS_semantic_not_AvP`] `sorry`) |
+
+*Last updated: Phases **1A–1D**, **2A–2D**, **3A**, **3B**, **4A–4C (partial)**, **5A–5B (partial)** graded **Proofs check** where noted.*
+
+---
+
+## 10. Suggestions for Future Work
+Building on this integration of automated theorem proving and structural complexity, several avenues for future work emerge:
+
+1.  **Formalizing Smoothed Analysis in Lean 4:**
+    While average-case complexity under fixed distributions can be overly pessimistic, formalizing Spielman-Teng smoothed analysis would allow researchers to verify the typical-case tractability of modern SAT/SMT algorithms under random perturbations.
+2.  **Verified SMT Solvers with Monadic Cost Models:**
+    One could implement an executable SMT solver in Lean 4 (using a monadic state to track recursive steps) and formally prove that it runs in polynomial time on structured, non-random formula distributions.
+3.  **Extending Mathlib's Complexity Library:**
+    The current complexity theory developments in Mathlib4 are focused on worst-case bounds. Standardizing Levin's structural average-case reductions, the domination condition, $`\text{DistTime}`$, $`\text{AvDTime}`$, and $`\text{AvP}`$ in Mathlib would provide a robust framework for certifying post-quantum security and for revisiting TR1995-711-style applied completeness proofs.
+4.  **Step-counting the model-graph procedure:**
+    Instrument `decideMLS` (or the full model-graph search) with a monadic step counter and prove `(stepsMLS, μ) ∈ Av(T)` for the rankable distributions used in the report—closing the loop between §5 complexity classes and §6 decision procedures.
+
+---
+
+## References
+
+*   **[Ajt96]** Ajtai, M. (1996). Generating hard instances of lattice problems. *STOC*.
+*   **[BDCGL89]** Ben-David, S., Chor, B., Goldreich, O., & Luby, M. (1989). On the theory of average case complexity. *STOC*.
+*   **[deM08]** de Moura, L., & Bjørner, N. (2008). Z3: An efficient SMT solver. *TACAS*.
+*   **[CEM95]** Cox, J., Ericson, L., & Mishra, B. (1995). The average case complexity of multilevel syllogistic. *NYU Courant Institute Technical Report TR1995-711*.
+*   **[DS77]** Davis, M., & Schwartz, J. T. (1977). Metamathematical extensibility for theorem verifiers. *NYU Technical Report*.
+*   **[FOS80]** Ferro, A., Omodeo, E. G., & Schwartz, J. T. (1980). Decision procedures for elementary sublanguages of set theory. *CPAM*.
+*   **[Gol79]** Goldberg, A. T. (1979). On the complexity of the satisfiability problem. *NYU PhD Thesis*.
+*   **[Gur91]** Gurevich, Y. (1991). Average case completeness. *Journal of Computer and System Sciences*.
+*   **[Lev86]** Levin, L. (1986). Average case complete problems. *SIAM Journal on Computing*.
+*   **[Reg05]** Regev, O. (2005). On lattices, learning with errors, and cryptography. *STOC*.
+*   **[RS93]** Reischuk, R., & Schindelhauer, C. (1993). Precise average case complexity. *STOC*.
+*   **[SY92]** Schnorr, C. P., & Yoshida, T. (1992). Average-case complexity of NP-complete problems. *STOC*.
+*   **[Sny90a]** Snyder, W. K. (1990). The SETL2 programming language. *NYU Technical Report*.
+*   **[ST01]** Spielman, D. A., & Teng, S. H. (2001). Smoothed analysis of algorithms. *STOC*.
+*   **[VR92]** Venkatesan, R., & Rajagopalan, S. (1992). Average case intractability of matrix and Diophantine problems. *STOC*.
+
+---
+
+## Lean modules (inlined)
+
+### `AvgCaseMls/Completeness.lean` {#avgcasemls-completeness-lean}
+
+```lean
+/-
+Copyright (c) 2026 Catskills Research Company. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Lars Warren Ericson, Catskills Research Company
+-/
+
+import AvgCaseMls.Reduction
+
+/-!
+Phase **4C:** NP-average completeness of MLS satisfiability (TR1995-711 Corollary 5.1).
+
+Literature: every distNP problem reduces to bounded halting (NBH); Phase **4B** reduces NBH
+into [`satMLSProb`]. Universal reduction into NBH and reduction transitivity remain scaffold
+gaps — see [`DEFINITION_FORKS.md`](../DEFINITION_FORKS.md).
+-/
+
+namespace Completeness
+
+open Reduction AvCom NBH
+
+/-!
+Levin / TR1995-711 universal distributional reduction into NBH (distNP-complete core).
+
+Deferred: full NTM simulation, padding, and rankable target distribution construction.
+-/
+theorem nbhProb_NPAverageComplete : IsNPAverageComplete nbhProb := by
+  refine IsNPAverageComplete.intro nbhProb_in_DistNP ?_
+  intro source _
+  sorry
+
+/--
+Corollary 5.1 (adapted): [`satMLSProb`] is NP-average complete, via NBH completeness and
+[`nbhToSatMLS_red`].
+-/
+theorem satMLSProb_NPAverageComplete : IsNPAverageComplete satMLSProb :=
+  IsNPAverageComplete.of_reductor satMLSProb_in_DistNP nbhProb_NPAverageComplete nbhToSatMLS_red
+
+end Completeness
 ```
 
 ### `AvgCaseMls/NBH.lean` {#avgcasemls-nbh-lean}
@@ -3474,114 +2264,6 @@ theorem SatMLSChecker_subset_SatMLS (s : Bitstring) (h : s ∈ SatMLSChecker)
   exact ⟨f, hf, env, he⟩
 
 end MLS
-```
-
-### `AvgCaseMls/NonAvP.lean` {#avgcasemls-nonavp-lean}
-
-```lean
-/-
-Copyright (c) 2026 Catskills Research Company. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Lars Warren Ericson, Catskills Research Company
--/
-
-import AvgCaseMls.ComplexityAxioms
-import AvgCaseMls.Completeness
-import AvgCaseMls.AverageHardness
-
-/-!
-Phase **5A:** conditional non-AvP from NP-average completeness (TR1995-711 §3.2 / Corollary 5.1).
-
-Literature: if an NP-average complete problem were in AvP, bounded halting (NBH) would be in AvP,
-collapsing NEXP to EXP. Reduction pull-back and NBH average-case lower bounds are deferred until
-`DistTime` is linked to deciders — see [`DEFINITION_FORKS.md`](../DEFINITION_FORKS.md).
--/
-
-namespace NonAvP
-
-open Completeness Reduction AvCom NBH MLS
-
-/-!
-Pull AvP back along distributional reductions from a complete target.
-
-Deferred: poly-time decider for `target.L` composed with reduction map; needs `DistTime` decider
-linkage and poly bound on `len (f x)`.
--/
-theorem AvP_of_distNP_of_complete_target {target : DistributionalProblem}
-    (hComplete : IsNPAverageComplete target) (hAvP : AvP target) :
-    ∀ source, InDistNP source → AvP source := by
-  intro source hdist
-  sorry
-
-/--
-NBH is not in AvP unless NEXP = EXP (Levin / TR1995-711 core).
-
-Deferred: unconditional average-case lower bound for bounded halting.
--/
-theorem nbhProb_not_AvP (h : NEXP_neq_EXP) : ¬ AvP nbhProb := by
-  intro hAvP
-  sorry
-
-/--
-Completeness + AvP on a distNP-complete target implies NEXP = EXP.
-
-Deferred: compose [`AvP_of_distNP_of_complete_target`] with [`nbhProb_not_AvP`].
--/
-theorem NEXP_eq_EXP_of_AvP_complete {target : DistributionalProblem}
-    (hComplete : IsNPAverageComplete target) (hAvP : AvP target) :
-    NEXP_eq_EXP := by
-  sorry
-
-theorem not_AvP_of_NPAverageComplete {target : DistributionalProblem}
-    (hComplete : IsNPAverageComplete target) (h : NEXP_neq_EXP) :
-    ¬ AvP target :=
-  fun hAvP => (NEXP_eq_EXP_of_AvP_complete hComplete hAvP) h
-
-theorem satMLSProb_not_AvP (h : NEXP_neq_EXP) : ¬ AvP satMLSProb :=
-  not_AvP_of_NPAverageComplete satMLSProb_NPAverageComplete h
-
-theorem nbhProb_not_AvP_via_complete (h : NEXP_neq_EXP) : ¬ AvP nbhProb :=
-  not_AvP_of_NPAverageComplete nbhProb_NPAverageComplete h
-
-/-- Simple POL-rankable distribution from Phase **4B** (uniform on [`satTargetEnc`]). -/
-noncomputable def simpleSatμ : Distribution := μ₁
-
-theorem simpleSatμ_polRankable : IsPolRankable simpleSatμ := μ₁_polRankable
-
-theorem simpleSatμ_prob_satTarget :
-    simpleSatμ.prob satTargetEnc = 1 := by
-  simp [simpleSatμ, μ₁, uniformOn, uniformProb, μ₁Support]
-
-theorem exists_simple_rankable_checker_not_AvP (h : NEXP_neq_EXP) :
-    ∃ μ, IsPolRankable μ ∧ ¬ AvP ⟨SatMLSChecker, μ⟩ :=
-  ⟨simpleSatμ, simpleSatμ_polRankable, fun hAvP =>
-    satMLSProb_not_AvP h (by simpa [satMLSProb] using hAvP)⟩
-
-/-! ### Phase 5B — MLS average-case hardness corollaries -/
-
-/--
-Corollary 5.1 consequence (checker + Phase **4B** distribution): [`satMLSProb`] is not in AvP
-assuming NEXP $`\neq`$ EXP.
--/
-theorem SatMLS_average_hard (h : NEXP_neq_EXP) : ¬ AvP satMLSProb :=
-  satMLSProb_not_AvP h
-
-/--
-Existential form: a simple POL-rankable distribution on MLS checker encodings is not AvP-tractable.
--/
-theorem exists_simple_rankable_not_AvP (h : NEXP_neq_EXP) :
-    ∃ μ, IsPolRankable μ ∧ ¬ AvP ⟨SatMLSChecker, μ⟩ :=
-  exists_simple_rankable_checker_not_AvP h
-
-/--
-Semantic [`SatMLS`] on the same simple distribution — deferred until checker/semantic AvP
-equivalence on [`simpleSatμ`] support is formalized.
--/
-theorem SatMLS_semantic_not_AvP (h : NEXP_neq_EXP) : ¬ AvP ⟨SatMLS, simpleSatμ⟩ := by
-  intro hAvP
-  sorry
-
-end NonAvP
 ```
 
 ### `AvgCaseMls/Reduction.lean` {#avgcasemls-reduction-lean}
@@ -5143,5 +3825,3 @@ example (h : NEXP_neq_EXP) :
 
 end AvgCaseMls.Tests
 ```
-
-

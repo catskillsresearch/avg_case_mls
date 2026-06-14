@@ -1,4 +1,4 @@
-# Revisiting average case complexity of multilevel syllogistic: From the 1995 NYU Courant Technical Report to Lean 4 Formalization
+# Revisiting average case complexity of multilevel syllogistic: From the 1995 Courant Technical Report to Lean 4 Formalization
 
 ## 1. Introduction: The Vision of AvCom in Program Verification
 

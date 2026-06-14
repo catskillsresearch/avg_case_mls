@@ -15,24 +15,29 @@ In their 1995 Courant Institute Technical Report, *"The average case complexity 
 ## 2. Recap of Multilevel Syllogistic (MLS) and Its Decision Procedures
 
 ### Syntax of MLS and EMLS
-Multilevel Syllogistic (MLS) is a decidable fragment of Zermelo-Fraenkel set theory. Its syntax allows set variables, the empty set ($\emptyset$), binary set operators (union $\cup$, intersection $\cap$, set difference $\setminus$), binary set relations (membership $\in$, non-membership $\notin$, equality $=$, inequality $\neq$), and standard propositional connectives.
+Multilevel Syllogistic (MLS) is a decidable fragment of Zermelo-Fraenkel set theory. Its syntax allows set variables, the empty set ($`\emptyset`$), binary set operators (union $`\cup`$, intersection $`\cap`$, set difference $`\setminus`$), binary set relations (membership $`\in`$, non-membership $`\notin`$, equality $`=`$, inequality $`\neq`$), and standard propositional connectives.
 
 The grammar is formally defined as:
-*   **Terms:** $T \to v_i \mid \emptyset \mid T \cup T \mid T \cap T \mid T \setminus T$
-*   **Literals:** $L \to T \in T \mid T \notin T \mid T = T \mid T \neq T$
-*   **Formulas:** $\Phi \to L \mid \neg \Phi \mid \Phi \land \Phi \mid \Phi \lor \Phi \mid \Phi \Rightarrow \Phi \mid \Phi \equiv \Phi$
+*   **Terms:** $`T \to v_i \mid \emptyset \mid T \cup T \mid T \cap T \mid T \setminus T`$
+*   **Literals:** $`L \to T \in T \mid T \notin T \mid T = T \mid T \neq T`$
+*   **Formulas:** $`\Phi \to L \mid \neg \Phi \mid \Phi \land \Phi \mid \Phi \lor \Phi \mid \Phi \Rightarrow \Phi \mid \Phi \equiv \Phi`$
 
 **Elementary Multilevel Syllogistic (EMLS)** simplifies the terms by restricting conjuncts to "flat" elementary literals:
-$$v_i = \emptyset, \quad v_i = v_j \cup v_k, \quad v_i = v_j \setminus v_k, \quad v_i = v_j \cap v_k, \quad v_i \in v_j, \quad v_i \notin v_j, \quad v_i \neq v_j$$
+
+
+```math
+v_i = \emptyset, \quad v_i = v_j \cup v_k, \quad v_i = v_j \setminus v_k, \quad v_i = v_j \cap v_k, \quad v_i \in v_j, \quad v_i \notin v_j, \quad v_i \neq v_j
+```
+
 
 ### Decision Procedures
 The primary algorithm proposed to decide the satisfiability of MLS and EMLS formulas is the **model-graph algorithm** (originally analyzed by Ferro, Omodeo, and Schwartz [FOS80]). 
 
-To determine whether an EMLS formula $\Phi$ is satisfiable:
+To determine whether an EMLS formula $`\Phi`$ is satisfiable:
 1.  **Normalization:** Translate the formula into a conjunct of elementary literals.
 2.  **Graph Construction:** Build a directed model graph representing the membership and equality relations between set variables.
 3.  **Refinement:** Propagate set-theoretic axioms (such as extensionality: if two sets have the same elements, they are equal) through the graph to detect contradictions.
-4.  **Worst-Case Performance:** In the worst case, the number of distinct models that must be checked is $2^{4n^3}$ where $n$ is the number of variables, leading to an exponential worst-case runtime.
+4.  **Worst-Case Performance:** In the worst case, the number of distinct models that must be checked is $`2^{4n^3}`$ where $`n`$ is the number of variables, leading to an exponential worst-case runtime.
 
 ---
 
@@ -42,86 +47,115 @@ The formal definitions in this section follow TR1995-711 §3.2 ([`TR1995-711.pdf
 
 ### Why Naive Averaging Fails
 Prior to Leonid Levin’s 1986 breakthrough [Lev86], researchers measured average running time naively:
-$$\text{Time}_M^{\mu}(n) = \sum_{|x|=n} \mu_n(x) \text{time}_M(x)$$
+
+
+```math
+\text{Time}_M^{\mu}(n) = \sum_{|x|=n} \mu_n(x) \text{time}_M(x)
+```
+
+
 As noted by Ben-David et al. [BDCGL89] and Gurevich, this formulation is deeply flawed:
 *   **Model-dependent and encoding-dependent:** Slight changes in the binary representation of inputs radically alter the average complexity.
-*   **Not closed under functional composition:** An algorithm that runs in average $O(n)$ time can yield an average-case exponential runtime when composed with a polynomial-time pre-processing step.
+*   **Not closed under functional composition:** An algorithm that runs in average $`O(n)`$ time can yield an average-case exponential runtime when composed with a polynomial-time pre-processing step.
 
-Simply taking the expected running time of an algorithm weighted over all inputs of size $n$ is therefore inadequate as a robust complexity measure.
+Simply taking the expected running time of an algorithm weighted over all inputs of size $`n`$ is therefore inadequate as a robust complexity measure.
 
 ### Levin's Robust Formulation
-Levin solved these issues with a robust notion of "polynomial time on average." Under this framework, a running time $T(x)$ is average-polynomial under a distribution $\mu$ if there is a constant $c > 0$ such that the expected value of $T(x)^{1/c} / |x|$ is finite:
-$$\sum_{x} \mu(x) \frac{T(x)^{1/c}}{|x|} < \infty$$
+Levin solved these issues with a robust notion of "polynomial time on average." Under this framework, a running time $`T(x)`$ is average-polynomial under a distribution $`\mu`$ if there is a constant $`c > 0`$ such that the expected value of $`T(x)^{1/c} / |x|`$ is finite:
 
-Rather than analyzing a language in isolation, average-case complexity pairs a language $L$ (a decision problem) with a probability distribution $\mu$ on its instances, denoted as the distributional problem $(L, \mu)$.
+
+```math
+\sum_{x} \mu(x) \frac{T(x)^{1/c}}{|x|} < \infty
+```
+
+
+Rather than analyzing a language in isolation, average-case complexity pairs a language $`L`$ (a decision problem) with a probability distribution $`\mu`$ on its instances, denoted as the distributional problem $`(L, \mu)`$.
 
 ### Reischuk-Schindelhauer's Precise Classes
-In 1993, Reischuk and Schindelhauer [RS93] streamlined Levin's theory by introducing **ranking functions** to capture the distribution profile. Cox, Ericson, and Mishra rely primarily on the average-case analogues of $\text{P}$ and $\text{NP}$ under both Levin's traditional definitions and this precise average-case framework. TR1995-711 §3.2 notes explicitly that terminology in this area had **not yet been standardized** in the literature even in 1995; the report follows [RS93] and cites [Lev86, BDCGL89, Gur91, VR92, SY92].
+In 1993, Reischuk and Schindelhauer [RS93] streamlined Levin's theory by introducing **ranking functions** to capture the distribution profile. Cox, Ericson, and Mishra rely primarily on the average-case analogues of $`\text{P}`$ and $`\text{NP}`$ under both Levin's traditional definitions and this precise average-case framework. TR1995-711 §3.2 notes explicitly that terminology in this area had **not yet been standardized** in the literature even in 1995; the report follows [RS93] and cites [Lev86, BDCGL89, Gur91, VR92, SY92].
 
 The subsections below collect the definitions as used in the report—the target vocabulary for the Lean formalization in §§7–10.
 
 ### Inputs, Distributions, and Rank
-Fix a finite alphabet $\Sigma$ (in practice $\Sigma = \{0,1\}$). An **input** is a string $x \in \Sigma^*$, with **length** $|x|$ (in Lean we use `Bitstring := List Bool` and `len s := s.length`).
+Fix a finite alphabet $`\Sigma`$ (in practice $`\Sigma = \{0,1\}`$). An **input** is a string $`x \in \Sigma^*`$, with **length** $`|x|`$ (in Lean we use `Bitstring := List Bool` and `len s := s.length`).
 
-A **probability distribution** on $\Sigma^*$ is a function $\mu : \Sigma^* \to [0,1]$ such that $\sum_x \mu(x) \leq 1$ and $\mu(x) \geq 0$ for all $x$. In the Lean sketch we axiomatize this with finite `Finset` sums rather than infinite series, which is adequate for the rank-based definitions that follow.
+A **probability distribution** on $`\Sigma^*`$ is a function $`\mu : \Sigma^* \to [0,1]`$ such that $`\sum_x \mu(x) \leq 1`$ and $`\mu(x) \geq 0`$ for all $`x`$. In the Lean sketch we axiomatize this with finite `Finset` sums rather than infinite series, which is adequate for the rank-based definitions that follow.
 
-A **distributional problem** is a pair $(L, \mu)$ where $L \subseteq \Sigma^*$ is a decision problem (language) and $\mu$ is a distribution on its instances.
+A **distributional problem** is a pair $`(L, \mu)`$ where $`L \subseteq \Sigma^*`$ is a decision problem (language) and $`\mu`$ is a distribution on its instances.
 
-The **rank** of $x$ under $\mu$ counts how many inputs are at least as probable as $x$:
-$$\text{rank}_{\mu}(x) = \bigl|\{ z \in \Sigma^* : \mu(z) \geq \mu(x) \}\bigr|$$
-When $\mu(x) = 0$, the rank is taken to be $0$ (inputs of measure zero carry no average-case weight). In Lean, `rank` is marked `noncomputable` because counting over all strings is not executable; for tests one restricts to finite supports.
+The **rank** of $`x`$ under $`\mu`$ counts how many inputs are at least as probable as $`x`$:
+
+
+```math
+\text{rank}_{\mu}(x) = \bigl|\{ z \in \Sigma^* : \mu(z) \geq \mu(x) \}\bigr|
+```
+
+
+When $`\mu(x) = 0`$, the rank is taken to be $`0`$ (inputs of measure zero carry no average-case weight). In Lean, `rank` is marked `noncomputable` because counting over all strings is not executable; for tests one restricts to finite supports.
 
 ### Complexity Bounds, POL, and Rankable Distributions
-Following [RS93], let **POL** denote the class of **polynomial complexity bounds**—functions $T : \mathbb{N} \to \mathbb{N}$ such that $T(n) \leq c n^k + c$ for some constants $c, k$ (formalized in Lean as `IsPolynomial`).
+Following [RS93], let **POL** denote the class of **polynomial complexity bounds**—functions $`T : \mathbb{N} \to \mathbb{N}`$ such that $`T(n) \leq c n^k + c`$ for some constants $`c, k`$ (formalized in Lean as `IsPolynomial`).
 
-A distribution $\mu$ is **$T$-rankable** if $\text{rank}_{\mu}(x) \leq T(|x|)$ for all $x$.
+A distribution $`\mu`$ is **$`T`$-rankable** if $`\text{rank}_{\mu}(x) \leq T(|x|)`$ for all $`x`$.
 
-A distribution $\mu$ is **POL-rankable** if it is $T$-rankable for some $T \in \text{POL}$ **and** the rank function $\text{rank}_{\mu}(x)$ is computable in deterministic polynomial time (in binary). TR1995-711 uses POL-rankable distributions throughout its hardness constructions.
+A distribution $`\mu`$ is **POL-rankable** if it is $`T`$-rankable for some $`T \in \text{POL}`$ **and** the rank function $`\text{rank}_{\mu}(x)`$ is computable in deterministic polynomial time (in binary). TR1995-711 uses POL-rankable distributions throughout its hardness constructions.
 
-A real-valued function $m : [0,1] \to [0,1]$ is **monotone** if $x < y$ implies $m(x) < m(y)$. A **monotone transformation** of a distribution $\mu$ is a reweighting $m \circ \mu$ obtained from such an $m$ with $\sum_x m(\mu(x)) < 1$. Levin's original average-time definition quantifies over all monotone transformations of $\mu$; [RS93] shows this is equivalent to a simpler rank-sum condition (below).
+A real-valued function $`m : [0,1] \to [0,1]`$ is **monotone** if $`x < y`$ implies $`m(x) < m(y)`$. A **monotone transformation** of a distribution $`\mu`$ is a reweighting $`m \circ \mu`$ obtained from such an $`m`$ with $`\sum_x m(\mu(x)) < 1`$. Levin's original average-time definition quantifies over all monotone transformations of $`\mu`$; [RS93] shows this is equivalent to a simpler rank-sum condition (below).
 
-### Levin's $\mu$-Average Time and the RS93 Alternative
-Let $f : \Sigma^* \to \mathbb{N}$ be a running-time function and $T : \mathbb{N} \to \mathbb{N}$ a monotone complexity bound with **generalized inverse** $T^{-1}(m) = \min\{ n : T(n) \geq m \}$.
+### Levin's $`\mu`$-Average Time and the RS93 Alternative
+Let $`f : \Sigma^* \to \mathbb{N}`$ be a running-time function and $`T : \mathbb{N} \to \mathbb{N}`$ a monotone complexity bound with **generalized inverse** $`T^{-1}(m) = \min\{ n : T(n) \geq m \}`$.
 
-**Levin's formulation (conceptual):** the pair $(f, \mu)$ lies in $\text{Av}(T)$ if, for every monotone transformation $m$ of $\mu$, a certain $T^{-1}$-weighted expectation remains bounded. This formulation is robust but references all monotone reweightings of $\mu$ and is awkward to formalize directly.
+**Levin's formulation (conceptual):** the pair $`(f, \mu)`$ lies in $`\text{Av}(T)`$ if, for every monotone transformation $`m`$ of $`\mu`$, a certain $`T^{-1}`$-weighted expectation remains bounded. This formulation is robust but references all monotone reweightings of $`\mu`$ and is awkward to formalize directly.
 
-**Reischuk–Schindelhauer alternative (used in TR1995-711):** $(f, \mu) \in \text{Av}(T)$ if for all integers $\ell \geq 1$,
-$$\sum_{\text{rank}_{\mu}(x) \leq \ell} \frac{T^{-1}(f(x))}{|x|} \leq \ell$$
-This is the definition implemented structurally in `AvgCaseMls/AvCom.lean` as `IsAvTime`. Intuitively, high-rank (low-probability) inputs may take large time $f(x)$, but the inverse-bound mass $T^{-1}(f(x))$ per bit of input cannot accumulate faster than the rank budget $\ell$.
+**Reischuk–Schindelhauer alternative (used in TR1995-711):** $`(f, \mu) \in \text{Av}(T)`$ if for all integers $`\ell \geq 1`$,
+
+
+```math
+\sum_{\text{rank}_{\mu}(x) \leq \ell} \frac{T^{-1}(f(x))}{|x|} \leq \ell
+```
+
+
+This is the definition implemented structurally in `AvgCaseMls/AvCom.lean` as `IsAvTime`. Intuitively, high-rank (low-probability) inputs may take large time $`f(x)`$, but the inverse-bound mass $`T^{-1}(f(x))`$ per bit of input cannot accumulate faster than the rank budget $`\ell`$.
 
 ### Average Complexity Classes
-Let $M$ be a deterministic Turing machine with running time $f_M(x)$ on input $x$.
+Let $`M`$ be a deterministic Turing machine with running time $`f_M(x)`$ on input $`x`$.
 
-*   **$\text{DistTime}(T)$:** the class of distributional problems $(L, \mu)$ for which there exists a deterministic algorithm $M$ deciding $L$ such that $(f_M, \mu) \in \text{Av}(T)$.
-*   **$\text{AvDTime}(T, C)$:** as above, but restricting $\mu$ to be **$C$-rankable** distributions (for a complexity class $C$ of rank bounds). This class drives the **"nose"** diagram: languages tractable on average when the ranking function of the distribution is itself bounded by $V \in \text{POL}$.
-*   **$\text{AvP}$ (Average Polynomial Time):** $\text{DistTime}(\text{POL}, \text{POL-rankable})$—distributional problems efficiently solvable on average over POL-rankable $\mu$. Equivalently: $(L, \mu) \in \text{AvP}$ if $L$ is decidable in average polynomial time under a POL-rankable distribution.
-*   **$\text{distNP}$ (also written $\text{NP}^{\text{dist}}$ in the report):** $\{(L, \mu) : L \in \text{NP},\ \mu \in \text{POL-rankable}\}$. Membership in $\text{NP}$ means witnesses are verifiable in polynomial time on a nondeterministic Turing machine (NTM).
+*   **$`\text{DistTime}(T)`$:** the class of distributional problems $`(L, \mu)`$ for which there exists a deterministic algorithm $`M`$ deciding $`L`$ such that $`(f_M, \mu) \in \text{Av}(T)`$.
+*   **$`\text{AvDTime}(T, C)`$:** as above, but restricting $`\mu`$ to be **$`C`$-rankable** distributions (for a complexity class $`C`$ of rank bounds). This class drives the **"nose"** diagram: languages tractable on average when the ranking function of the distribution is itself bounded by $`V \in \text{POL}`$.
+*   **$`\text{AvP}`$ (Average Polynomial Time):** $`\text{DistTime}(\text{POL}, \text{POL-rankable})`$—distributional problems efficiently solvable on average over POL-rankable $`\mu`$. Equivalently: $`(L, \mu) \in \text{AvP}`$ if $`L`$ is decidable in average polynomial time under a POL-rankable distribution.
+*   **$`\text{distNP}`$ (also written $`\text{NP}^{\text{dist}}`$ in the report):** $`\{(L, \mu) : L \in \text{NP},\ \mu \in \text{POL-rankable}\}`$. Membership in $`\text{NP}`$ means witnesses are verifiable in polynomial time on a nondeterministic Turing machine (NTM).
 
 Under this framework, Cox, Ericson, and Mishra utilize several precise complexity classes:
 
-*   **$\text{POL-rankable}$ Distributions:** As defined above—polynomial rank bound plus polynomial-time rank computation.
-*   **$\text{Av}(T)$ (Average Time $T$):** Pairs $(f, \mu)$ satisfying the RS93 rank-sum inequality; for a machine deciding $L$, require $(f_M, \mu) \in \text{Av}(T)$.
-*   **$\text{AvP}$ (Average Polynomial Time):** $\text{DistTime}(\text{POL}, \text{POL-rankable})$—distributional problems $(L, \mu)$ efficiently solvable on average over POL-rankable distributions.
-*   **$\text{distNP}$ (Distributional NP):** $\{(L, \mu) : L \in \text{NP},\ \mu \in \text{POL-rankable}\}$ (the report also discusses $\text{P}$-computable and $\text{P}$-samplable distributions in the broader literature).
+*   **$`\text{POL-rankable}`$ Distributions:** As defined above—polynomial rank bound plus polynomial-time rank computation.
+*   **$`\text{Av}(T)`$ (Average Time $`T`$):** Pairs $`(f, \mu)`$ satisfying the RS93 rank-sum inequality; for a machine deciding $`L`$, require $`(f_M, \mu) \in \text{Av}(T)`$.
+*   **$`\text{AvP}`$ (Average Polynomial Time):** $`\text{DistTime}(\text{POL}, \text{POL-rankable})`$—distributional problems $`(L, \mu)`$ efficiently solvable on average over POL-rankable distributions.
+*   **$`\text{distNP}`$ (Distributional NP):** $`\{(L, \mu) : L \in \text{NP},\ \mu \in \text{POL-rankable}\}`$ (the report also discusses $`\text{P}`$-computable and $`\text{P}`$-samplable distributions in the broader literature).
 
 ### Distributional Reductions and NP-Average Completeness
-To transfer hardness results between average-case problems, TR1995-711 §3.2 defines **distributional reductions**. A reduction from $(L_1, \mu_1)$ to $(L_2, \mu_2)$ is a polynomial-time computable function $f : \Sigma^* \to \Sigma^*$ such that:
+To transfer hardness results between average-case problems, TR1995-711 §3.2 defines **distributional reductions**. A reduction from $`(L_1, \mu_1)`$ to $`(L_2, \mu_2)`$ is a polynomial-time computable function $`f : \Sigma^* \to \Sigma^*`$ such that:
 
-1. **Correctness:** $x \in L_1 \iff f(x) \in L_2$ for all $x$.
-2. **Domination:** letting $p_i(x) = \text{rank}_{\mu_i}(x)$, there exist constants $c_0, c_1 > 0$ such that
-$$p_2(f(x)) \leq c_0 |x|^{c_1} p_1(x)$$
-for all $x$.
+1. **Correctness:** $`x \in L_1 \iff f(x) \in L_2`$ for all $`x`$.
+2. **Domination:** letting $`p_i(x) = \text{rank}_{\mu_i}(x)`$, there exist constants $`c_0, c_1 > 0`$ such that
 
-The domination condition ensures that if $(L_2, \mu_2)$ is solvable in average polynomial time, tractability is preserved for $(L_1, \mu_1)$: $f$ cannot map many low-rank inputs of $\mu_1$ into disproportionately high-rank images under $\mu_2$.
 
-A distributional problem $(L, \mu)$ is **NP-average complete** (NP-distributional complete) if:
-* $(L, \mu) \in \text{distNP}$, and
-* every $(L', \mu') \in \text{distNP}$ is distributionally reducible to $(L, \mu)$.
+```math
+p_2(f(x)) \leq c_0 |x|^{c_1} p_1(x)
+```
+
+
+for all $`x`$.
+
+The domination condition ensures that if $`(L_2, \mu_2)`$ is solvable in average polynomial time, tractability is preserved for $`(L_1, \mu_1)`$: $`f`$ cannot map many low-rank inputs of $`\mu_1`$ into disproportionately high-rank images under $`\mu_2`$.
+
+A distributional problem $`(L, \mu)`$ is **NP-average complete** (NP-distributional complete) if:
+* $`(L, \mu) \in \text{distNP}`$, and
+* every $`(L', \mu') \in \text{distNP}`$ is distributionally reducible to $`(L, \mu)`$.
 
 TR1995-711 Corollary 5.1 (page 12) states that **MLS satisfiability** is NP-average complete; related corollaries cover EMLS, FP/LP, and further set-theoretic fragments. The proofs combine distributional reductions from bounded halting for NTMs with the rankable distributions constructed in the report.
 
 ### Application and Findings
-Cox, Ericson, and Mishra apply this structure to show that program-verification sublanguages cannot be easily bypassed using typical average-case heuristics. They prove that **EMLS, MLS, and FP/LP are $\text{NP}$-average complete**. This implies there are simple, rankable distributions that will frustrate any decision algorithm for these problems, forcing super-polynomial average-case running times unless deterministic and nondeterministic exponential time are equal ($\text{NEXP} = \text{EXP}$).
+Cox, Ericson, and Mishra apply this structure to show that program-verification sublanguages cannot be easily bypassed using typical average-case heuristics. They prove that **EMLS, MLS, and FP/LP are $`\text{NP}`$-average complete**. This implies there are simple, rankable distributions that will frustrate any decision algorithm for these problems, forcing super-polynomial average-case running times unless deterministic and nondeterministic exponential time are equal ($`\text{NEXP} = \text{EXP}`$).
 
 ### The Concept of "The Nose"
 The paper features a key visualization of the average-case landscape of NP-complete languages (Figure 1, page 13).
@@ -130,11 +164,17 @@ The paper features a key visualization of the average-case landscape of NP-compl
 
 **Figure 1 (schematic).** Languages L<sub>i</sub> are plotted by worst-case complexity *V* (vertical) and average-case complexity *T* (horizontal). The shaded **nose** is the tractable region in the polynomial–polynomial corner. Regenerate with `python3 scripts/plot_nose.py`.
 
-In this diagram, languages $L_i$ are mapped based on their worst-case complexity $V$ (vertical axis) and their average-case complexity $T$ (horizontal axis). 
-*   **The Nose** represents the sweet spot of tractability: the shaded region where the worst-case complexity of the ranking function $V$ is bounded by $h(T)$, such that the language still possesses an efficient average-case algorithm.
+In this diagram, languages $`L_i`$ are mapped based on their worst-case complexity $`V`$ (vertical axis) and their average-case complexity $`T`$ (horizontal axis). 
+*   **The Nose** represents the sweet spot of tractability: the shaded region where the worst-case complexity of the ranking function $`V`$ is bounded by $`h(T)`$, such that the language still possesses an efficient average-case algorithm.
 *   Formally, the authors define this boundary as:
-    $$\text{nose}(L) = \{ (T, V) \in (\text{POL}, \text{POL}) : L \in \text{AvDTime}(T, V\text{-rankable}) \}$$
-*   For an NP-average complete problem, the "nose" is trivial or empty under simple distributions, meaning no non-trivial efficient average-case behavior can be guaranteed unless $\text{Nondeterministic Exp} = \text{Deterministic Exp}$.
+
+
+```math
+\text{nose}(L) = \{ (T, V) \in (\text{POL}, \text{POL}) : L \in \text{AvDTime}(T, V\text{-rankable}) \}
+```
+
+
+*   For an NP-average complete problem, the "nose" is trivial or empty under simple distributions, meaning no non-trivial efficient average-case behavior can be guaranteed unless $`\text{Nondeterministic Exp} = \text{Deterministic Exp}`$.
 
 ---
 
@@ -149,8 +189,8 @@ Three natural questions follow: Were the terms used in the paper invented there,
 ### Were the Terms Invented in This Paper?
 **No—the core definitions and terms were not invented in TR1995-711.** The authors drew entirely upon the existing complexity literature of the late 1980s and early 1990s:
 
-*   **The foundations ($\text{AvP}$, $\text{distNP}$, and the domination condition):** Pioneered by Leonid Levin in his 1986 paper *"Average case complete problems"* [Lev86] and further formalized by Yuri Gurevich [Gur91] and Ben-David, Chor, Goldreich, and Luby [BDCGL89].
-*   **The precise formulations ($\text{POL}$, $\text{POL-rankable}$, precise average-case complexity):** Taken directly from Rüdiger Reischuk and Christian Schindelhauer's 1993 paper, *"Precise average case complexity"* [RS93].
+*   **The foundations ($`\text{AvP}`$, $`\text{distNP}`$, and the domination condition):** Pioneered by Leonid Levin in his 1986 paper *"Average case complete problems"* [Lev86] and further formalized by Yuri Gurevich [Gur91] and Ben-David, Chor, Goldreich, and Luby [BDCGL89].
+*   **The precise formulations ($`\text{POL}`$, $`\text{POL-rankable}`$, precise average-case complexity):** Taken directly from Rüdiger Reischuk and Christian Schindelhauer's 1993 paper, *"Precise average case complexity"* [RS93].
 
 The report's contribution was not structural novelty in complexity theory itself, but rather its **application**: importing these rigorous, newly developed tools from structural complexity theory and applying them to automated theorem proving and program verification—specifically, showing that set-theoretic fragments such as EMLS and MLS are average-case complete.
 
@@ -194,19 +234,19 @@ The specific marriage of AvCom to MLS decision procedures was largely abandoned 
 This section and §§7–10 describe how the TR1995-711 definitions and the MLS/EMLS decision procedures are encoded in Lean 4. The live code lives in [`AvgCaseMls/`](AvgCaseMls/) and is checked by `./run_lean_check.sh` and `./run_lean_tests.sh` (see [`INSTALLING_LEAN.md`](INSTALLING_LEAN.md)).
 
 ### Mathlib and the Complexity-Theory Gap
-Through 2025–2026, Mathlib4 has begun to host **worst-case** complexity infrastructure (polynomial-time Turing machines, $\text{P}$, $\text{NP}$, and related material under active development). **Average-case complexity—distributional problems, rank functions, $\text{Av}(T)$, $\text{DistTime}$, distributional reductions, and $\text{AvP}$—is not yet a standard Mathlib layer.** TR1995-711 is therefore a natural stress test: it requires both a deep embedding of set-theoretic syntax *and* a bespoke AvCom library built on [RS93].
+Through 2025–2026, Mathlib4 has begun to host **worst-case** complexity infrastructure (polynomial-time Turing machines, $`\text{P}`$, $`\text{NP}`$, and related material under active development). **Average-case complexity—distributional problems, rank functions, $`\text{Av}(T)`$, $`\text{DistTime}`$, distributional reductions, and $`\text{AvP}`$—is not yet a standard Mathlib layer.** TR1995-711 is therefore a natural stress test: it requires both a deep embedding of set-theoretic syntax *and* a bespoke AvCom library built on [RS93].
 
 Our approach mirrors [icon2lean](https://github.com/catskillsresearch/icon2lean):
-1. **Definitions first** — encode $\text{rank}$, $\text{Av}(T)$, $\text{DistTime}(T)$, $\text{AvP}$, and $\text{distNP}$ as propositions over `Bitstring` inputs (§9).
+1. **Definitions first** — encode $`\text{rank}`$, $`\text{Av}(T)`$, $`\text{DistTime}(T)`$, $`\text{AvP}`$, and $`\text{distNP}`$ as propositions over `Bitstring` inputs (§9).
 2. **Deep embedding of MLS/EMLS** — inductive syntax + semantic evaluation (§7).
-3. **Decision procedure skeleton** — a computable `decideMLS` with stated soundness/completeness for **satisfiability**, plus a future **step-counting** function to relate the model-graph algorithm to $\text{Av}(T)$ (§8).
+3. **Decision procedure skeleton** — a computable `decideMLS` with stated soundness/completeness for **satisfiability**, plus a future **step-counting** function to relate the model-graph algorithm to $`\text{Av}(T)`$ (§8).
 4. **Hardness statements** — structural theorems such as `SatMLS_average_hard` with explicit `sorry` placeholders until reductions from TR1995-711 are formalized (§10).
 
 ### Design Choices for Executable vs. Proof Layer
 | Concept | Lean representation | Rationale |
 |---------|---------------------|-----------|
-| Inputs | `Bitstring := List Bool`, `len` | Matches $\Sigma = \{0,1\}$ encodings in the report |
-| Distributions | `structure Distribution` with `Finset` sums $\leq 1$ | Avoids infinite sums; enough for rank-based definitions |
+| Inputs | `Bitstring := List Bool`, `len` | Matches $`\Sigma = \{0,1\}`$ encodings in the report |
+| Distributions | `structure Distribution` with `Finset` sums $`\leq 1`$ | Avoids infinite sums; enough for rank-based definitions |
 | Rank | `noncomputable def rank` | Cardinality over all strings is not computable |
 | Set semantics | Axiomatic `MLS.ZFSet` + `noncomputable evalTerm` | Supports nested sets without committing to full ZF in Mathlib; `Mathlib.Data.ZFC.Basic` is an alternative for a future refactor |
 | EMLS | Elementary literals in §2 grammar; optional separate `EMLS.Literal` inductive (planned) | EMLS is the normal form the model-graph algorithm consumes |
@@ -216,9 +256,9 @@ Our approach mirrors [icon2lean](https://github.com/catskillsresearch/icon2lean)
 
 ## 7. Formalizing MLS in Lean 4
 
-Below we give a self-contained **deep embedding** of MLS syntax in Lean 4: inductive types for terms, relations, and formulas, plus a semantic evaluation function into an axiomatic `ZFSet` universe. Set variables are identified with natural-number indices (`Nat → ZFSet` environments), matching the report's $v_i$ notation.
+Below we give a self-contained **deep embedding** of MLS syntax in Lean 4: inductive types for terms, relations, and formulas, plus a semantic evaluation function into an axiomatic `ZFSet` universe. Set variables are identified with natural-number indices (`Nat → ZFSet` environments), matching the report's $`v_i`$ notation.
 
-**Modeling nested sets.** MLS formulas talk about membership chains $v_i \in v_j \in v_k \in \cdots$. Three semantic approaches are common in proof assistants: (i) a parametric type parameter, (ii) Mathlib's `ZFSet`, or (iii) a custom axiomatized sort. We use (iii) so the development is self-contained and `evalTerm`/`evalFormula` are explicitly `noncomputable` (axioms are not compiled). A Mathlib-backed refactor would replace `axiom ZFSet` with imports from `Mathlib.Data.ZFC.Basic`.
+**Modeling nested sets.** MLS formulas talk about membership chains $`v_i \in v_j \in v_k \in \cdots`$. Three semantic approaches are common in proof assistants: (i) a parametric type parameter, (ii) Mathlib's `ZFSet`, or (iii) a custom axiomatized sort. We use (iii) so the development is self-contained and `evalTerm`/`evalFormula` are explicitly `noncomputable` (axioms are not compiled). A Mathlib-backed refactor would replace `axiom ZFSet` with imports from `Mathlib.Data.ZFC.Basic`.
 
 The listing below matches [`AvgCaseMls/MLS.lean`](AvgCaseMls/MLS.lean).
 
@@ -290,7 +330,7 @@ noncomputable def evalFormula (env : Env) : Formula → Prop
 end MLS
 ```
 
-**EMLS (planned extension).** Elementary Multilevel Syllogistic restricts formulas to conjunctions of flat literals ($v_i = \emptyset$, $v_i = v_j \cup v_k$, $v_i \in v_j$, etc.). A natural Lean extension is a separate inductive type:
+**EMLS (planned extension).** Elementary Multilevel Syllogistic restricts formulas to conjunctions of flat literals ($`v_i = \emptyset`$, $`v_i = v_j \cup v_k`$, $`v_i \in v_j`$, etc.). A natural Lean extension is a separate inductive type:
 
 ```lean
 inductive EMLS.Literal : Type
@@ -311,10 +351,10 @@ with a translation `EMLS.toMLS : Literal → MLS.Formula` and a normalization fu
 
 We now implement a decision procedure skeleton in Lean 4. The full **model-graph algorithm** from [FOS80]—normalization to elementary literals, graph construction, and refinement—is not yet executable; instead we define `decideMLS : Formula → Bool` and state **soundness** and **completeness** theorems for **satisfiability**:
 
-* **Soundness:** if `decideMLS φ = true`, then $\varphi$ is satisfiable ($\exists env,\ \text{evalFormula}\ env\ \varphi$).
-* **Completeness:** if $\varphi$ is satisfiable, then `decideMLS φ = true`.
+* **Soundness:** if `decideMLS φ = true`, then $`\varphi`$ is satisfiable ($`\exists env,\ \text{evalFormula}\ env\ \varphi`$).
+* **Completeness:** if $`\varphi`$ is satisfiable, then `decideMLS φ = true`.
 
-The listing below uses universal validity in the theorem statements (as in an early draft); aligning the statements with satisfiability and wiring a **step-counting** function `stepsMLS : Formula → Nat` is the next formalization step needed to prove that the procedure lies in a stated $\text{Av}(T)$ class. The live file is [`AvgCaseMls/DecideMLS.lean`](AvgCaseMls/DecideMLS.lean).
+The listing below uses universal validity in the theorem statements (as in an early draft); aligning the statements with satisfiability and wiring a **step-counting** function `stepsMLS : Formula → Nat` is the next formalization step needed to prove that the procedure lies in a stated $`\text{Av}(T)`$ class. The live file is [`AvgCaseMls/DecideMLS.lean`](AvgCaseMls/DecideMLS.lean).
 
 ```lean
 namespace MLS
@@ -363,13 +403,13 @@ end MLS
 
 ## 9. Coding the AvCom Complexity Analysis in Lean 4
 
-Here we translate TR1995-711 §3.2 into Lean 4 using the RS93 rank-sum definition of $\text{Av}(T)$. The module [`AvgCaseMls/AvCom.lean`](AvgCaseMls/AvCom.lean) defines:
+Here we translate TR1995-711 §3.2 into Lean 4 using the RS93 rank-sum definition of $`\text{Av}(T)`$. The module [`AvgCaseMls/AvCom.lean`](AvgCaseMls/AvCom.lean) defines:
 
-* `Distribution` — probability mass on `Bitstring` with non-negativity and finite `Finset` sum $\leq 1$;
-* `rank` — placeholder for $\text{rank}_\mu(x)$ (positive-probability case counts strings at least as probable as $x$);
-* `T_inv` — placeholder for the generalized inverse $T^{-1}$;
-* `IsAvTime` — the RS93 condition $\sum_{\text{rank}_\mu(x) \leq \ell} T^{-1}(f(x)) / |x| \leq \ell$;
-* `DistributionalProblem`, `IsPolynomial`, and `AvP` — structural counterparts of $\text{DistTime}(\text{POL}, \text{POL-rankable})$.
+* `Distribution` — probability mass on `Bitstring` with non-negativity and finite `Finset` sum $`\leq 1`$;
+* `rank` — placeholder for $`\text{rank}_\mu(x)`$ (positive-probability case counts strings at least as probable as $`x`$);
+* `T_inv` — placeholder for the generalized inverse $`T^{-1}`$;
+* `IsAvTime` — the RS93 condition $`\sum_{\text{rank}_\mu(x) \leq \ell} T^{-1}(f(x)) / |x| \leq \ell`$;
+* `DistributionalProblem`, `IsPolynomial`, and `AvP` — structural counterparts of $`\text{DistTime}(\text{POL}, \text{POL-rankable})`$.
 
 Planned extensions (not yet in the repository): `DistTime`, `AvDTime`, `InDistNP`, `DistributionalReduction`, and `IsNPAverageComplete`. These will let us state TR1995-711 Corollary 5.1 as a theorem rather than a comment.
 
@@ -427,7 +467,7 @@ def AvP (prob : DistributionalProblem) : Prop :=
 
 ## 10. Lean 4 Verification: Proving Average-Case Hardness Properties
 
-The 1995 paper proves that the satisfiability of MLS formulas is **NP-average complete**. Under the defined AvCom classes, this implies that MLS cannot belong to $\text{AvP}$ under certain rankable distributions unless the nondeterministic and deterministic exponential-time hierarchies collapse.
+The 1995 paper proves that the satisfiability of MLS formulas is **NP-average complete**. Under the defined AvCom classes, this implies that MLS cannot belong to $`\text{AvP}`$ under certain rankable distributions unless the nondeterministic and deterministic exponential-time hierarchies collapse.
 
 We can represent this theorem structurally in Lean 4:
 
@@ -468,7 +508,7 @@ Building on this integration of automated theorem proving and structural complex
 2.  **Verified SMT Solvers with Monadic Cost Models:**
     One could implement an executable SMT solver in Lean 4 (using a monadic state to track recursive steps) and formally prove that it runs in polynomial time on structured, non-random formula distributions.
 3.  **Extending Mathlib's Complexity Library:**
-    The current complexity theory developments in Mathlib4 are focused on worst-case bounds. Standardizing Levin's structural average-case reductions, the domination condition, $\text{DistTime}$, $\text{AvDTime}$, and $\text{AvP}$ in Mathlib would provide a robust framework for certifying post-quantum security and for revisiting TR1995-711-style applied completeness proofs.
+    The current complexity theory developments in Mathlib4 are focused on worst-case bounds. Standardizing Levin's structural average-case reductions, the domination condition, $`\text{DistTime}`$, $`\text{AvDTime}`$, and $`\text{AvP}`$ in Mathlib would provide a robust framework for certifying post-quantum security and for revisiting TR1995-711-style applied completeness proofs.
 4.  **Step-counting the model-graph procedure:**
     Instrument `decideMLS` (or the full model-graph search) with a monadic step counter and prove `(stepsMLS, μ) ∈ Av(T)` for the rankable distributions used in the report—closing the loop between §3 complexity classes and §2 decision procedures.
 

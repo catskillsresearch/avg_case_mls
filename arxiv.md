@@ -193,7 +193,7 @@ Our approach mirrors [icon2lean](https://github.com/catskillsresearch/icon2lean)
 | Distributions | `structure Distribution` with explicit finite `support`, off-support zero, `support.sum prob ≤ 1` | Avoids infinite sums; rank and testing are well-defined (see [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md)) |
 | Rank | `noncomputable def rank` | Cardinality over all strings is not computable |
 | Set semantics | Axiomatic `MLS.ZFSet` + `noncomputable evalTerm` | Supports nested sets without committing to full ZF in Mathlib; `Mathlib.Data.ZFC.Basic` is an alternative for a future refactor |
-| EMLS | Elementary literals in §6 grammar; optional separate `EMLS.Literal` inductive (planned) | EMLS is the normal form the model-graph algorithm consumes |
+| EMLS | `Literal`, `literalToFormula`, `conjunctToFormula`, `Literal.holds` in [`EMLS.lean`](AvgCaseMls/EMLS.lean) | FOS80 §3 normal form for §7 decision procedure |
 | Tests | `#eval` + `native_decide` on decidable fragments | Same regression pattern as `Icon2lean/Tests.lean` |
 
 ---
@@ -403,7 +403,7 @@ v_i = \emptyset, \quad v_i = v_j \cup v_k, \quad v_i = v_j \setminus v_k, \quad 
 
 ### Lean encoding (Phase 2A)
 
-**Scope.** This subsection is **complete** for its current goal: a deep embedding of full MLS syntax and axiomatic set-theoretic semantics in Lean 4. [`AvgCaseMls/MLS.lean`](AvgCaseMls/MLS.lean) compiles with no `sorry`. Phase **2B** (EMLS literals in [`AvgCaseMls/EMLS.lean`](AvgCaseMls/EMLS.lean)), **2C** (decision procedure, §7), and **2D** (serialization and step counting, §8) are separate obligations.
+**Scope.** [`AvgCaseMls/MLS.lean`](AvgCaseMls/MLS.lean) (Phase **2A**) and [`AvgCaseMls/EMLS.lean`](AvgCaseMls/EMLS.lean) (Phase **2B**) compile with no `sorry`. Phase **2C** (decision procedure, §7) and **2D** (serialization and step counting, §8) are separate obligations.
 
 Set variables are identified with natural-number indices (`Nat → ZFSet` environments), matching the report's $`v_i`$ notation. MLS formulas talk about membership chains $`v_i \in v_j \in v_k \in \cdots`$. We use a custom axiomatized `ZFSet` sort so the development is self-contained and `evalTerm`/`evalFormula` are explicitly `noncomputable` (axioms are not compiled). A Mathlib-backed refactor would replace `axiom ZFSet` with imports from `Mathlib.Data.ZFC.Basic`.
 
@@ -483,8 +483,17 @@ inductive Literal
   | eqEmpty : Nat → Literal
   | mem | notMem | neq : Nat → Nat → Literal
 
-def literalToFormula : Literal → Formula
-def conjunctToFormula : List Literal → Option Formula
+noncomputable def Literal.holds (env : Env) : Literal → Prop := …
+
+def literalToFormula : Literal → Formula := …
+def conjunctToFormula : Conjunct → Option Formula := …
+
+theorem literalToFormula_eval (env : Env) (lit : Literal) :
+    evalFormula env (literalToFormula lit) ↔ Literal.holds env lit := …
+
+theorem conjunctToFormula_eval (env : Env) (c : Conjunct) (f : Formula) … := …
+
+def relationToLiteral? : Relation → Option Literal := …  -- used by §7
 ```
 
 Normalization from general MLS formulas to EMLS conjuncts remains partial (`formulaToConjunct?` in §7); the model-graph decision procedure is §7 only.
@@ -597,7 +606,7 @@ theorem SatMLS_average_hard (μ : Distribution) (h_rank : ∃ T, IsPolynomial T 
 | **1C** | `IsAvTime`, `rankLe`, `DistTime`, `AvDTime`, `IsTRankable`; forks in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md) | Proofs check |
 | **1D** | `AvP`, `InDistNP`, `DistributionalReduction`, `IsNPAverageComplete`; forks in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md) | Proofs check |
 | **2A** | MLS syntax + axiomatic semantics (§6, [`MLS.lean`](AvgCaseMls/MLS.lean)) | Proofs check |
-| **2B** | EMLS literals, `literalToFormula`, `conjunctToFormula` ([`EMLS.lean`](AvgCaseMls/EMLS.lean)) | TBD |
+| **2B** | `Literal`, `literalToFormula`, `conjunctToFormula`, `Literal.holds` ([`EMLS.lean`](AvgCaseMls/EMLS.lean)) | Proofs check |
 | **2C** | `decideMLSSat`, FOS80 Steps 2–4 partial ([`DecideMLS.lean`](AvgCaseMls/DecideMLS.lean)) | TBD |
 | **2D** | `serializeFormula`, `SatMLS`, `stepsMLS` (§8 axioms removed) | TBD |
 | **3A** | `SatMLS ∈ NP` or Mathlib blocker | TBD |
@@ -608,7 +617,7 @@ theorem SatMLS_average_hard (μ : Distribution) (h_rank : ∃ T, IsPolynomial T 
 | **5A** | Conditional non-AvP from completeness | TBD |
 | **5B** | `SatMLS_average_hard` without `sorry` | TBD |
 
-*Last updated: Phases **1A–1D** and **2A** graded **Proofs check** (`AvCom.lean` / `MLS.lean` build, no `sorry` in Phase 1 / 2A scope); all other subphases TBD.*
+*Last updated: Phases **1A–1D**, **2A**, and **2B** graded **Proofs check** (no `sorry` in those scopes); all other subphases TBD.*
 
 ---
 

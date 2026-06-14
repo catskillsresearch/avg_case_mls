@@ -108,6 +108,25 @@ example : AvP testProb :=
 example : DistributionalReduction testProb testProb :=
   DistributionalReduction.refl testProb
 
+/-! ### EMLS Phase 2B (§6) -/
+
+example : conjunctToFormula ([] : Conjunct) = none := by
+  simp [conjunctToFormula_none_iff]
+
+example : conjunctToFormula [.mem 0 1] = some (literalToFormula (.mem 0 1)) :=
+  conjunctToFormula_singleton _
+
+example :
+    conjunctToFormula [.mem 0 1, .eqEmpty 0] =
+      some (Formula.and (literalToFormula (.mem 0 1)) (literalToFormula (.eqEmpty 0))) := by
+  simp [conjunctToFormula, conjunctToFormula_singleton]
+
+example :
+    relationToLiteral? (Relation.eq (Term.var 0) (Term.union (Term.var 1) (Term.var 2))) =
+      some (Literal.eqOp 0 1 2 BinOp.union) := rfl
+
+example : decideEMLSSat [.neq 0 0] = false := rfl
+
 #eval decideMLSSat (Formula.rel (Relation.eq Term.empty Term.empty))
 #eval decideConjunct [.mem 0 1]
 #eval decideConjunct [.mem 0 0]

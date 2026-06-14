@@ -25,17 +25,9 @@ open EMLS
 
 /-! ### Formula → EMLS conjunct (partial normalization) -/
 
-def relationToLiteral? : Relation → Option Literal
-  | Relation.mem (Term.var x) (Term.var y)     => some (.mem x y)
-  | Relation.not_mem (Term.var x) (Term.var y) => some (.notMem x y)
-  | Relation.eq (Term.var x) Term.empty      => some (.eqEmpty x)
-  | Relation.eq (Term.var _) (Term.var _)    => none -- not an elementary literal
-  | Relation.neq (Term.var x) (Term.var y)   => some (.neq x y)
-  | _ => none
-
 def formulaToConjunct? : Formula → Option Conjunct
   | Formula.rel r =>
-      relationToLiteral? r |>.map List.singleton
+      EMLS.relationToLiteral? r |>.map List.singleton
   | Formula.and f1 f2 => do
       let c1 ← formulaToConjunct? f1
       let c2 ← formulaToConjunct? f2
@@ -92,6 +84,10 @@ def decideConjunct (c : Conjunct) : Bool :=
   else if hasStep4Obstruction c then false
   else true
 
+/-- EMLS conjunct satisfiability (FOS80 Steps 2–4; Phase 2C proofs open). -/
+def decideEMLSSat (c : Conjunct) : Bool :=
+  decideConjunct c
+
 /-! ### Top-level MLS satisfiability checker -/
 
 def decideMLSSat (f : Formula) : Bool :=
@@ -102,6 +98,10 @@ def decideMLSSat (f : Formula) : Bool :=
       | Formula.rel (Relation.eq Term.empty Term.empty) => true
       | Formula.rel (Relation.neq Term.empty Term.empty) => false
       | _ => false
+
+/-- If `c` translates to a formula, `decideEMLSSat?` runs `decideMLSSat` on it. -/
+def decideEMLSSat? (c : Conjunct) : Option Bool :=
+  conjunctToFormula c |>.map decideMLSSat
 
 /-- Legacy name kept for tests and arxiv listings. -/
 abbrev decideMLS := decideMLSSat

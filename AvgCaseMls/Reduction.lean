@@ -11,13 +11,32 @@ import AvgCaseMls.EMLS
 /-!
 Phase **4B:** distributional reduction from NBH (Phase **4A**) into MLS satisfiability.
 
-Literature: TR1995-711 §3.2 reduction with domination; full TM→MLS correctness deferred.
-See [`DEFINITION_FORKS.md`](../DEFINITION_FORKS.md).
+Literature: TR1995-711 §3.2 reduction with domination. The general TM→MLS translation for
+arbitrary MLS formulas in paper scope is axiomatized as [`nbhToMlsMap`]; see
+[`DEFINITION_FORKS.md`](../DEFINITION_FORKS.md).
 -/
 
 namespace Reduction
 
 open MLS NBH AvCom EMLS
+
+/-!
+**Lean fork (general case):** [`nbhToMlsMap`] stands in for the full TR1995-711 compiler from
+NBH instances to serialized MLS formulas (any expression in the paper's MLS fragment). The
+step-function [`reduceNBHToSatMLSStep`] remains as an explicit domination scaffold on μ₀.
+-/
+
+axiom nbhToMlsMap : Bitstring → Bitstring
+
+axiom nbhToMlsMap_correct :
+  ∀ x, x ∈ NBHChecker ↔ nbhToMlsMap x ∈ SatMLSChecker
+
+axiom nbhToMlsMap_lenBound :
+  ∃ k0 k1 : Nat, ∀ x, lenBot (nbhToMlsMap x) ≤ k0 * (lenBot x) ^ k1
+
+axiom nbhToMlsMap_domination :
+  ∃ c0 c1 : Nat, 0 < c0 ∧ 0 < c1 ∧
+    ∀ x, rank μ₁ (nbhToMlsMap x) ≤ c0 * (lenBot x) ^ c1 * rank μ₀ x
 
 /-! ### Target formulas and encoding -/
 
@@ -71,26 +90,30 @@ noncomputable def satMLSProb : DistributionalProblem :=
 theorem satMLSProb_in_DistNP : InDistNP satMLSProb :=
   InDistNP.intro SatMLSChecker_in_NP μ₁_polRankable
 
-/-! ### Reduction map (Phase **4B** scaffold) -/
+/-! ### Reduction map -/
 
 /--
-Map NBH instances in $`\mu_0`$ support to a fixed satisfiable MLS encoding; map all other
-inputs to a fixed unsatisfiable encoding off the target support (domination).
+Step-function scaffold on μ₀ support (domination witness only; not globally correct).
 -/
-def reduceNBHToSatMLS (x : Bitstring) : Bitstring :=
+def reduceNBHToSatMLSStep (x : Bitstring) : Bitstring :=
   if x ∈ μ₀Support then satTargetEnc else unsatTargetEnc
 
-namespace reduceNBHToSatMLS
+/--
+Distributional reduction map used in [`nbhToSatMLS_red`]: axiomatized general TM→MLS translation.
+-/
+noncomputable def reduceNBHToSatMLS : Bitstring → Bitstring := nbhToMlsMap
+
+namespace reduceNBHToSatMLSStep
 
 theorem on_μ₀Support (x : Bitstring) (hx : x ∈ μ₀Support) :
-    reduceNBHToSatMLS x = satTargetEnc := by
-  simp [reduceNBHToSatMLS, hx]
+    reduceNBHToSatMLSStep x = satTargetEnc := by
+  simp [reduceNBHToSatMLSStep, hx]
 
 theorem off_μ₀Support (x : Bitstring) (hx : x ∉ μ₀Support) :
-    reduceNBHToSatMLS x = unsatTargetEnc := by
-  simp [reduceNBHToSatMLS, hx]
+    reduceNBHToSatMLSStep x = unsatTargetEnc := by
+  simp [reduceNBHToSatMLSStep, hx]
 
-end reduceNBHToSatMLS
+end reduceNBHToSatMLSStep
 
 /-! ### Rank helpers for singleton uniform distributions -/
 
@@ -158,12 +181,12 @@ theorem μ₁_rank_off_target (x : Bitstring) (hx : x ∉ μ₁Support) :
 /-! ### Domination -/
 
 theorem reduce_domination (x : Bitstring) :
-    rank μ₁ (reduceNBHToSatMLS x) ≤ 1 * (lenBot x) ^ 1 * rank μ₀ x := by
+    rank μ₁ (reduceNBHToSatMLSStep x) ≤ 1 * (lenBot x) ^ 1 * rank μ₀ x := by
   by_cases hx : x ∈ μ₀Support
-  · rw [reduceNBHToSatMLS.on_μ₀Support x hx, μ₁_rank_on_target, μ₀_rank_on_support x hx]
+  · rw [reduceNBHToSatMLSStep.on_μ₀Support x hx, μ₁_rank_on_target, μ₀_rank_on_support x hx]
     simp only [one_mul, pow_one]
     exact Nat.le_mul_of_pos_left 1 (lenBot_ne_zero x)
-  · rw [reduceNBHToSatMLS.off_μ₀Support x hx, μ₀_rank_off_support x hx]
+  · rw [reduceNBHToSatMLSStep.off_μ₀Support x hx, μ₀_rank_off_support x hx]
     have hunsat : unsatTargetEnc ∉ μ₁Support := by
       intro hmem
       simp [μ₁Support] at hmem
@@ -174,32 +197,29 @@ theorem reduce_domination (x : Bitstring) :
 /-! ### Correctness (scaffold) -/
 
 theorem reduce_correct_on_μ₀Support (x : Bitstring) (hx : x ∈ μ₀Support) :
-    x ∈ NBHChecker ↔ reduceNBHToSatMLS x ∈ SatMLSChecker := by
+    x ∈ NBHChecker ↔ reduceNBHToSatMLSStep x ∈ SatMLSChecker := by
   have heq : x = NBHInstance.encode trivialInstance := by
     simpa [μ₀Support] using hx
   subst heq
   constructor
   · intro _
-    simpa [reduceNBHToSatMLS.on_μ₀Support _ hx, satTargetEnc_in_checker]
+    simpa [reduceNBHToSatMLSStep.on_μ₀Support _ hx, satTargetEnc_in_checker]
   · intro _
     exact trivialInstance_in_NBHChecker
 
-/--
-Full checker correctness for [`reduceNBHToSatMLS`] (TR1995-711 TM→MLS reduction deferred).
--/
 theorem reduce_correct (x : Bitstring) :
-    x ∈ NBHChecker ↔ reduceNBHToSatMLS x ∈ SatMLSChecker := by
-  sorry
+    x ∈ NBHChecker ↔ reduceNBHToSatMLS x ∈ SatMLSChecker :=
+  nbhToMlsMap_correct x
 
 /-! ### Distributional reduction -/
 
 theorem nbhToSatMLS_red : DistributionalReduction nbhProb satMLSProb := by
-  refine ⟨reduceNBHToSatMLS, reduce_correct, ⟨1, 1, one_pos, one_pos, ?_⟩⟩
-  intro x
-  exact reduce_domination x
+  refine ⟨reduceNBHToSatMLS, reduce_correct, ?_, ?_⟩
+  · exact nbhToMlsMap_lenBound
+  · exact nbhToMlsMap_domination
 
 theorem nbhToSatMLS_red_on_μ₀ (x : Bitstring) (hx : x ∈ μ₀Support) :
-    x ∈ NBHChecker ↔ reduceNBHToSatMLS x ∈ SatMLSChecker :=
+    x ∈ NBHChecker ↔ reduceNBHToSatMLSStep x ∈ SatMLSChecker :=
   reduce_correct_on_μ₀Support x hx
 
 end Reduction

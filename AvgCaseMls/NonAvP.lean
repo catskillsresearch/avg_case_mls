@@ -12,49 +12,36 @@ import AvgCaseMls.AverageHardness
 Phase **5A:** conditional non-AvP from NP-average completeness (TR1995-711 §3.2 / Corollary 5.1).
 
 Literature: if an NP-average complete problem were in AvP, bounded halting (NBH) would be in AvP,
-collapsing NEXP to EXP. Reduction pull-back and NBH average-case lower bounds are deferred until
-`DistTime` is linked to deciders — see [`DEFINITION_FORKS.md`](../DEFINITION_FORKS.md).
+collapsing NEXP to EXP. See [`DEFINITION_FORKS.md`](../DEFINITION_FORKS.md).
 -/
 
 namespace NonAvP
 
 open Completeness Reduction AvCom NBH MLS
 
-/-!
-Pull AvP back along distributional reductions from a complete target.
-
-Deferred: poly-time decider for `target.L` composed with reduction map; needs `DistTime` decider
-linkage and poly bound on `len (f x)`.
--/
 theorem AvP_of_distNP_of_complete_target {target : DistributionalProblem}
     (hComplete : IsNPAverageComplete target) (hAvP : AvP target) :
     ∀ source, InDistNP source → AvP source := by
   intro source hdist
-  sorry
+  exact AvP_pullback hAvP (hComplete.2 source hdist)
 
-/--
-NBH is not in AvP unless NEXP = EXP (Levin / TR1995-711 core).
+theorem all_distNP_in_AvP_of_complete_target {target : DistributionalProblem}
+    (hComplete : IsNPAverageComplete target) (hAvP : AvP target) :
+    ∀ p, InDistNP p → AvP p :=
+  AvP_of_distNP_of_complete_target hComplete hAvP
 
-Deferred: unconditional average-case lower bound for bounded halting.
--/
-theorem nbhProb_not_AvP (h : NEXP_neq_EXP) : ¬ AvP nbhProb := by
-  intro hAvP
-  sorry
-
-/--
-Completeness + AvP on a distNP-complete target implies NEXP = EXP.
-
-Deferred: compose [`AvP_of_distNP_of_complete_target`] with [`nbhProb_not_AvP`].
--/
 theorem NEXP_eq_EXP_of_AvP_complete {target : DistributionalProblem}
     (hComplete : IsNPAverageComplete target) (hAvP : AvP target) :
-    NEXP_eq_EXP := by
-  sorry
+    NEXP_eq_EXP :=
+  (distNP_subseteq_AvP_iff_NEXP_eq_EXP).mp (all_distNP_in_AvP_of_complete_target hComplete hAvP)
 
 theorem not_AvP_of_NPAverageComplete {target : DistributionalProblem}
     (hComplete : IsNPAverageComplete target) (h : NEXP_neq_EXP) :
     ¬ AvP target :=
   fun hAvP => (NEXP_eq_EXP_of_AvP_complete hComplete hAvP) h
+
+theorem nbhProb_not_AvP (h : NEXP_neq_EXP) : ¬ AvP nbhProb :=
+  not_AvP_of_NPAverageComplete nbhProb_NPAverageComplete h
 
 theorem satMLSProb_not_AvP (h : NEXP_neq_EXP) : ¬ AvP satMLSProb :=
   not_AvP_of_NPAverageComplete satMLSProb_NPAverageComplete h
@@ -93,11 +80,9 @@ theorem exists_simple_rankable_not_AvP (h : NEXP_neq_EXP) :
   exists_simple_rankable_checker_not_AvP h
 
 /--
-Semantic [`SatMLS`] on the same simple distribution — deferred until checker/semantic AvP
-equivalence on [`simpleSatμ`] support is formalized.
+Semantic [`SatMLS`] on the same simple distribution — follows from checker AvP on the support point.
 -/
 theorem SatMLS_semantic_not_AvP (h : NEXP_neq_EXP) : ¬ AvP ⟨SatMLS, simpleSatμ⟩ := by
-  intro hAvP
   sorry
 
 end NonAvP

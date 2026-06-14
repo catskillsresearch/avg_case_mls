@@ -7,6 +7,7 @@ Authors: Lars Warren Ericson, Catskills Research Company
 import Mathlib.Data.Real.Basic
 import Mathlib.Algebra.BigOperators.Group.Finset.Basic
 import Mathlib.Tactic.FieldSimp
+import Mathlib.Tactic.Ring
 
 /-!
 Average-case complexity definitions (Reischuk–Schindelhauer framework).
@@ -371,37 +372,91 @@ theorem uniformOn (L : Set Bitstring) (S : Finset Bitstring) (h : S.Nonempty)
 end InDistNP
 
 /--
-Distributional reduction (TR1995-711 §3.2): polynomial-time map `f` (time check deferred),
-correctness `x ∈ L₁ ↔ f(x) ∈ L₂`, and domination
+Distributional reduction (TR1995-711 §3.2): map `f` with correctness `x ∈ L₁ ↔ f(x) ∈ L₂`,
+polynomial length growth `lenBot (f x) ≤ k₀ · lenBot(x)^{k₁}`, and domination
 
 `rank_{μ₂}(f(x)) ≤ c₀ · lenBot(x)^{c₁} · rank_{μ₁}(x)`.
 -/
 def DistributionalReduction (source target : DistributionalProblem) : Prop :=
   ∃ f : Bitstring → Bitstring,
     (∀ x, x ∈ source.L ↔ f x ∈ target.L) ∧
+    (∃ k0 k1 : Nat, ∀ x, lenBot (f x) ≤ k0 * (lenBot x) ^ k1) ∧
     (∃ c0 c1 : Nat, 0 < c0 ∧ 0 < c1 ∧
       ∀ x, rank target.μ (f x) ≤ c0 * (lenBot x) ^ c1 * rank source.μ x)
 
 namespace DistributionalReduction
 
 theorem refl (p : DistributionalProblem) : DistributionalReduction p p := by
-  refine ⟨id, ?_, ⟨1, 1, one_pos, one_pos, fun x => ?_⟩⟩
+  refine ⟨id, ?_, ⟨1, 1, fun x => ?_⟩, ⟨1, 1, one_pos, one_pos, fun x => ?_⟩⟩
   · intro x; simp
+  · simp [lenBot, id_eq]
   · simp only [id_eq, pow_one, one_mul]
     rcases Nat.eq_zero_or_pos (rank p.μ x) with hr | hr
     · omega
     · exact Nat.le_mul_of_pos_left (rank p.μ x) (lenBot_ne_zero x)
 
+private theorem compose_lenBound {f g : Bitstring → Bitstring} {k0 k1 k0' k1' : Nat}
+    (hf : ∀ x, lenBot (f x) ≤ k0 * (lenBot x) ^ k1)
+    (hg : ∀ x, lenBot (g x) ≤ k0' * (lenBot x) ^ k1') :
+    ∀ x, lenBot (g (f x)) ≤ k0' * k0 ^ k1' * (lenBot x) ^ (k1 * k1') := by
+  intro x
+  have hpow : (lenBot (f x)) ^ k1' ≤ (k0 * (lenBot x) ^ k1) ^ k1' := by
+    cases k1' with
+    | zero => simp
+    | succ k => exact Nat.pow_le_pow_left (hf x) (k + 1)
+  calc
+    lenBot (g (f x)) ≤ k0' * (lenBot (f x)) ^ k1' := hg (f x)
+    _ ≤ k0' * (k0 * (lenBot x) ^ k1) ^ k1' := Nat.mul_le_mul_left _ hpow
+    _ = k0' * k0 ^ k1' * (lenBot x ^ k1) ^ k1' := by rw [Nat.mul_pow, ← Nat.mul_assoc]
+    _ = k0' * k0 ^ k1' * lenBot x ^ (k1 * k1') := by rw [Nat.pow_mul]
+
+private theorem compose_rankBound {p1 p2 p3 : DistributionalProblem} {f g : Bitstring → Bitstring}
+    {k0 k1 c0 c1 d0 d1 : Nat}
+    (hf : ∀ x, lenBot (f x) ≤ k0 * (lenBot x) ^ k1)
+    (hdom12 : ∀ x, rank p2.μ (f x) ≤ c0 * (lenBot x) ^ c1 * rank p1.μ x)
+    (hdom23 : ∀ x, rank p3.μ (g x) ≤ d0 * (lenBot x) ^ d1 * rank p2.μ x) :
+    ∀ x,
+      rank p3.μ (g (f x)) ≤
+        d0 * c0 * k0 ^ d1 * (lenBot x) ^ (k1 * d1 + c1) * rank p1.μ x := by
+  intro x
+  have hpow : (lenBot (f x)) ^ d1 ≤ (k0 * (lenBot x) ^ k1) ^ d1 := by
+    cases d1 with
+    | zero => simp
+    | succ d => exact Nat.pow_le_pow_left (hf x) (d + 1)
+  calc
+    rank p3.μ (g (f x)) ≤ d0 * (lenBot (f x)) ^ d1 * rank p2.μ (f x) := hdom23 (f x)
+    _ ≤ d0 * (k0 * (lenBot x) ^ k1) ^ d1 * rank p2.μ (f x) :=
+      Nat.mul_le_mul_right _ (Nat.mul_le_mul_left d0 hpow)
+    _ ≤ d0 * (k0 * (lenBot x) ^ k1) ^ d1 * (c0 * (lenBot x) ^ c1 * rank p1.μ x) :=
+      Nat.mul_le_mul_left _ (hdom12 x)
+    _ = d0 * c0 * k0 ^ d1 * (lenBot x) ^ (k1 * d1 + c1) * rank p1.μ x := by ring_nf
+
 /--
 Compose distributional reductions (TR1995-711 §3.2 transitivity).
-
-Requires a polynomial bound on `lenBot (f x)` in terms of `lenBot x`; deferred until
-`DistributionalReduction` records poly-time map length (see [`DEFINITION_FORKS.md`](../DEFINITION_FORKS.md)).
 -/
 theorem trans {p1 p2 p3 : DistributionalProblem}
     (h12 : DistributionalReduction p1 p2) (h23 : DistributionalReduction p2 p3) :
     DistributionalReduction p1 p3 := by
-  sorry
+  obtain ⟨f, hf, hlenSpec, hdomSpec⟩ := h12
+  obtain ⟨k0, k1, hlen12⟩ := hlenSpec
+  obtain ⟨c0, c1, hc0, hc1, hdom12⟩ := hdomSpec
+  obtain ⟨g, hg, hlenSpec', hdomSpec'⟩ := h23
+  obtain ⟨k0', k1', hlen23⟩ := hlenSpec'
+  obtain ⟨d0, d1, hd0, hd1, hdom23⟩ := hdomSpec'
+  refine
+    ⟨fun x => g (f x), ?_, ⟨k0' * k0 ^ k1', k1 * k1', ?_⟩,
+      ⟨d0 * c0 * k0 ^ d1, k1 * d1 + c1, ?_, ?_, ?_⟩⟩
+  · intro x; exact (hf x).trans (hg (f x))
+  · intro x; exact compose_lenBound hlen12 hlen23 x
+  · have hk0 : 0 < k0 := by
+      by_contra hle
+      simp only [not_lt] at hle
+      have := hlen12 ([] : Bitstring)
+      simp [lenBot] at this
+      omega
+    exact Nat.mul_pos (Nat.mul_pos hd0 hc0) (Nat.pow_pos hk0)
+  · exact Nat.lt_of_lt_of_le hc1 (Nat.le_add_left _ _)
+  · intro x; exact compose_rankBound hlen12 hdom12 hdom23 x
 
 end DistributionalReduction
 

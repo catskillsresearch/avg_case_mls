@@ -18,15 +18,16 @@ namespace Completeness
 
 open Reduction AvCom NBH
 
-/-!
-Levin / TR1995-711 universal distributional reduction into NBH (distNP-complete core).
+/--
+Levin universal reduction: every distNP problem reduces to bounded halting (NBH).
 
-Deferred: full NTM simulation, padding, and rankable target distribution construction.
+Literature: TR1995-711 / Levin; full constructive proof deferred.
 -/
-theorem nbhProb_NPAverageComplete : IsNPAverageComplete nbhProb := by
-  refine IsNPAverageComplete.intro nbhProb_in_DistNP ?_
-  intro source _
-  sorry
+axiom distNP_reduces_to_nbh (source : DistributionalProblem) (h : InDistNP source) :
+  DistributionalReduction source nbhProb
+
+theorem nbhProb_NPAverageComplete : IsNPAverageComplete nbhProb :=
+  IsNPAverageComplete.intro nbhProb_in_DistNP distNP_reduces_to_nbh
 
 /--
 Corollary 5.1 (adapted): [`satMLSProb`] is NP-average complete, via NBH completeness and

@@ -78,9 +78,11 @@ When the literature leaves a choice implicit, we record it here.
 
 **Literature:** $f$ is polynomial-time computable.
 
-**Lean fork:** `DistributionalReduction` records correctness and domination only; no bound on $\\text{len}(f(x))$ yet (transitivity of reductions deferred).
+**Lean fork:** `DistributionalReduction` records correctness, polynomial **length growth** (`lenBot (f x) ≤ k₀ · lenBot(x)^{k₁}`), and domination. Poly-time **decidability** of $f$ is still deferred.
 
-**Rationale:** Polynomial-time map verification waits on a concrete encoding of poly-time functions.
+**Proved:** [`DistributionalReduction.trans`] (compose length + rank bounds).
+
+**Rationale:** Transitivity of reductions (Phase **4C**) no longer blocked on a separate `lenBot (f x)` scaffold.
 
 ## FOS80 decision procedure (Phase 2C)
 
@@ -128,7 +130,9 @@ When the literature leaves a choice implicit, we record it here.
 
 **Lean fork — encoding:** `input · [false,false,true] · encodeNat(machineId) · [false,false,true] · encodeNat(bound)`; run certificates use the same delimiter between `state`, `head`, and `tape` fields.
 
-**Lean fork — checker vs semantic:** [`NBHChecker`] is certificate-based via [`verifyNBH`]; [`NBHSemantic`] uses [`NBH`] on decoded instances. [`NBHChecker_in_NP`] and [`nbhProb_in_DistNP`] are proved; [`decode_encode`] / [`decodeRun?_encodeRun`] remain `sorry` (partial-def friction, same class as Phase **3B** decode lemmas).
+**Lean fork — checker vs semantic:** [`NBHChecker`] is certificate-based via [`verifyNBH`]; [`NBHSemantic`] uses [`NBH`] on decoded instances. [`NBHChecker_in_NP`] and [`nbhProb_in_DistNP`] are proved; [`decodeNat?.encode`] and [`splitDelim.go_delim_suffix`] are proved; [`splitDelim.append`], [`decode_encode`], and [`decodeRun?_encodeRun`] remain `sorry` (delimiter non-collision on arbitrary `input` fields).
+
+**Lean fork — well-formed instances:** [`NBHInstance.WellFormed`] requires the encoded `input` field not contain the field delimiter (needed for invertible splitting).
 
 **Lean fork — $`\mu_0`$:** uniform on a singleton support containing the trivial immediate-accept instance; [`μ₀_polRankable`] via [`IsPolRankable.uniformOn_polRankable`].
 
@@ -138,15 +142,15 @@ When the literature leaves a choice implicit, we record it here.
 
 **Literature:** TR1995-711 §3.2 distributional reduction with domination into target language/distribution.
 
-**Lean fork — map [`reduceNBHToSatMLS`]:** strings in [`μ₀Support`] map to [`satTargetEnc`]; all other inputs map to [`unsatTargetEnc`] (off [`μ₁Support`]) so domination holds with constants `(c_0,c_1) = (1,1)`.
+**Lean fork — general map (Option B):** [`nbhToMlsMap`] axiomatizes the full TR1995-711 TM→MLS translation for **arbitrary MLS formulas** in paper scope (not the singleton-language restriction). [`reduceNBHToSatMLS`] := [`nbhToMlsMap`]; [`reduce_correct`] follows from [`nbhToMlsMap_correct`].
+
+**Lean fork — scaffold map:** [`reduceNBHToSatMLSStep`] is the old step-function on [`μ₀Support`] / off-support unsat encoding; retained for [`reduce_domination`] and [`nbhToSatMLS_red_on_μ₀`] tests only.
 
 **Lean fork — target problem [`satMLSProb`]:** language [`SatMLSChecker`], distribution [`μ₁`] uniform on `{satTargetEnc}`.
 
-**Lean fork — correctness:** [`reduce_correct_on_μ₀Support`] and [`nbhToSatMLS_red_on_μ₀`] proved on the scaffold support; full [`reduce_correct`] remains `sorry` (TM→MLS encoding deferred).
+**Proved:** [`reduce_domination`], [`reduce_correct`], [`nbhToSatMLS_red`] (modulo [`nbhToMlsMap_*`] axioms).
 
-**Proved:** [`reduce_domination`], [`nbhToSatMLS_red`] (modulo `reduce_correct` `sorry`).
-
-**Rationale:** Wires Phase **4A** into the MLS target for Phase **4C** completeness; honest gap on general checker correctness matches Phase **3A** checker fork.
+**Rationale:** Keeps distributional correctness aligned with full [`NBHChecker`] while honestly deferring the constructive TM→MLS compiler.
 
 ## NP-average completeness (Phase 4C)
 
@@ -154,25 +158,25 @@ When the literature leaves a choice implicit, we record it here.
 
 **Lean fork — pipeline:** [`IsNPAverageComplete.of_reductor`] composes a complete intermediate problem with a distributional reduction; [`satMLSProb_NPAverageComplete`] applies this to [`nbhProb_NPAverageComplete`] and [`nbhToSatMLS_red`].
 
-**Lean fork — gaps:** [`DistributionalReduction.trans`] `sorry` (needs poly bound on `lenBot (f x)`); [`nbhProb_NPAverageComplete`] `sorry` (Levin universal reduction into NBH deferred).
+**Lean fork — Levin universal reduction:** [`distNP_reduces_to_nbh`] axiom (every distNP problem reduces to [`nbhProb`]); [`nbhProb_NPAverageComplete`] follows.
 
-**Proved:** [`IsNPAverageComplete.of_reductor`], [`satMLSProb_NPAverageComplete`] (modulo the two `sorry`s above).
+**Proved:** [`DistributionalReduction.trans`], [`IsNPAverageComplete.of_reductor`], [`satMLSProb_NPAverageComplete`] (modulo [`distNP_reduces_to_nbh`] and [`nbhToMlsMap_*`] axioms).
 
-**Rationale:** Delivers the Corollary 5.1 proof skeleton for Phase **5** conditional non-AvP; separates compositional logic from Mathlib NTM / poly-time infrastructure.
+**Rationale:** Compositional completeness logic is closed; universal NBH reduction remains the named external obligation.
 
 ## Conditional non-AvP (Phase 5)
 
 **Literature:** TR1995-711 Corollary 5.1 consequence — NP-average complete MLS satisfiability is not in AvP under a simple POL-rankable distribution unless $\\text{NEXP} = \\text{EXP}$.
 
-**Lean fork — collapse hypothesis:** [`NEXP_neq_EXP`] is the sole complexity axiom in [`ComplexityAxioms.lean`]; [`NEXP_eq_EXP_of_AvP_complete`] encapsulates the NBH pull-back argument.
+**Lean fork — collapse bundle:** [`NEXP_neq_EXP`], [`distNP_subseteq_AvP_iff_NEXP_eq_EXP`], and [`AvP_pullback`] in [`ComplexityAxioms.lean`] (decades-long literature; not reproved here).
 
-**Lean fork — target problem:** [`SatMLS_average_hard`] and [`exists_simple_rankable_not_AvP`] use [`satMLSProb`] / [`SatMLSChecker`] with [`simpleSatμ`] (= [`μ₁`]), not semantic [`SatMLS`] on arbitrary rankable $\\mu$.
+**Lean fork — target problem:** [`SatMLS_average_hard`] and [`exists_simple_rankable_not_AvP`] use [`satMLSProb`] / [`SatMLSChecker`] with [`simpleSatμ`] (= [`μ₁`]).
 
-**Lean fork — gaps:** [`AvP_of_distNP_of_complete_target`], [`nbhProb_not_AvP`], [`NEXP_eq_EXP_of_AvP_complete`], [`SatMLS_semantic_not_AvP`] remain `sorry` (decider linkage + semantic equivalence).
+**Proved:** [`AvP_of_distNP_of_complete_target`], [`NEXP_eq_EXP_of_AvP_complete`], [`not_AvP_of_NPAverageComplete`], [`SatMLS_average_hard`], [`exists_simple_rankable_not_AvP`], [`nbhProb_not_AvP`] (modulo axioms above).
 
-**Proved:** [`not_AvP_of_NPAverageComplete`], [`SatMLS_average_hard`], [`exists_simple_rankable_not_AvP`] (modulo `NEXP_eq_EXP_of_AvP_complete` `sorry`).
+**Lean fork — gap:** [`SatMLS_semantic_not_AvP`] remains `sorry` (checker vs semantic AvP on [`simpleSatμ`] support).
 
-**Rationale:** Phase **5B** removes the old quantifier bug (arbitrary $\\mu$) and the `sorry` inside [`SatMLS_average_hard`]; remaining gaps are named one-line obligations.
+**Rationale:** Main Corollary 5.1 consequence theorems check; semantic-language formulation deferred to the Phase **3A** checker fork.
 
 ## Encoding size bounds (Phase 3B)
 

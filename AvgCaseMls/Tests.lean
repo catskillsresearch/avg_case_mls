@@ -210,11 +210,11 @@ example : DistributionalReduction nbhProb satMLSProb := nbhToSatMLS_red
 
 example :
     NBHInstance.encode trivialInstance ∈ NBHChecker ↔
-      reduceNBHToSatMLS (NBHInstance.encode trivialInstance) ∈ SatMLSChecker :=
+      reduceNBHToSatMLSStep (NBHInstance.encode trivialInstance) ∈ SatMLSChecker :=
   nbhToSatMLS_red_on_μ₀ _ (by simp [μ₀Support])
 
-example : reduceNBHToSatMLS (NBHInstance.encode trivialInstance) = satTargetEnc := by
-  simp [reduceNBHToSatMLS, μ₀Support]
+example : reduceNBHToSatMLSStep (NBHInstance.encode trivialInstance) = satTargetEnc := by
+  simp [reduceNBHToSatMLSStep, μ₀Support]
 
 /-! ### Phase 4C — NP-average completeness (Corollary 5.1) -/
 

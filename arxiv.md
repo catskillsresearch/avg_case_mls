@@ -95,6 +95,7 @@ Context and Lean infrastructure appear in **§§2–4**; Phase 1 (AvCom) is **§
 3. **Literature pointer** — every definition cites TR1995-711 section or [RS93], [Lev86], etc.
 4. **Fork log** — if we must choose (finite support, encoding, POL-rankable vs P-computable), record in `DEFINITION_FORKS.md`.
 5. **CI** — `./run_lean_check.sh` must pass; new sorries require a comment `-- Phase Nx, issue #…`.
+6. **AI-assisted development** — large language models were used as coding assistants (not co-authors); see **Acknowledgements** for scope, tools, and human verification responsibilities.
 
 We grind on Phases 1→5 in dependency order (subphases may be implemented out of order when independent). §§5–6 pair mathematics with Lean encodings; §4 covers Lean strategy; §§7–8 cover decision procedures and hardness theorems; §9 grades each subphase; §10 lists further directions.
 
@@ -476,11 +477,11 @@ We represent this structurally in Lean 4:
 | **2D** | `serializeFormula`, `SatMLS`, `stepsMLS` (§8) | Proofs check |
 | **3A** | `SatMLSChecker_in_NP`, `decodeFormula?_serializeFormula`; checker vs semantic `SatMLS` fork (§8) | Proofs check |
 | **3B** | `encodingBound`, `formulaSize_le_encodingBound`, `encodingBound_poly` (§8) | Proofs check |
-| **4A** | `NBHChecker_in_NP`, `μ₀_polRankable`, `nbhProb_in_DistNP` (§8) | Proofs check (`decode_encode` `sorry`) |
-| **4B** | `nbhToSatMLS_red`, `reduce_domination` (§8) | Proofs check (`reduce_correct` `sorry`) |
-| **4C** | `satMLSProb_NPAverageComplete`, `IsNPAverageComplete.of_reductor` (§8) | Proofs check (`nbhProb_NPAverageComplete`, `DistributionalReduction.trans` `sorry`) |
-| **5A** | `not_AvP_of_NPAverageComplete`, `NEXP_eq_EXP_of_AvP_complete` (§8) | Proofs check (`NEXP_eq_EXP_of_AvP_complete` `sorry`) |
-| **5B** | `SatMLS_average_hard`, `exists_simple_rankable_not_AvP` (§8) | Proofs check (no `sorry` in main theorems; `SatMLS_semantic_not_AvP` `sorry`) |
+| **4A** | `NBHChecker_in_NP`, `μ₀_polRankable`, `nbhProb_in_DistNP` (§8) | Proofs check (`splitDelim.append`, `decode_encode` `sorry`) |
+| **4B** | `nbhToSatMLS_red`, `reduce_domination`, `reduce_correct` (§8) | Proofs check (modulo `nbhToMlsMap_*` axioms) |
+| **4C** | `satMLSProb_NPAverageComplete`, `IsNPAverageComplete.of_reductor`, `DistributionalReduction.trans` (§8) | Proofs check (modulo `distNP_reduces_to_nbh` axiom) |
+| **5A** | `not_AvP_of_NPAverageComplete`, `NEXP_eq_EXP_of_AvP_complete`, `nbhProb_not_AvP` (§8) | Proofs check (modulo collapse axioms) |
+| **5B** | `SatMLS_average_hard`, `exists_simple_rankable_not_AvP` (§8) | Proofs check (`SatMLS_semantic_not_AvP` `sorry`) |
 
 *Last updated: Phases **1A–1D**, **2A–2D**, **3A**, **3B**, **4A–4C (partial)**, **5A–5B (partial)** graded **Proofs check** where noted.*
 
@@ -500,15 +501,32 @@ Building on this integration of automated theorem proving and structural complex
 
 ---
 
+## Acknowledgements
+
+The human authors retain sole responsibility for the mathematical content, definition forks, axioms, and every statement graded in §9. Following standard publisher practice (e.g., COPE guidance on authorship and AI tools [COPE24]), **no large language model is listed as a co-author**—authorship implies accountability that automated systems cannot bear.
+
+We gratefully acknowledge assistance from the following tools:
+
+**Cursor** ([Cur25]): agent-assisted editing in the Cursor IDE, including models routed through Cursor’s **Auto** agent mode (which may invoke Composer-family and other backend models depending on task). These agents helped draft and refactor Lean 4 modules, suggest proof and refactoring strategies, debug `lake` / type-class errors, maintain `./run_lean_check.sh` and smoke tests, and build the portable `arxiv_with_includes.md` pipeline. Generated Lean was treated as provisional until it compiled under CI and matched our forks in `DEFINITION_FORKS.md`.
+
+**Google Gemini 3.5 Flash** ([Gem25]): independent technical briefs on Phases **4** and **5** (NBH codec invertibility, distributional-reduction transitivity, reduction correctness, and complexity-collapse axiomatization). Those briefs informed subsequent human-directed revisions; we did not adopt every recommendation verbatim (for example, we kept full `NBHChecker` scope via an axiomatized general TM→MLS map rather than restricting to a singleton language).
+
+All definitions, axiom choices, remaining `sorry` obligations, and final prose were reviewed and owned by the human authors. Intellectual property in the Lean codebase and this note rests with the authors under the project’s stated license.
+
+---
+
 ## References
 
 *   **[Ajt96]** Ajtai, M. (1996). Generating hard instances of lattice problems. *STOC*.
 *   **[BDCGL89]** Ben-David, S., Chor, B., Goldreich, O., & Luby, M. (1989). On the theory of average case complexity. *STOC*.
+*   **[COPE24]** Committee on Publication Ethics (COPE). (2024). Authorship and AI tools: COPE position statement. https://publicationethics.org/guidance/cope-position/authorship-and-ai-tools
+*   **[Cur25]** Anysphere, Inc. Cursor: AI-native code editor and agent environment. https://cursor.com (accessed 2025).
 *   **[deM08]** de Moura, L., & Bjørner, N. (2008). Z3: An efficient SMT solver. *TACAS*.
 *   **[CEM95]** Cox, J., Ericson, L., & Mishra, B. (1995). The average case complexity of multilevel syllogistic. *NYU Courant Institute Technical Report TR1995-711*.
 *   **[DS77]** Davis, M., & Schwartz, J. T. (1977). Metamathematical extensibility for theorem verifiers. *NYU Technical Report*.
 *   **[FOS80]** Ferro, A., Omodeo, E. G., & Schwartz, J. T. (1980). Decision procedures for elementary sublanguages of set theory. *CPAM*.
 *   **[Gol79]** Goldberg, A. T. (1979). On the complexity of the satisfiability problem. *NYU PhD Thesis*.
+*   **[Gem25]** Google DeepMind. (2025). Gemini model family (including Flash). Technical documentation and model cards. https://ai.google.dev/gemini-api/docs/models
 *   **[Gur91]** Gurevich, Y. (1991). Average case completeness. *Journal of Computer and System Sciences*.
 *   **[Lev86]** Levin, L. (1986). Average case complete problems. *SIAM Journal on Computing*.
 *   **[Reg05]** Regev, O. (2005). On lattices, learning with errors, and cryptography. *STOC*.

@@ -122,13 +122,54 @@ namespace NBHInstance
 /-- Field delimiter `[false, false, true]`; never a substring of [`encodeNat`] outputs. -/
 def delim : Bitstring := [false, false, true]
 
+def delimFree (s : Bitstring) : Prop :=
+  ¬ List.Sublist delim s
+
+def WellFormed (inst : NBHInstance) : Prop :=
+  delimFree inst.input
+
+def splitDelim.go (pref rest : Bitstring) : Option (Bitstring × Bitstring) :=
+  match rest with
+  | [] => none
+  | false :: false :: true :: suffix => some (pref, suffix)
+  | b :: suffix => splitDelim.go (pref ++ [b]) suffix
+
 def splitDelim (s : Bitstring) : Option (Bitstring × Bitstring) :=
-  let rec go (pref : Bitstring) (rest : Bitstring) : Option (Bitstring × Bitstring) :=
-    match rest with
-    | [] => none
-    | false :: false :: true :: suffix => some (pref, suffix)
-    | b :: suffix => go (pref ++ [b]) suffix
-  go [] s
+  splitDelim.go [] s
+
+namespace splitDelim
+
+theorem go_delim_suffix (pref suffix : Bitstring) :
+    splitDelim.go pref (delim ++ suffix) = some (pref, suffix) := by
+  induction pref generalizing suffix with
+  | nil => simp [go, delim]
+  | cons b pref' _ => simp [go, delim, List.cons_append, List.nil_append]
+
+/--
+If `pref` does not contain the field delimiter, the first split in `pref ++ delim ++ suffix`
+occurs exactly at the intended boundary.
+-/
+theorem append (pref suffix : Bitstring) (_h : delimFree pref) :
+    splitDelim (pref ++ delim ++ suffix) = some (pref, suffix) := by
+  sorry
+
+end splitDelim
+
+namespace encodeNat
+
+theorem length (n : Nat) : (encodeNat n).length = n + 1 := by
+  induction n with
+  | zero => rfl
+  | succ n ih => simp [encodeNat, ih]
+
+/-- `encodeNat` outputs never contain two consecutive `false` bits (so not the delimiter). -/
+theorem not_sublist_delim (n : Nat) : ¬ List.Sublist delim (encodeNat n) := by
+  sorry
+
+theorem delimFree (n : Nat) : delimFree (encodeNat n) :=
+  not_sublist_delim n
+
+end encodeNat
 
 def encode (inst : NBHInstance) : Bitstring :=
   inst.input ++ delim ++ encodeNat inst.machineId ++ delim ++ encodeNat inst.bound
@@ -150,9 +191,13 @@ def decode? (s : Bitstring) : Option (NBHInstance × Bitstring) :=
 def ntm? (inst : NBHInstance) : Option NTM :=
   lookupMachine? inst.machineId
 
-theorem decode_encode (inst : NBHInstance) :
+theorem decode_encode (inst : NBHInstance) (h : WellFormed inst) :
     decode? (encode inst) = some (inst, []) := by
   sorry
+
+theorem decode_encode_trivial (inst : NBHInstance) (h : inst.input = []) :
+    decode? (encode inst) = some (inst, []) :=
+  decode_encode inst (by simp [WellFormed, delimFree, h, delim])
 
 end NBHInstance
 

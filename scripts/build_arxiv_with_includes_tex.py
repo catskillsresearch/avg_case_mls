@@ -196,6 +196,10 @@ def cleanup_pandoc_latex(latex: str) -> str:
         "build the portable \\texttt{arxiv\\_with\\_includes.md} pipeline",
         "build the \\texttt{arxiv\\_with\\_includes.md} pipeline",
     )
+    latex = latex.replace(
+        "\\includegraphics{figures/nose.png}",
+        "\\includegraphics[width=0.72\\textwidth,keepaspectratio]{figures/nose.png}",
+    )
     latex = re.sub(r"\n{3,}", "\n\n", latex)
     return latex
 

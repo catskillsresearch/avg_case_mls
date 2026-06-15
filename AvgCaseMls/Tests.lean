@@ -135,6 +135,36 @@ example :
 
 example : decideEMLSSat [.neq 0 0] = false := rfl
 
+/-! ### Phase 2C — decision procedure unit tests (§7) -/
+
+/-- Satisfiable flat formula: `x = y ∪ z` (eqOp literal; outside sound fragment). -/
+def formulaSat : Formula :=
+  Formula.rel (Relation.eq (Term.var 1) (Term.union (Term.var 2) (Term.var 3)))
+
+example : decideMLSSat formulaSat = true := rfl
+
+/-- Step 2 contradiction: `x ≠ x`. -/
+def formulaUnsatStep2 : Formula :=
+  Formula.rel (Relation.neq (Term.var 1) (Term.var 1))
+
+example : decideMLSSat formulaUnsatStep2 = false := rfl
+
+/-- Step 3 contradiction: `x ∈ y ∧ x ∉ y`. -/
+def formulaUnsatStep3 : Formula :=
+  Formula.and
+    (Formula.rel (Relation.mem (Term.var 1) (Term.var 2)))
+    (Formula.rel (Relation.not_mem (Term.var 1) (Term.var 2)))
+
+example : decideMLSSat formulaUnsatStep3 = false := rfl
+
+example : 0 < wireSizeFormula formulaSat := formulaSize_pos formulaSat
+
+example : 0 < wireSizeFormula formulaUnsatStep2 := formulaSize_pos formulaUnsatStep2
+
+#eval decideMLSSat formulaSat
+#eval decideMLSSat formulaUnsatStep2
+#eval decideMLSSat formulaUnsatStep3
+
 /-! ### Serialization Phase 2D (§8) -/
 
 example :

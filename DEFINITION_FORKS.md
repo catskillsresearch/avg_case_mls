@@ -90,13 +90,19 @@ When the literature leaves a choice implicit, we record it here.
 
 **Lean fork — Step 3 witness:** When two distinct variables are forced empty (`eqEmpty`) but linked by `neq`, Step 3 returns **unsat** via `hasStep3Obstruction` (sound: empty ≠ empty cannot satisfy `neq`).
 
-**Lean fork — partial Steps 1 & 4:** `formulaToConjunct?` covers `rel` + `and` only; Step 4 cycle check is syntactic (no semantic completeness). `decideMLSSat_complete` remains `sorry`.
+**Lean fork — partial Steps 1 & 4:** `formulaToConjunct?` covers `rel` + `and` only; Step 4 cycle check is syntactic (no semantic completeness on membership/`eqOp` literals).
+
+**Fully verified (Phase 2C):**
+- **Soundness:** [`decideMLSSat_sound`] / [`decideConjunct_sound`] on [`InDecideSoundFragment`] / [`InDecideSoundFormula`] (no membership or `eqOp` literals; Step 3 obstruction false).
+- **Partial completeness:** [`decideMLSSat_complete_sound_fragment`] / [`decideConjunct_complete_sound_fragment`] — on that same fragment, [`decideMLSSat`] / [`decideConjunct`] always return `true`.
+
+**Left as future work (global completeness):** [`decideMLSSat_complete`] remains `sorry`. Full FOS80 completeness requires Step 1 (variable substitution under equivalence classes of set equations $q^*$) and a complete Step 4 model search (e.g. evaluating the $2^{4n^3}$ singleton models for transitive membership cycles).
 
 **Lean fork — `relationToLiteral?`:** Maps only FOS80 §3 patterns (`var`/`empty`/`∪`/`∩`/`\\` on variables). [`relationToLiteral?_eval`] is fully proved (structural case split on non-flat `Relation.eq` branches).
 
-**Lean fork — sound fragment:** `InDecideSoundFragment` / `InDecideSoundFormula` hypothesis on `decideMLSSat_sound` and `decideConjunct_sound` (no membership/`eqOp` literals; Step 3 obstruction false).
+**Lean fork — sound fragment:** [`InDecideSoundFragment`] / [`InDecideSoundFormula`] — membership-free, no `eqOp`, Step 2/3 obstructions false.
 
-**Rationale:** Honest partial procedure: proved soundness on the conjunct fragment exercised by tests; completeness deferred past Phase 2C.
+**Rationale:** Honest partial procedure: soundness and completeness match on the membership-free sound fragment; global completeness deferred until Steps 1 and 4 are implemented semantically.
 
 ## MLS formula encoding (Phase 2D)
 

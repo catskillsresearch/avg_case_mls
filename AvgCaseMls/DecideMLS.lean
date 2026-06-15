@@ -9,8 +9,9 @@ import AvgCaseMls.EMLS
 /-!
 FOS80 §3 decision procedure for MLS / EMLS **satisfiability** (Phase **2C**).
 
-Steps 2–4 are implemented; Step 1 substitution remains open. **Soundness** is proved on
-`InDecideSoundFragment`; **completeness** is partial — see [`DEFINITION_FORKS.md`](../DEFINITION_FORKS.md).
+Steps 2–4 are implemented; Step 1 substitution remains open. **Soundness** and **partial completeness**
+on `InDecideSoundFragment` / `InDecideSoundFormula` are proved; global completeness remains open
+— see [`DEFINITION_FORKS.md`](../DEFINITION_FORKS.md).
 -/
 
 namespace MLS
@@ -329,8 +330,39 @@ theorem decideMLS_sound (f : Formula) (h : decideMLS f = true)
     ∃ env, evalFormula env f :=
   decideMLSSat_sound f h hfrag
 
-/-! ### Completeness — not proved (partial Step 4 / Step 1 open) -/
+/-! ### Partial completeness (sound, membership-free fragment) -/
 
+/--
+On the sound fragment, [`decideConjunct`] never returns `false`: Step 2/3 do not fire and
+membership literals are absent, so the procedure accepts after the membership guard.
+-/
+theorem decideConjunct_complete_sound_fragment (c : Conjunct) (hfrag : InDecideSoundFragment c) :
+    decideConjunct c = true := by
+  unfold decideConjunct
+  have h2 := hfrag.1
+  have h3 := hfrag.2.1
+  have hmem := hfrag.2.2.1
+  simp [h2, h3, hmem]
+
+/--
+Formula-level partial completeness: on [`InDecideSoundFormula`], [`decideMLSSat`] returns `true`.
+-/
+theorem decideMLSSat_complete_sound_fragment (f : Formula) (hfrag : InDecideSoundFormula f) :
+    decideMLSSat f = true := by
+  obtain ⟨c, hc, hfragc⟩ := hfrag
+  simp [decideMLSSat, hc]
+  exact decideConjunct_complete_sound_fragment c hfragc
+
+theorem decideMLS_complete_sound_fragment (f : Formula) (hfrag : InDecideSoundFormula f) :
+    decideMLS f = true :=
+  decideMLSSat_complete_sound_fragment f hfrag
+
+/-! ### Global completeness — not proved (Step 1 / full Step 4 open) -/
+
+/--
+Full FOS80 completeness: requires Step 1 substitution and complete Step 4 model search.
+See [`decideMLSSat_complete_sound_fragment`] for the verified membership-free sound fragment.
+-/
 theorem decideMLSSat_complete (f : Formula) (_h : ∃ env, evalFormula env f) :
     decideMLSSat f = true := by
   sorry

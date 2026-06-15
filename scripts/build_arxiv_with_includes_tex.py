@@ -25,6 +25,7 @@ FENCE_RE = re.compile(r"^```([^\n]*)\n(.*?)^```\s*$", re.MULTILINE | re.DOTALL)
 LEAN_HEADER_RE = re.compile(
     r"^###\s+(AvgCaseMls/[^\s{]+(?:\{#[^}]+\})?)\s*$", re.MULTILINE
 )
+MANUAL_SECTION_NUM = re.compile(r"^(#{1,4})\s+\d+\.\s+", re.MULTILINE)
 
 
 def strip_portable_edition(text: str) -> str:
@@ -37,6 +38,11 @@ def github_math_to_tex(text: str) -> str:
 
 def strip_html_comments(text: str) -> str:
     return HTML_COMMENT.sub("", text)
+
+
+def strip_manual_section_numbers(text: str) -> str:
+    """Remove duplicated manual numbers like '## 1. Introduction' (LaTeX numbers sections)."""
+    return MANUAL_SECTION_NUM.sub(r"\1 ", text)
 
 
 def extract_title(text: str) -> tuple[str, str]:
@@ -148,6 +154,7 @@ def pandoc_to_latex(markdown: str) -> str:
             "-t",
             "latex",
             "--wrap=none",
+            "--shift-heading-level-by=-1",
         ],
         input=markdown,
         text=True,
@@ -182,6 +189,9 @@ def inject_placeholders(latex: str, placeholders: dict[str, str]) -> str:
 def cleanup_pandoc_latex(latex: str) -> str:
     latex = latex.replace("\\pandocbounded{", "{")
     latex = re.sub(r"\\tightlist\n", "", latex)
+    latex = re.sub(r"\\section\{\d+\.\s+", r"\\section{", latex)
+    latex = re.sub(r"\\subsection\{\d+\.\s+", r"\\subsection{", latex)
+    latex = re.sub(r"\\subsubsection\{\d+\.\s+", r"\\subsubsection{", latex)
     latex = latex.replace(
         "build the portable \\texttt{arxiv\\_with\\_includes.md} pipeline",
         "build the \\texttt{arxiv\\_with\\_includes.md} pipeline",
@@ -248,6 +258,7 @@ def main() -> int:
     raw = strip_portable_edition(raw)
     title, body = extract_title(raw)
     body = strip_html_comments(body)
+    body = strip_manual_section_numbers(body)
     body = github_math_to_tex(body)
     body, placeholders = replace_fences(body)
     latex_body = pandoc_to_latex(body)

@@ -329,6 +329,15 @@ Here we translate TR1995-711 §3.2 into Lean 4 using the RS93 rank-sum definitio
 
 All Phase **1** AvCom scaffolding is in [AvgCaseMls/AvCom.lean](#avgcasemls-avcom-lean). Later phases connect MLS (§6–§8) and hardness (§8).
 
+#### Mapping the Nose diagram to Lean types
+
+Section 2's **Nose** diagram (Figure 1) plots a language $`L`$ by two polynomial bounds:
+
+1. **Worst-case complexity ($`V`$):** in Lean, a function `V : Nat → Nat` with `IsPolynomial V`, used in `IsTRankable V μ` — the worst-case cost of computing $\text{rank}_\mu(x)$ on inputs of length $`|x|`$.
+2. **Average-case complexity ($`T`$):** in Lean, a function `T : Nat → Nat` with `IsPolynomial T`, used in `DistTime T ⟨L, μ⟩` — average running time under the RS93 rank-sum bound for distribution `μ`.
+
+The tractable **nose** boundary $\text{nose}(L) = \{ (T, V) \in (\text{POL}, \text{POL}) : L \in \text{AvDTime}(T, V\text{-rankable}) \}$ is therefore realized directly as pairs of polynomial bounds satisfying `AvDTime T V ⟨L, μ⟩`, i.e. `IsTRankable V μ ∧ DistTime T ⟨L, μ⟩`. NP-average complete targets such as MLS satisfiability have empty or trivial noses under simple POL-rankable distributions unless $\text{NEXP} = \text{EXP}$ — the conditional hardness corollaries in §8.
+
 ### AvgCaseMls/AvCom.lean {#avgcasemls-avcom-lean}
 
 ```lean
@@ -936,6 +945,9 @@ axiom ZFSet.inter : ZFSet → ZFSet → ZFSet
 axiom ZFSet.diff  : ZFSet → ZFSet → ZFSet
 axiom ZFSet.mem   : ZFSet → ZFSet → Prop
 
+/-- Standard ZF Axiom of Foundation (Regularity): no set is a member of itself. -/
+axiom ZFSet.regularity : ∀ x, ¬ ZFSet.mem x x
+
 /-- Distinct nonempty tags for Step 3 witness environments (Phase 2C). -/
 axiom ZFSet.tag : Nat → ZFSet
 
@@ -1043,6 +1055,18 @@ noncomputable def Literal.holds (env : Env) : Literal → Prop
       ¬ ZFSet.mem (evalTerm env (Term.var x)) (evalTerm env (Term.var y))
   | .neq x y =>
       evalTerm env (Term.var x) ≠ evalTerm env (Term.var y)
+
+/-! ### Step 4 semantic grounding (ZF regularity) -/
+
+/--
+A self-membership literal `x ∈ x` is unsatisfiable under the Axiom of Foundation.
+Grounds syntactic Step 4 cycle detection for single-node loops.
+-/
+theorem step4_self_loop_unsat (env : Env) (x : Nat) :
+    ¬ Literal.holds env (Literal.mem x x) := by
+  intro hmem
+  simp only [Literal.holds, evalTerm] at hmem
+  exact ZFSet.regularity (env x) hmem
 
 theorem literalToFormula_eval (env : Env) (lit : Literal) :
     evalFormula env (literalToFormula lit) ↔ Literal.holds env lit := by
@@ -1360,8 +1384,9 @@ import AvgCaseMls.EMLS
 /-!
 FOS80 §3 decision procedure for MLS / EMLS **satisfiability** (Phase **2C**).
 
-Steps 2–4 are implemented; Step 1 substitution remains open. **Soundness** is proved on
-`InDecideSoundFragment`; **completeness** is partial — see [`DEFINITION_FORKS.md`](../DEFINITION_FORKS.md).
+Steps 2–4 are implemented; Step 1 substitution remains open. **Soundness** and **partial completeness**
+on `InDecideSoundFragment` / `InDecideSoundFormula` are proved; global completeness remains open
+— see [`DEFINITION_FORKS.md`](../DEFINITION_FORKS.md).
 -/
 
 namespace MLS
@@ -1587,6 +1612,8 @@ end Step3
 
 /-! ### FOS80 Step 4 (partial) -/
 
+/-- Syntactic membership-cycle check; self-loops refuted semantically by [`EMLS.step4_self_loop_unsat`]. -/
+
 def varsInConjunct (c : Conjunct) : List Nat :=
   (c.flatMap fun
     | .eqOp x y z _ => [x, y, z]
@@ -1680,8 +1707,39 @@ theorem decideMLS_sound (f : Formula) (h : decideMLS f = true)
     ∃ env, evalFormula env f :=
   decideMLSSat_sound f h hfrag
 
-/-! ### Completeness — not proved (partial Step 4 / Step 1 open) -/
+/-! ### Partial completeness (sound, membership-free fragment) -/
 
+/--
+On the sound fragment, [`decideConjunct`] never returns `false`: Step 2/3 do not fire and
+membership literals are absent, so the procedure accepts after the membership guard.
+-/
+theorem decideConjunct_complete_sound_fragment (c : Conjunct) (hfrag : InDecideSoundFragment c) :
+    decideConjunct c = true := by
+  unfold decideConjunct
+  have h2 := hfrag.1
+  have h3 := hfrag.2.1
+  have hmem := hfrag.2.2.1
+  simp [h2, h3, hmem]
+
+/--
+Formula-level partial completeness: on [`InDecideSoundFormula`], [`decideMLSSat`] returns `true`.
+-/
+theorem decideMLSSat_complete_sound_fragment (f : Formula) (hfrag : InDecideSoundFormula f) :
+    decideMLSSat f = true := by
+  obtain ⟨c, hc, hfragc⟩ := hfrag
+  simp [decideMLSSat, hc]
+  exact decideConjunct_complete_sound_fragment c hfragc
+
+theorem decideMLS_complete_sound_fragment (f : Formula) (hfrag : InDecideSoundFormula f) :
+    decideMLS f = true :=
+  decideMLSSat_complete_sound_fragment f hfrag
+
+/-! ### Global completeness — not proved (Step 1 / full Step 4 open) -/
+
+/--
+Full FOS80 completeness: requires Step 1 substitution and complete Step 4 model search.
+See [`decideMLSSat_complete_sound_fragment`] for the verified membership-free sound fragment.
+-/
 theorem decideMLSSat_complete (f : Formula) (_h : ∃ env, evalFormula env f) :
     decideMLSSat f = true := by
   sorry
@@ -3929,6 +3987,11 @@ theorem SatMLS_semantic_not_AvP (h : NEXP_neq_EXP) : ¬ AvP ⟨SatMLS, simpleSat
     simpa [satMLSProb, simpleSatμ] using (AvP.same_μ (L := SatMLS) (L' := SatMLSChecker)).mp hAvP
   exact SatMLS_average_hard h hchecker
 
+/-! ### Axiom audit (peer-review transparency) -/
+
+#print axioms SatMLS_average_hard
+#print axioms SatMLS_semantic_not_AvP
+
 end NonAvP
 ```
 
@@ -3947,7 +4010,7 @@ end NonAvP
 | **1D** | `AvP`, `InDistNP`, `DistributionalReduction`, `IsNPAverageComplete`; forks in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md) | Proofs check |
 | **2A** | MLS syntax + axiomatic semantics (§6) | Proofs check |
 | **2B** | `Literal`, `literalToFormula`, `conjunctToFormula`, `Literal.holds` (§6) | Proofs check |
-| **2C** | `decideMLSSat`, FOS80 Steps 2–4 partial (§7) | Proofs check |
+| **2C** | `decideMLSSat`, FOS80 Steps 2–4; sound + partial completeness on sound fragment (§7) | Proofs check (`decideMLSSat_complete` `sorry`) |
 | **2D** | `serializeFormula`, `SatMLS`, `stepsMLS` (§8) | Proofs check |
 | **3A** | `SatMLSChecker_in_NP`, `decodeFormula?_serializeFormula`; checker vs semantic `SatMLS` fork (§8) | Proofs check |
 | **3B** | `encodingBound`, `formulaSize_le_encodingBound`, `encodingBound_poly` (§8) | Proofs check |

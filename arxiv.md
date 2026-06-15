@@ -477,13 +477,13 @@ We represent this structurally in Lean 4:
 | **2D** | `serializeFormula`, `SatMLS`, `stepsMLS` (§8) | Proofs check |
 | **3A** | `SatMLSChecker_in_NP`, `decodeFormula?_serializeFormula`; checker vs semantic `SatMLS` fork (§8) | Proofs check |
 | **3B** | `encodingBound`, `formulaSize_le_encodingBound`, `encodingBound_poly` (§8) | Proofs check |
-| **4A** | `NBHChecker_in_NP`, `μ₀_polRankable`, `nbhProb_in_DistNP` (§8) | Proofs check (`splitDelim.append`, `decode_encode` `sorry`) |
+| **4A** | `NBHChecker_in_NP`, `μ₀_polRankable`, `nbhProb_in_DistNP`, codec round-trip (§8) | Proofs check |
 | **4B** | `nbhToSatMLS_red`, `reduce_domination`, `reduce_correct` (§8) | Proofs check (modulo `nbhToMlsMap_*` axioms) |
 | **4C** | `satMLSProb_NPAverageComplete`, `IsNPAverageComplete.of_reductor`, `DistributionalReduction.trans` (§8) | Proofs check (modulo `distNP_reduces_to_nbh` axiom) |
 | **5A** | `not_AvP_of_NPAverageComplete`, `NEXP_eq_EXP_of_AvP_complete`, `nbhProb_not_AvP` (§8) | Proofs check (modulo collapse axioms) |
-| **5B** | `SatMLS_average_hard`, `exists_simple_rankable_not_AvP` (§8) | Proofs check (`SatMLS_semantic_not_AvP` `sorry`) |
+| **5B** | `SatMLS_average_hard`, `SatMLS_semantic_not_AvP`, `exists_simple_rankable_not_AvP` (§8) | Proofs check |
 
-*Last updated: Phases **1A–1D**, **2A–2D**, **3A**, **3B**, **4A–4C (partial)**, **5A–5B (partial)** graded **Proofs check** where noted.*
+*Last updated: Phases **1A–1D**, **2A–2D**, **3A**, **3B**, **4A–4C**, **5A–5B** graded **Proofs check** where noted (modulo named axioms in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md)).*
 
 ---
 

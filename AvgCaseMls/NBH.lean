@@ -151,19 +151,49 @@ theorem delimFree_cons_append_eq_delim (b : Bool) (pref' s t : Bitstring)
   rw [delim] at heq
   set p := b :: pref'
   by_cases hlt : p.length < 3
-  · have h1 := congrArg (fun l => l[1]!) heq
-    have h2 := congrArg (fun l => l[2]!) heq
+  · have htake : List.take 3 (p ++ false :: false :: true :: s) = [false, false, true] :=
+      congrArg (List.take 3) heq
+    revert h
     rcases b with rfl | rfl
     · cases pref' with
-      | nil => simp [List.cons_append, delim] at h1 h2
+      | nil =>
+        have hleft : List.take 3 (p ++ false :: false :: true :: s) = [false, false, false] := by
+          simp [p, List.take, List.cons_append]
+        rw [hleft] at htake; exact fun _ => by cases htake
       | cons head tail =>
         cases head with
         | false =>
           cases tail with
-          | nil => simp [List.cons_append, delim] at h1 h2
-          | cons b1 tl => cases b1 <;> cases tl <;> simp [List.cons_append, delim] at h1 h2
-        | true => simp [List.cons_append, delim] at h1 h2
-    · simp [p, List.cons_append, delim] at h1 h2
+          | nil =>
+            have hleft : List.take 3 (p ++ false :: false :: true :: s) = [false, false, false] := by
+              simp [p, List.take, List.cons_append]
+            rw [hleft] at htake; exact fun _ => by cases htake
+          | cons _ tl =>
+            have hlen : 3 ≤ p.length := by simp [p]
+            exact fun _ => absurd hlt (Nat.not_lt.mpr hlen)
+        | true =>
+          cases tail with
+          | nil =>
+            have hleft : List.take 3 (p ++ false :: false :: true :: s) = [false, true, false] := by
+              simp [p, List.take, List.cons_append]
+            rw [hleft] at htake; exact fun _ => by cases htake
+          | cons _ tl =>
+            have hlen : 3 ≤ p.length := by simp [p]
+            exact fun _ => absurd hlt (Nat.not_lt.mpr hlen)
+    · cases pref' with
+      | nil =>
+        have hleft : List.take 3 (p ++ false :: false :: true :: s) = [true, false, false] := by
+          simp [p, List.take, List.cons_append]
+        rw [hleft] at htake; exact fun _ => by cases htake
+      | cons head tail =>
+        cases tail with
+        | nil =>
+          have hleft : List.take 3 (p ++ false :: false :: true :: s) = [true, head, false] := by
+            simp [p, List.take, List.cons_append]
+          rw [hleft] at htake; exact fun _ => by cases htake
+        | cons _ tl =>
+          have hlen : 3 ≤ p.length := by simp [p]
+          exact fun _ => absurd hlt (Nat.not_lt.mpr hlen)
   · have hp : 3 ≤ p.length := Nat.le_of_not_gt hlt
     have htake : p.take 3 = delim := by
       have eq := congrArg (List.take 3) heq
@@ -173,11 +203,23 @@ theorem delimFree_cons_append_eq_delim (b : Bool) (pref' s t : Bitstring)
     exact List.IsPrefix.sublist ⟨p.drop 3, by rw [← htake, List.take_append_drop 3 p]⟩
 
 theorem go_cons_not_delim (acc : Bitstring) (headBit : Bool) (rest : Bitstring)
-    (hne : headBit :: rest ≠ [])
     (hdel : ¬ ∃ s, headBit :: rest = false :: false :: true :: s) :
     go acc (headBit :: rest) = go (acc ++ [headBit]) rest := by
-  rw [go]
-  simp [hne, hdel, delim]
+  cases rest with
+  | nil => simp [go]
+  | cons bf rest1 =>
+    cases bf with
+    | true => simp [go]
+    | false =>
+      cases rest1 with
+      | nil => simp [go]
+      | cons bf' rest2 =>
+        cases bf' with
+        | true =>
+          by_cases hh : headBit = false
+          · exact absurd ⟨rest2, by simp [hh]⟩ hdel
+          · cases headBit <;> simp_all [go]
+        | false => simp [go]
 
 theorem go_acc_append (acc pref suffix : Bitstring) (h : delimFree pref) :
     splitDelim.go acc (pref ++ (delim ++ suffix)) = some (acc ++ pref, suffix) := by
@@ -191,9 +233,8 @@ theorem go_acc_append (acc pref suffix : Bitstring) (h : delimFree pref) :
       apply delimFree_cons_append_eq_delim b pref' suffix s h
       rw [delim] at heq
       exact heq
-    · rw [go_cons_not_delim acc b (pref' ++ (delim ++ suffix))
-        (List.cons_ne_nil _ _) hdel]
-      exact ih (acc ++ [b]) suffix fun hsub => h (List.Sublist.cons b hsub)
+    · rw [go_cons_not_delim acc b (pref' ++ (delim ++ suffix)) hdel]
+      simpa [List.cons_append] using ih (acc ++ [b]) suffix fun hsub => h (List.Sublist.cons b hsub)
 
 theorem append (pref suffix : Bitstring) (h : delimFree pref) :
     splitDelim (pref ++ (delim ++ suffix)) = some (pref, suffix) := by

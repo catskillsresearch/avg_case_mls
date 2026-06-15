@@ -128,9 +128,9 @@ When the literature leaves a choice implicit, we record it here.
 
 **Lean fork — machine table:** [`NBHInstance`](AvgCaseMls/NBH.lean) references [`canonicalMachines`] by `machineId` rather than embedding arbitrary transition tables in the bitstring (Phase **4B** can extend).
 
-**Lean fork — encoding:** `input · [false,false,true] · encodeNat(machineId) · [false,false,true] · encodeNat(bound)`; run certificates use the same delimiter between `state`, `head`, and `tape` fields.
+**Lean fork — encoding:** `input · [false,false,true] · encodeNat(machineId) · [false,false,true] · encodeNat(bound)`; run certificates use the same delimiter between `state`, `head`, `tapeLen`, and `tape` fields (fourth delimiter separates unary length prefix from tape body).
 
-**Lean fork — checker vs semantic:** [`NBHChecker`] is certificate-based via [`verifyNBH`]; [`NBHSemantic`] uses [`NBH`] on decoded instances. [`NBHChecker_in_NP`] and [`nbhProb_in_DistNP`] are proved; [`decodeNat?.encode`] and [`splitDelim.go_delim_suffix`] are proved; [`splitDelim.append`], [`decode_encode`], and [`decodeRun?_encodeRun`] remain `sorry` (delimiter non-collision on arbitrary `input` fields).
+**Lean fork — checker vs semantic:** [`NBHChecker`] is certificate-based via [`verifyNBH`]; [`NBHSemantic`] uses [`NBH`] on decoded instances. [`NBHChecker_in_NP`], [`nbhProb_in_DistNP`], [`decodeNat?.encode`], [`splitDelim.go_delim_suffix`], [`splitDelim.append`], [`NBHInstance.decode_encode`], [`Config.decode_encode`], and [`decodeRun?_encodeRun`] are proved (via [`encodeNat.delimFree`] / false-count non-collision on [`encodeNat`] outputs).
 
 **Lean fork — well-formed instances:** [`NBHInstance.WellFormed`] requires the encoded `input` field not contain the field delimiter (needed for invertible splitting).
 
@@ -172,11 +172,9 @@ When the literature leaves a choice implicit, we record it here.
 
 **Lean fork — target problem:** [`SatMLS_average_hard`] and [`exists_simple_rankable_not_AvP`] use [`satMLSProb`] / [`SatMLSChecker`] with [`simpleSatμ`] (= [`μ₁`]).
 
-**Proved:** [`AvP_of_distNP_of_complete_target`], [`NEXP_eq_EXP_of_AvP_complete`], [`not_AvP_of_NPAverageComplete`], [`SatMLS_average_hard`], [`exists_simple_rankable_not_AvP`], [`nbhProb_not_AvP`] (modulo axioms above).
+**Proved:** [`AvP_of_distNP_of_complete_target`], [`NEXP_eq_EXP_of_AvP_complete`], [`not_AvP_of_NPAverageComplete`], [`SatMLS_average_hard`], [`SatMLS_semantic_not_AvP`], [`exists_simple_rankable_not_AvP`], [`nbhProb_not_AvP`] (modulo axioms above).
 
-**Lean fork — gap:** [`SatMLS_semantic_not_AvP`] remains `sorry` (checker vs semantic AvP on [`simpleSatμ`] support).
-
-**Rationale:** Main Corollary 5.1 consequence theorems check; semantic-language formulation deferred to the Phase **3A** checker fork.
+**Lean fork — semantic AvP:** [`SatMLS_semantic_not_AvP`] uses [`AvP.same_μ`] — average-time depends only on the distribution, so checker hardness on [`simpleSatμ`] transfers to semantic [`SatMLS`].
 
 ## Encoding size bounds (Phase 3B)
 

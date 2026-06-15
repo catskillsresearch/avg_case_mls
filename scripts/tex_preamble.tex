@@ -1,0 +1,113 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{stmaryrd}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{authblk}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{calc}
+\usepackage{newunicodechar}
+\usepackage{listings}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins,listings,breakable}
+\usepackage[colorlinks=true,linkcolor=blue!40!black,citecolor=blue!40!black,urlcolor=blue!40!black]{hyperref}
+
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\F}{\mathbb{F}}
+
+\lstdefinestyle{leanbox}{
+  basicstyle=\small\ttfamily,
+  columns=flexible,
+  breaklines=true,
+  keepspaces=true,
+  showstringspaces=false,
+  extendedchars=true,
+  literate={ℤ}{{\ensuremath{\mathbb{Z}}}}1
+           {ℚ}{{\ensuremath{\mathbb{Q}}}}1
+           {ℕ}{{\ensuremath{\mathbb{N}}}}1
+           {α}{{\ensuremath{\alpha}}}1
+           {β}{{\ensuremath{\beta}}}1
+           {λ}{{\ensuremath{\lambda}}}1
+           {μ}{{\ensuremath{\mu}}}1
+           {σ}{{\ensuremath{\sigma}}}1
+           {Λ}{{\ensuremath{\Lambda}}}1
+           {τ}{{\ensuremath{\tau}}}1
+           {Δ}{{\ensuremath{\Delta}}}1
+           {Σ}{{\ensuremath{\Sigma}}}1
+           {⟦}{{\ensuremath{\llbracket}}}1
+           {⟧}{{\ensuremath{\rrbracket}}}1
+           {⟨}{{\ensuremath{\langle}}}1
+           {⟩}{{\ensuremath{\rangle}}}1
+           {∈}{{\ensuremath{\in}}}1
+           {∉}{{\ensuremath{\notin}}}1
+           {⊆}{{\ensuremath{\subseteq}}}1
+           {∪}{{\ensuremath{\cup}}}1
+           {∩}{{\ensuremath{\cap}}}1
+           {∖}{{\ensuremath{\setminus}}}1
+           {∅}{{\ensuremath{\emptyset}}}1
+           {≠}{{\ensuremath{\neq}}}1
+           {≤}{{\ensuremath{\leq}}}1
+           {≥}{{\ensuremath{\geq}}}1
+           {→}{{\ensuremath{\rightarrow}}}1
+           {←}{{\ensuremath{\leftarrow}}}1
+           {⇒}{{\ensuremath{\Rightarrow}}}1
+           {⇐}{{\ensuremath{\Leftarrow}}}1
+           {⇔}{{\ensuremath{\Leftrightarrow}}}1
+           {∀}{{\ensuremath{\forall}}}1
+           {∃}{{\ensuremath{\exists}}}1
+           {×}{{\ensuremath{\times}}}1
+           {∧}{{\ensuremath{\wedge}}}1
+           {φ}{{\ensuremath{\varphi}}}1
+           {…}{{\ensuremath{\ldots}}}1
+           {–}{{-}}1
+           {—}{{-}}1
+           {⊥}{{\ensuremath{\bot}}}1
+           {■}{{\ensuremath{\blacksquare}}}1
+}
+\lstset{style=leanbox}
+
+\newunicodechar{∈}{\ensuremath{\in}}
+\newunicodechar{≤}{\ensuremath{\leq}}
+\newunicodechar{≥}{\ensuremath{\geq}}
+\newunicodechar{≠}{\ensuremath{\neq}}
+\newunicodechar{μ}{\ensuremath{\mu}}
+\newunicodechar{Σ}{\ensuremath{\Sigma}}
+\newunicodechar{⟨}{\ensuremath{\langle}}
+\newunicodechar{⟩}{\ensuremath{\rangle}}
+\newunicodechar{∪}{\ensuremath{\cup}}
+\newunicodechar{∩}{\ensuremath{\cap}}
+\newunicodechar{∖}{\ensuremath{\setminus}}
+\newunicodechar{∅}{\ensuremath{\emptyset}}
+\newunicodechar{→}{\ensuremath{\rightarrow}}
+\newunicodechar{←}{\ensuremath{\leftarrow}}
+\newunicodechar{∀}{\ensuremath{\forall}}
+\newunicodechar{∃}{\ensuremath{\exists}}
+\newunicodechar{∧}{\ensuremath{\wedge}}
+\newunicodechar{⇒}{\ensuremath{\Rightarrow}}
+\newunicodechar{φ}{\ensuremath{\varphi}}
+
+\newtcolorbox{leancertbox}{
+  enhanced,
+  breakable,
+  colback=green!5!white,
+  colframe=green!40!black,
+  coltitle=white,
+  fonttitle=\bfseries\sffamily,
+  title=Lean 4 Certificate,
+  attach boxed title to top left={yshift=-2mm, xshift=2mm},
+  boxed title style={colback=green!40!black},
+  sharp corners,
+  boxrule=1pt,
+  before skip=15pt,
+  after skip=15pt
+}

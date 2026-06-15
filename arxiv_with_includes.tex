@@ -1,0 +1,1031 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{stmaryrd}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{authblk}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{calc}
+\usepackage{newunicodechar}
+\usepackage{listings}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins,listings,breakable}
+\usepackage[colorlinks=true,linkcolor=blue!40!black,citecolor=blue!40!black,urlcolor=blue!40!black]{hyperref}
+
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\F}{\mathbb{F}}
+
+\lstdefinestyle{leanbox}{
+  basicstyle=\small\ttfamily,
+  columns=flexible,
+  breaklines=true,
+  keepspaces=true,
+  showstringspaces=false,
+  extendedchars=true,
+  literate={ℤ}{{\ensuremath{\mathbb{Z}}}}1
+           {ℚ}{{\ensuremath{\mathbb{Q}}}}1
+           {ℕ}{{\ensuremath{\mathbb{N}}}}1
+           {α}{{\ensuremath{\alpha}}}1
+           {β}{{\ensuremath{\beta}}}1
+           {λ}{{\ensuremath{\lambda}}}1
+           {μ}{{\ensuremath{\mu}}}1
+           {σ}{{\ensuremath{\sigma}}}1
+           {Λ}{{\ensuremath{\Lambda}}}1
+           {τ}{{\ensuremath{\tau}}}1
+           {Δ}{{\ensuremath{\Delta}}}1
+           {Σ}{{\ensuremath{\Sigma}}}1
+           {⟦}{{\ensuremath{\llbracket}}}1
+           {⟧}{{\ensuremath{\rrbracket}}}1
+           {⟨}{{\ensuremath{\langle}}}1
+           {⟩}{{\ensuremath{\rangle}}}1
+           {∈}{{\ensuremath{\in}}}1
+           {∉}{{\ensuremath{\notin}}}1
+           {⊆}{{\ensuremath{\subseteq}}}1
+           {∪}{{\ensuremath{\cup}}}1
+           {∩}{{\ensuremath{\cap}}}1
+           {∖}{{\ensuremath{\setminus}}}1
+           {∅}{{\ensuremath{\emptyset}}}1
+           {≠}{{\ensuremath{\neq}}}1
+           {≤}{{\ensuremath{\leq}}}1
+           {≥}{{\ensuremath{\geq}}}1
+           {→}{{\ensuremath{\rightarrow}}}1
+           {←}{{\ensuremath{\leftarrow}}}1
+           {⇒}{{\ensuremath{\Rightarrow}}}1
+           {⇐}{{\ensuremath{\Leftarrow}}}1
+           {⇔}{{\ensuremath{\Leftrightarrow}}}1
+           {∀}{{\ensuremath{\forall}}}1
+           {∃}{{\ensuremath{\exists}}}1
+           {×}{{\ensuremath{\times}}}1
+           {∧}{{\ensuremath{\wedge}}}1
+           {φ}{{\ensuremath{\varphi}}}1
+           {…}{{\ensuremath{\ldots}}}1
+           {–}{{-}}1
+           {—}{{-}}1
+           {⊥}{{\ensuremath{\bot}}}1
+           {■}{{\ensuremath{\blacksquare}}}1
+}
+\lstset{style=leanbox}
+
+\newunicodechar{∈}{\ensuremath{\in}}
+\newunicodechar{≤}{\ensuremath{\leq}}
+\newunicodechar{≥}{\ensuremath{\geq}}
+\newunicodechar{≠}{\ensuremath{\neq}}
+\newunicodechar{μ}{\ensuremath{\mu}}
+\newunicodechar{Σ}{\ensuremath{\Sigma}}
+\newunicodechar{⟨}{\ensuremath{\langle}}
+\newunicodechar{⟩}{\ensuremath{\rangle}}
+\newunicodechar{∪}{\ensuremath{\cup}}
+\newunicodechar{∩}{\ensuremath{\cap}}
+\newunicodechar{∖}{\ensuremath{\setminus}}
+\newunicodechar{∅}{\ensuremath{\emptyset}}
+\newunicodechar{→}{\ensuremath{\rightarrow}}
+\newunicodechar{←}{\ensuremath{\leftarrow}}
+\newunicodechar{∀}{\ensuremath{\forall}}
+\newunicodechar{∃}{\ensuremath{\exists}}
+\newunicodechar{∧}{\ensuremath{\wedge}}
+\newunicodechar{⇒}{\ensuremath{\Rightarrow}}
+\newunicodechar{φ}{\ensuremath{\varphi}}
+
+\newtcolorbox{leancertbox}{
+  enhanced,
+  breakable,
+  colback=green!5!white,
+  colframe=green!40!black,
+  coltitle=white,
+  fonttitle=\bfseries\sffamily,
+  title=Lean 4 Certificate,
+  attach boxed title to top left={yshift=-2mm, xshift=2mm},
+  boxed title style={colback=green!40!black},
+  sharp corners,
+  boxrule=1pt,
+  before skip=15pt,
+  after skip=15pt
+}
+
+
+\title{\textbf{Revisiting average case complexity of multilevel syllogistic: From the 1995 Courant Technical Report to Lean 4 Formalization}}
+
+        \author[1]{\textbf{Lars Warren Ericson}}
+        \affil[1]{Catskills Research Company}
+        \affil[1]{\texttt{lars.ericson@catskillsresearch.com}}
+
+        \date{\today}
+
+        \begin{document}
+
+        \maketitle
+
+        \begin{center}
+          \small
+          \textbf{ORCID:} 0000-0001-8299-9361 \\
+          \textbf{Primary Category:} cs.LO (Logic in Computer Science) \\
+          \textbf{Secondary Category:} cs.CC (Computational Complexity) \\[0.5em]
+          \textbf{Lean~4 formalization:} \url{https://github.com/catskillsresearch/avg\_case\_mls}
+        \end{center}
+
+        \begin{abstract}
+        We describe a Lean~4 formalization revisiting NYU Courant Technical Report TR1995-711
+on the average-case complexity of Multilevel Syllogistic (MLS). The development encodes
+Reischuk--Schindelhauer average-case classes, an axiomatic MLS/EMLS semantics layer, a
+partial Ferro--Omodeo--Schwartz decision procedure with proved soundness and partial
+completeness on a membership-free fragment, serialization and step budgets, and
+conditional NP-average completeness and non-AvP hardness corollaries modulo explicitly
+documented structural axioms. Full Lean sources are inlined in the appendix modules.
+        \end{abstract}
+
+\hypertarget{introduction-the-vision-of-avcom-in-program-verification}{%
+\subsection{1. Introduction: The Vision of AvCom in Program Verification}\label{introduction-the-vision-of-avcom-in-program-verification}}
+
+In the late 1970s and throughout the 1980s, the ``Correct Program Technology'' (CPT) movement, spearheaded by figures such as Martin Davis and Jacob T. Schwartz, envisioned a software development pipeline where programmers wrote code alongside mathematical specifications {[}DS77{]}. A compiler, integrated with an automated theorem prover, would then verify that the program met its specification.
+
+To make this feasible, researchers sought to enrich Floyd-Hoare verification tools with decision procedures for decidable sublanguages of set theory and arithmetic. These logic fragments---such as Multilevel Syllogistic (MLS) and Elementary Multilevel Syllogistic (EMLS)---modeled the set-theoretic operations typical of high-level programming languages like SETL {[}Sny90a{]}.
+
+However, worst-case complexity analysis posed a major roadblock: the decision problems for MLS and EMLS are NP-complete, and extensions involving Presburger arithmetic exhibit exponential or double-exponential worst-case bounds. To bypass this, researchers pointed to early optimistic results by Goldberg {[}Gol79{]}, which suggested that the Davis-Putnam procedure and resolution-based SAT solvers could perform exceptionally well on ``average'' inputs.
+
+In their 1995 Courant Institute Technical Report, \emph{``The average case complexity of multilevel syllogistic''} (TR1995-711), Jim Cox, Lars Ericson, and Bud Mishra analyze the average-case tractability of decidable sublanguages of set theory and arithmetic---such as Multilevel Syllogistic (MLS), Elementary Multilevel Syllogistic (EMLS), and Fractional Programming/Linear Programming (FP/LP). Because these languages are NP-complete in the worst case, the authors turn to the formal framework of \textbf{average-case complexity (AvCom)} to evaluate whether heuristic decision procedures could perform well on average. They marry the mathematical foundations of AvCom with set-theoretic decision procedures to determine whether a typical instance of these verification problems is truly tractable.
+
+This note revisits that report in light of modern proof assistants. Our \textbf{proof program} is to establish the AvCom terms and concepts from the literature in Lean 4, formalize MLS and its decision procedures, and then grind out the TR1995-711 theorems---or document honestly where the effort stops. The goal is not to defend the 1995 report; it is to see what survives contact with a proof assistant.
+
+\hypertarget{proof-program-outcomes-we-accept}{%
+\subsubsection{Proof program: outcomes we accept}\label{proof-program-outcomes-we-accept}}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.3600}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.6400}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Outcome
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+What it means
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\textbf{Proofs check} & Definitions match the literature; TR1995-711 theorems are formalized and proved (possibly with explicitly stated hypotheses). \\
+\textbf{Lean is not expressive enough (yet)} & We hit a clear blocker: missing Mathlib infrastructure, noncomputability, or encoding issues. Document the gap precisely. \\
+\textbf{Paper proofs are wrong} & A step in TR1995-711 does not follow from definitions, or a reduction/domination bound fails. Document the counterexample or missing lemma. \\
+\textbf{Field definitions are not solid} & Levin/RS93/distNP/AvP formulations are ambiguous, inconsistent, or not formalizable without arbitrary choices. Document the choice we had to make and what breaks. \\
+\end{longtable}
+
+We do not treat \texttt{sorry} or axioms as success. Axioms are temporary scaffolding with a ticket to remove them.
+
+\hypertarget{what-tr1995-711-claims-targets}{%
+\subsubsection{What TR1995-711 claims (targets)}\label{what-tr1995-711-claims-targets}}
+
+The report \textbf{states proofs}, not conjectures, for:
+
+\begin{itemize}
+\item
+  \textbf{NP-average completeness} of MLS satisfiability (Corollary 5.1), EMLS, FP/LP, and related fragments.
+\item
+  \textbf{Distributional reductions} with domination, from bounded halting (NBH) and other distNP-complete cores.
+\item
+  \textbf{Corollaries} tying average completeness to absence of AvP on simple POL-rankable distributions (conditional on standard collapse hypotheses such as NEXP \(\neq\) EXP).
+\end{itemize}
+
+Our Lean development should eventually either prove these statements from formal definitions or refute a specific step. §9 grades each subphase (Phase 2A is complete; see Results).
+
+\hypertarget{phased-plan}{%
+\subsubsection{Phased plan}\label{phased-plan}}
+
+Context and Lean infrastructure appear in \textbf{§§2--4}; Phase 1 (AvCom) is \textbf{§5}, Phase 2 (MLS) is \textbf{§6}. Hardness and completeness (Phases 4--5) need both layers. Subphases track progress within each phase; §9 is the report card.
+
+\textbf{Phase 0 --- Infrastructure.} Lake project, smoke tests, paper synced to this document. \emph{Status: complete.}
+
+\textbf{Phase 1 --- AvCom vocabulary (literature → Lean).}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3448}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2069}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.4483}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Subphase
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Goal
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Lean target
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\textbf{1A} & Inputs and distributions (§5) & \texttt{Bitstring}, \texttt{len}, \texttt{Distribution}, \texttt{DistributionalProblem}, \texttt{IsPolynomial} \\
+\textbf{1B} & Rank and inverse bounds & \texttt{rank}, \texttt{T\_inv} (no \texttt{sorry}; finite-support or explicit fork) \\
+\textbf{1C} & Average time and dist-time classes & \texttt{IsAvTime}, \texttt{DistTime}, \texttt{AvDTime} \\
+\textbf{1D} & Classes, reductions, completeness & \texttt{AvP}, \texttt{InDistNP}, \texttt{DistributionalReduction}, \texttt{IsNPAverageComplete} \\
+\end{longtable}
+
+\emph{Exit criterion (Phase 1):} all subphase definitions compile without \texttt{sorry}; basic lemmas and toy distribution tests; forks documented in \texttt{DEFINITION\_FORKS.md}.
+
+\textbf{Phase 2 --- MLS embedding and decision procedure.}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3571}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2143}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.4286}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Subphase
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Goal
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Lean / doc
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\textbf{2A} & MLS syntax + axiomatic semantics & §6 --- \texttt{Term}, \texttt{Relation}, \texttt{Formula}, \texttt{evalTerm}, \texttt{evalFormula} \\
+\textbf{2B} & EMLS literals, \texttt{literalToFormula}, \texttt{conjunctToFormula} & §6 \\
+\textbf{2C} & FOS80 decision procedure for \textbf{satisfiability} & §7 \\
+\textbf{2D} & Problem encoding and step count & \texttt{serializeFormula}, \texttt{SatMLS}, \texttt{stepsMLS} (remove axioms in §8) \\
+\end{longtable}
+
+\emph{Exit criterion (Phase 2):} 2A--2D complete; no \texttt{sorry} on soundness for the proved decision fragment; completeness scoped honestly.
+
+\textbf{Phase 3 --- Worst-case and coding.}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.6250}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.3750}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Subphase
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Goal
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\textbf{3A} & \texttt{SatMLS\ ∈\ NP} (witness / certificate) \\
+\textbf{3B} & Formula encoding size lemmas; polynomial bounds on \(\Vert \varphi \Vert\) \\
+\end{longtable}
+
+\emph{Exit criterion:} formal NP membership or a written Mathlib blocker.
+
+\textbf{Phase 4 --- TR1995-711 reductions.}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.6250}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.3750}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Subphase
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Goal
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\textbf{4A} & NBH (or report's distNP-complete core) + POL-rankable \(\mu_0\) \\
+\textbf{4B} & Reduction \(f\), domination into \texttt{SatMLS} / EMLS / FP/LP \\
+\textbf{4C} & \textbf{NP-average completeness} of \texttt{SatMLS} (Corollary 5.1) \\
+\end{longtable}
+
+\emph{Exit criterion:} 4C proved or a specific failed obligation recorded.
+
+\textbf{Phase 5 --- AvP consequences.}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.6250}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.3750}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Subphase
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Goal
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\textbf{5A} & Conditional non-AvP from completeness + simple rankable \(\mu\) \\
+\textbf{5B} & \texttt{SatMLS\_average\_hard} without \texttt{sorry}; axioms minimized \\
+\end{longtable}
+
+\hypertarget{methodology}{%
+\subsubsection{Methodology}\label{methodology}}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  \textbf{Definitions before theorems} --- no \texttt{sorry} in defs we label ``final.''
+\item
+  \textbf{One obligation per issue} --- each former \texttt{sorry} becomes a named lemma with a one-line statement.
+\item
+  \textbf{Literature pointer} --- every definition cites TR1995-711 section or {[}RS93{]}, {[}Lev86{]}, etc.
+\item
+  \textbf{Fork log} --- if we must choose (finite support, encoding, POL-rankable vs P-computable), record in \texttt{DEFINITION\_FORKS.md}.
+\item
+  \textbf{CI} --- \texttt{./run\_lean\_check.sh} must pass; new sorries require a comment \texttt{-\/-\ Phase\ Nx,\ issue\ \#…}.
+\item
+  \textbf{AI-assisted development} --- large language models were used as coding assistants (not co-authors); see \textbf{Acknowledgements} for scope, tools, and human verification responsibilities.
+\end{enumerate}
+
+We grind on Phases 1→5 in dependency order (subphases may be implemented out of order when independent). §§5--6 pair mathematics with Lean encodings; §4 covers Lean strategy; §§7--8 cover decision procedures and hardness theorems; §9 grades each subphase; §10 lists further directions.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\hypertarget{historical-context-terminology-and-reception-of-tr1995-711}{%
+\subsection{2. Historical Context, Terminology, and Reception of TR1995-711}\label{historical-context-terminology-and-reception-of-tr1995-711}}
+
+\hypertarget{application-and-findings}{%
+\subsubsection{Application and Findings}\label{application-and-findings}}
+
+Cox, Ericson, and Mishra prove that \textbf{EMLS, MLS, and FP/LP are \(\text{NP}\)-average complete}. This implies there are simple, rankable distributions that will frustrate any decision algorithm for these problems, forcing super-polynomial average-case running times unless deterministic and nondeterministic exponential time are equal (\(\text{NEXP} = \text{EXP}\)).
+
+\hypertarget{the-concept-of-the-nose}{%
+\subsubsection{The Concept of ``The Nose''}\label{the-concept-of-the-nose}}
+
+The paper features a key visualization of the average-case landscape of NP-complete languages (Figure 1, page 13).
+
+\begin{figure}
+\centering
+\includegraphics{figures/nose.png}
+\caption{The average-case complexity ``nose'' diagram (TR1995-711, Figure 1)}
+\end{figure}
+
+\textbf{Figure 1 (schematic).} Languages Li are plotted by worst-case complexity \emph{V} (vertical) and average-case complexity \emph{T} (horizontal). The shaded \textbf{nose} is the tractable region in the polynomial--polynomial corner.
+
+In this diagram, languages \(L_i\) are mapped based on their worst-case complexity \(V\) (vertical axis) and their average-case complexity \(T\) (horizontal axis). * \textbf{The Nose} represents the sweet spot of tractability: the shaded region where the worst-case complexity of the ranking function \(V\) is bounded by \(h(T)\), such that the language still possesses an efficient average-case algorithm. * Formally, the authors define this boundary as:
+
+\[
+\text{nose}(L) = \{ (T, V) \in (\text{POL}, \text{POL}) : L \in \text{AvDTime}(T, V\text{-rankable}) \}
+\]
+
+\begin{itemize}
+\item
+  For an NP-average complete problem, the ``nose'' is trivial or empty under simple distributions, meaning no non-trivial efficient average-case behavior can be guaranteed unless \(\text{Nondeterministic Exp} = \text{Deterministic Exp}\).
+\end{itemize}
+
+\hypertarget{pre-publication-review-in-1995}{%
+\subsubsection{Pre-publication review in 1995}\label{pre-publication-review-in-1995}}
+
+Reviewer Martin Davis asked the authors to give a more pragmatic demonstration of their results before accepting the work into \emph{Communications on Pure and Applied Mathematics} (CPAM). That demonstration never materialized; the concrete heuristics were weak, and the empirical machinery to test these algorithms on large datasets did not yet exist. The paper was never published in CPAM.
+
+That outcome is not the whole story, however. The report's deeper aim was to supply a \textbf{language for describing how hard a typical instance of a verification problem might be}---not to ship a production solver. This historical episode highlights a common turning point in computer science during the mid-1990s: the tension between elegant, highly formal mathematical complexity theory and the messy, empirical reality of practical software engineering.
+
+Three natural questions follow: Were the terms used in the paper invented there, or taken from existing literature? Was the technical report ever referenced? And what became of average-case complexity---and of this particular application to set-theoretic decision procedures---in the intervening thirty years?
+
+\hypertarget{were-the-terms-invented-in-this-paper}{%
+\subsubsection{Were the Terms Invented in This Paper?}\label{were-the-terms-invented-in-this-paper}}
+
+\textbf{No---the core definitions and terms were not invented in TR1995-711.} The authors drew entirely upon the existing complexity literature of the late 1980s and early 1990s:
+
+\begin{itemize}
+\item
+  \textbf{The foundations (\(\text{AvP}\), \(\text{distNP}\), and the domination condition):} Pioneered by Leonid Levin in his 1986 paper \emph{``Average case complete problems''} {[}Lev86{]} and further formalized by Yuri Gurevich {[}Gur91{]} and Ben-David, Chor, Goldreich, and Luby {[}BDCGL89{]}.
+\item
+  \textbf{The precise formulations (\(\text{POL}\), \(\text{POL-rankable}\), precise average-case complexity):} Taken directly from Rüdiger Reischuk and Christian Schindelhauer's 1993 paper, \emph{``Precise average case complexity''} {[}RS93{]}.
+\end{itemize}
+
+The report's contribution was not structural novelty in complexity theory itself, but rather its \textbf{application}: importing these rigorous, newly developed tools from structural complexity theory and applying them to automated theorem proving and program verification---specifically, showing that set-theoretic fragments such as EMLS and MLS are average-case complete.
+
+\hypertarget{was-this-technical-report-ever-referenced}{%
+\subsubsection{Was This Technical Report Ever Referenced?}\label{was-this-technical-report-ever-referenced}}
+
+In terms of direct scientific citations, \textbf{TR1995-711 has been almost entirely overlooked.} It has virtually zero standard citations in academic journals and did not spawn a direct lineage of follow-up papers in automated theorem proving.
+
+It has nevertheless been kept alive in a specific way: it is cited as a notable applied example on the \textbf{Wikipedia page for ``Average-case complexity''} (and its translations). Because Wikipedia editors documented it as one of the few explicit applications of Levin's theory to set-theoretic decision procedures, it remains a known historical reference point in the literature of the field.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\hypertarget{thirty-years-of-average-case-complexity-19952026}{%
+\subsection{3. Thirty Years of Average-Case Complexity (1995--2026)}\label{thirty-years-of-average-case-complexity-19952026}}
+
+Rather than dying, the field of average-case complexity underwent a massive evolution. Its center of gravity migrated away from traditional decision-procedure analysis and became foundational to other, highly successful domains.
+
+\hypertarget{cryptography-and-worst-case-to-average-case-reductions}{%
+\subsubsection{Cryptography and Worst-Case-to-Average-Case Reductions}\label{cryptography-and-worst-case-to-average-case-reductions}}
+
+In the late 1990s---beginning with Miklós Ajtai's landmark 1996 work {[}Ajt96{]}---theorists discovered how to prove mathematically that certain average-case problems are hard \emph{assuming only that their worst-case versions are hard}. This paved the way for \textbf{lattice-based cryptography} and Oded Regev's \textbf{Learning With Errors (LWE)} framework (2005) {[}Reg05{]}. Because cryptography requires that \emph{almost all} generated keys are hard to break (average-case hardness), these frameworks are now the basis for modern post-quantum cryptography standards.
+
+\hypertarget{smoothed-analysis}{%
+\subsubsection{Smoothed Analysis}\label{smoothed-analysis}}
+
+In 2001, Daniel Spielman and Shang-Hua Teng introduced \textbf{smoothed analysis} {[}ST01{]}. They argued that analyzing an algorithm under a purely random, mathematically convenient distribution (the ``average case'') is often unrealistic and overly pessimistic. Instead, they measured performance under \emph{slight random perturbations of worst-case inputs}. This successfully explained why algorithms like the Simplex method for linear programming run in polynomial time in practice despite worst-case exponential complexity---bridging the gap between theory and practical heuristics in a way that Levin-style rankable distributions alone could not.
+
+\hypertarget{statistical-inference-and-machine-learning}{%
+\subsubsection{Statistical Inference and Machine Learning}\label{statistical-inference-and-machine-learning}}
+
+In the 2010s and 2020s, average-case complexity found a major new home in high-dimensional statistics and machine learning. Researchers now study the \textbf{information--computation gap}---situations where an estimation problem (such as the Planted Clique problem or Tensor PCA) is theoretically solvable given infinite time, but computationally intractable on average for any polynomial-time algorithm.
+
+\hypertarget{what-happened-to-this-specific-use-case-set-theoretic-decision-procedures}{%
+\subsubsection{What Happened to This Specific Use Case (Set-Theoretic Decision Procedures)?}\label{what-happened-to-this-specific-use-case-set-theoretic-decision-procedures}}
+
+Martin Davis's skepticism was vindicated by the path the automated theorem proving community took. The attempt to build program verification tools around highly specialized, decidable, average-case-analyzed set-theoretic sublanguages (such as EMLS or MLS) largely became a dead end. The community pivoted instead toward \textbf{SMT (Satisfiability Modulo Theories) solvers} (such as Z3 and CVC5) {[}deM08{]} and modern \textbf{SAT solvers}.
+
+This transition succeeded for several reasons:
+
+\begin{itemize}
+\item
+  \textbf{The structure of real-world code:} Theoretical average-case complexity assumes random inputs under simple mathematical distributions (such as the linear-time rankable distributions in Cox et al.'s paper). Real-world software verification problems, however, are highly structured and logical; they are not random.
+\item
+  \textbf{The triumph of CDCL and heuristics:} Modern SMT/SAT solvers utilize Conflict-Driven Clause Learning (CDCL) and highly engineered heuristics. Empirically, these tools routinely solve industrial-scale verification formulas with millions of variables, bypassing theoretical worst-case or average-case intractability.
+\item
+  \textbf{Empirical benchmarks over proofs:} Rather than proving mathematical average-case tractability, the community created massive, standardized libraries of real-world problem benchmarks (such as SMT-LIB). Solver progress is now measured empirically---a far more pragmatic and successful path than the one Davis requested for CPAM.
+\end{itemize}
+
+The specific marriage of AvCom to MLS decision procedures was largely abandoned for the same reason: proving average-case hardness under mathematically simple, rankable distributions did not reflect the highly structured formulas generated by real-world compilers.
+
+The specific marriage of AvCom to MLS decision procedures was largely abandoned for the same reason: proving average-case hardness under mathematicically simple, rankable distributions did not reflect the highly structured formulas generated by real-world compilers.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\hypertarget{lean-4-formalization-strategy}{%
+\subsection{4. Lean 4 Formalization Strategy}\label{lean-4-formalization-strategy}}
+
+§§5--6 pair the mathematical definitions with their Lean modules. This section summarizes project infrastructure and design choices. The live code lives in \href{AvgCaseMls/}{\texttt{AvgCaseMls/}} and is checked by \texttt{./run\_lean\_check.sh} and \texttt{./run\_lean\_tests.sh} (see \href{INSTALLING_LEAN.md}{\texttt{INSTALLING\_LEAN.md}}).
+
+\hypertarget{mathlib-and-the-complexity-theory-gap}{%
+\subsubsection{Mathlib and the Complexity-Theory Gap}\label{mathlib-and-the-complexity-theory-gap}}
+
+Through 2025--2026, Mathlib4 has begun to host \textbf{worst-case} complexity infrastructure (polynomial-time Turing machines, \(\text{P}\), \(\text{NP}\), and related material under active development). \textbf{Average-case complexity---distributional problems, rank functions, \(\text{Av}(T)\), \(\text{DistTime}\), distributional reductions, and \(\text{AvP}\)---is not yet a standard Mathlib layer.} TR1995-711 is therefore a natural stress test: it requires both a deep embedding of set-theoretic syntax \emph{and} a bespoke AvCom library built on {[}RS93{]}.
+
+Our approach mirrors \href{https://github.com/catskillsresearch/icon2lean}{icon2lean}: 1. \textbf{Definitions first} --- encode \(\text{rank}\), \(\text{Av}(T)\), \(\text{DistTime}(T)\), \(\text{AvP}\), and \(\text{distNP}\) alongside the AvCom definitions in §5. 2. \textbf{Deep embedding of MLS/EMLS} --- inductive syntax + semantic evaluation in §6. 3. \textbf{Decision procedure skeleton} --- a computable \texttt{decideMLS} with stated soundness/completeness for \textbf{satisfiability}, plus a future \textbf{step-counting} function to relate the model-graph algorithm to \(\text{Av}(T)\) (§7). 4. \textbf{Hardness statements} --- structural theorems such as \texttt{SatMLS\_average\_hard} with explicit \texttt{sorry} placeholders until reductions from TR1995-711 are formalized (§8).
+
+\hypertarget{design-choices-for-executable-vs.-proof-layer}{%
+\subsubsection{Design Choices for Executable vs.~Proof Layer}\label{design-choices-for-executable-vs.-proof-layer}}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2195}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.5122}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2683}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Concept
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Lean representation
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Rationale
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Inputs & \texttt{Bitstring\ :=\ List\ Bool}, \texttt{len} & Matches \(\Sigma = \{0,1\}\) encodings in the report \\
+Distributions & \texttt{structure\ Distribution} with explicit finite \texttt{support}, off-support zero, \texttt{support.sum\ prob\ ≤\ 1} & Avoids infinite sums; rank and testing are well-defined (see \href{DEFINITION_FORKS.md}{\texttt{DEFINITION\_FORKS.md}}) \\
+Rank & \texttt{noncomputable\ def\ rank} & Cardinality over all strings is not computable \\
+Set semantics & Axiomatic \texttt{MLS.ZFSet} + \texttt{noncomputable\ evalTerm} & Supports nested sets without committing to full ZF in Mathlib; \texttt{Mathlib.Data.ZFC.Basic} is an alternative for a future refactor \\
+EMLS & \texttt{Literal}, \texttt{literalToFormula}, \texttt{conjunctToFormula}, \texttt{Literal.holds} (§6) & FOS80 §3 normal form for §7 decision procedure \\
+Tests & \texttt{\#eval} + \texttt{native\_decide} on decidable fragments & Same regression pattern as \texttt{Icon2lean/Tests.lean} \\
+\end{longtable}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\hypertarget{average-case-complexity-avcom-theory-classes-and-lean-encoding}{%
+\subsection{5. Average-Case Complexity (AvCom): Theory, Classes, and Lean Encoding}\label{average-case-complexity-avcom-theory-classes-and-lean-encoding}}
+
+The formal definitions in this section follow TR1995-711 §3.2 (\href{TR1995-711.pdf}{\texttt{TR1995-711.pdf}}). In the mid-1990s, structural average-case complexity was a young, highly mathematical field. Each mathematical definition below is paired with its Lean counterpart in \protect\hyperlink{avgcasemls-avcom-lean}{AvgCaseMls/AvCom.lean} where it exists today.
+
+\hypertarget{why-naive-averaging-fails}{%
+\subsubsection{Why Naive Averaging Fails}\label{why-naive-averaging-fails}}
+
+Prior to Leonid Levin's 1986 breakthrough {[}Lev86{]}, researchers measured average running time naively:
+
+\[
+\text{Time}_M^{\mu}(n) = \sum_{|x|=n} \mu_n(x) \text{time}_M(x)
+\]
+
+As noted by Ben-David et al.~{[}BDCGL89{]} and Gurevich, this formulation is deeply flawed: * \textbf{Model-dependent and encoding-dependent:} Slight changes in the binary representation of inputs radically alter the average complexity. * \textbf{Not closed under functional composition:} An algorithm that runs in average \(O(n)\) time can yield an average-case exponential runtime when composed with a polynomial-time pre-processing step.
+
+Simply taking the expected running time of an algorithm weighted over all inputs of size \(n\) is therefore inadequate as a robust complexity measure.
+
+\hypertarget{levins-robust-formulation}{%
+\subsubsection{Levin's Robust Formulation}\label{levins-robust-formulation}}
+
+Levin solved these issues with a robust notion of ``polynomial time on average.'' Under this framework, a running time \(T(x)\) is average-polynomial under a distribution \(\mu\) if there is a constant \(c > 0\) such that the expected value of \(T(x)^{1/c} / |x|\) is finite:
+
+\[
+\sum_{x} \mu(x) \frac{T(x)^{1/c}}{|x|} < \infty
+\]
+
+Rather than analyzing a language in isolation, average-case complexity pairs a language \(L\) (a decision problem) with a probability distribution \(\mu\) on its instances, denoted as the distributional problem \((L, \mu)\).
+
+\hypertarget{reischuk-schindelhauers-precise-classes}{%
+\subsubsection{Reischuk-Schindelhauer's Precise Classes}\label{reischuk-schindelhauers-precise-classes}}
+
+In 1993, Reischuk and Schindelhauer {[}RS93{]} streamlined Levin's theory by introducing \textbf{ranking functions} to capture the distribution profile. Cox, Ericson, and Mishra rely primarily on the average-case analogues of \(\text{P}\) and \(\text{NP}\) under both Levin's traditional definitions and this precise average-case framework. TR1995-711 §3.2 notes explicitly that terminology in this area had \textbf{not yet been standardized} in the literature even in 1995; the report follows {[}RS93{]} and cites {[}Lev86, BDCGL89, Gur91, VR92, SY92{]}.
+
+The subsections below collect the definitions as used in the report, with Lean encodings interleaved.
+
+\hypertarget{inputs-distributions-and-rank}{%
+\subsubsection{Inputs, Distributions, and Rank}\label{inputs-distributions-and-rank}}
+
+Fix a finite alphabet \(\Sigma\) (in practice \(\Sigma = \{0,1\}\)). An \textbf{input} is a string \(x \in \Sigma^*\), with \textbf{length} \(|x|\) (in Lean we use \texttt{Bitstring\ :=\ List\ Bool} and \texttt{len\ s\ :=\ s.length}).
+
+A \textbf{probability distribution} on \(\Sigma^*\) is a function \(\mu : \Sigma^* \to [0,1]\) such that \(\sum_x \mu(x) \leq 1\) and \(\mu(x) \geq 0\) for all \(x\). In the Lean sketch we axiomatize this with finite \texttt{Finset} sums rather than infinite series, which is adequate for the rank-based definitions that follow.
+
+A \textbf{distributional problem} is a pair \((L, \mu)\) where \(L \subseteq \Sigma^*\) is a decision problem (language) and \(\mu\) is a distribution on its instances.
+
+The \textbf{rank} of \(x\) under \(\mu\) counts how many inputs are at least as probable as \(x\):
+
+\[
+\text{rank}_{\mu}(x) = \bigl|\{ z \in \Sigma^* : \mu(z) \geq \mu(x) \}\bigr|
+\]
+
+When \(\mu(x) = 0\), the rank is taken to be \(0\) (inputs of measure zero carry no average-case weight). In Lean, \texttt{rank} is \texttt{noncomputable} (real comparisons are classical) and counts only over the finite \texttt{support}; see \href{DEFINITION_FORKS.md}{\texttt{DEFINITION\_FORKS.md}}.
+
+\hypertarget{complexity-bounds-pol-and-rankable-distributions}{%
+\subsubsection{Complexity Bounds, POL, and Rankable Distributions}\label{complexity-bounds-pol-and-rankable-distributions}}
+
+Following {[}RS93{]}, let \textbf{POL} denote the class of \textbf{polynomial complexity bounds}---functions \(T : \mathbb{N} \to \mathbb{N}\) such that \(T(n) \leq c n^k + c\) for some constants \(c, k\) (formalized in Lean as \texttt{IsPolynomial}).
+
+A distribution \(\mu\) is \textbf{\(T\)-rankable} if \(\text{rank}_{\mu}(x) \leq T(|x|)\) for all \(x\).
+
+A distribution \(\mu\) is \textbf{POL-rankable} if it is \(T\)-rankable for some \(T \in \text{POL}\) \textbf{and} the rank function \(\text{rank}_{\mu}(x)\) is computable in deterministic polynomial time (in binary). TR1995-711 uses POL-rankable distributions throughout its hardness constructions.
+
+A real-valued function \(m : [0,1] \to [0,1]\) is \textbf{monotone} if \(x < y\) implies \(m(x) < m(y)\). A \textbf{monotone transformation} of a distribution \(\mu\) is a reweighting \(m \circ \mu\) obtained from such an \(m\) with \(\sum_x m(\mu(x)) < 1\). Levin's original average-time definition quantifies over all monotone transformations of \(\mu\); {[}RS93{]} shows this is equivalent to a simpler rank-sum condition (below).
+
+\hypertarget{levins-mu-average-time-and-the-rs93-alternative}{%
+\subsubsection{\texorpdfstring{Levin's \(\mu\)-Average Time and the RS93 Alternative}{Levin's \textbackslash mu-Average Time and the RS93 Alternative}}\label{levins-mu-average-time-and-the-rs93-alternative}}
+
+Let \(f : \Sigma^* \to \mathbb{N}\) be a running-time function and \(T : \mathbb{N} \to \mathbb{N}\) a monotone complexity bound with \textbf{generalized inverse} \(T^{-1}(m) = \min\{ n : T(n) \geq m \}\).
+
+\textbf{Levin's formulation (conceptual):} the pair \((f, \mu)\) lies in \(\text{Av}(T)\) if, for every monotone transformation \(m\) of \(\mu\), a certain \(T^{-1}\)-weighted expectation remains bounded. This formulation is robust but references all monotone reweightings of \(\mu\) and is awkward to formalize directly.
+
+\textbf{Reischuk--Schindelhauer alternative (used in TR1995-711):} \((f, \mu) \in \text{Av}(T)\) if for all integers \(\ell \geq 1\),
+
+\[
+\sum_{\text{rank}_{\mu}(x) \leq \ell} \frac{T^{-1}(f(x))}{|x|} \leq \ell
+\]
+
+This is the definition implemented structurally in \protect\hyperlink{avgcasemls-avcom-lean}{AvgCaseMls/AvCom.lean} as \texttt{IsAvTime}. Intuitively, high-rank (low-probability) inputs may take large time \(f(x)\), but the inverse-bound mass \(T^{-1}(f(x))\) per bit of input cannot accumulate faster than the rank budget \(\ell\).
+
+\hypertarget{average-complexity-classes}{%
+\subsubsection{Average Complexity Classes}\label{average-complexity-classes}}
+
+Let \(M\) be a deterministic Turing machine with running time \(f_M(x)\) on input \(x\).
+
+\begin{itemize}
+\item
+  \textbf{\(\text{DistTime}(T)\):} the class of distributional problems \((L, \mu)\) for which there exists a deterministic algorithm \(M\) deciding \(L\) such that \((f_M, \mu) \in \text{Av}(T)\).
+\item
+  \textbf{\(\text{AvDTime}(T, C)\):} as above, but restricting \(\mu\) to be \textbf{\(C\)-rankable} distributions (for a complexity class \(C\) of rank bounds). This class drives the \textbf{``nose''} diagram: languages tractable on average when the ranking function of the distribution is itself bounded by \(V \in \text{POL}\).
+\item
+  \textbf{\(\text{AvP}\) (Average Polynomial Time):} \(\text{DistTime}(\text{POL}, \text{POL-rankable})\)---distributional problems efficiently solvable on average over POL-rankable \(\mu\). Equivalently: \((L, \mu) \in \text{AvP}\) if \(L\) is decidable in average polynomial time under a POL-rankable distribution.
+\item
+  \textbf{\(\text{distNP}\) (also written \(\text{NP}^{\text{dist}}\) in the report):} \(\{(L, \mu) : L \in \text{NP},\ \mu \in \text{POL-rankable}\}\). Membership in \(\text{NP}\) means witnesses are verifiable in polynomial time on a nondeterministic Turing machine (NTM).
+\end{itemize}
+
+Under this framework, Cox, Ericson, and Mishra utilize several precise complexity classes:
+
+\begin{itemize}
+\item
+  \textbf{\(\text{POL-rankable}\) Distributions:} As defined above---polynomial rank bound plus polynomial-time rank computation.
+\item
+  \textbf{\(\text{Av}(T)\) (Average Time \(T\)):} Pairs \((f, \mu)\) satisfying the RS93 rank-sum inequality; for a machine deciding \(L\), require \((f_M, \mu) \in \text{Av}(T)\).
+\item
+  \textbf{\(\text{AvP}\) (Average Polynomial Time):} \(\text{DistTime}(\text{POL}, \text{POL-rankable})\)---distributional problems \((L, \mu)\) efficiently solvable on average over POL-rankable distributions.
+\item
+  \textbf{\(\text{distNP}\) (Distributional NP):} \(\{(L, \mu) : L \in \text{NP},\ \mu \in \text{POL-rankable}\}\) (the report also discusses \(\text{P}\)-computable and \(\text{P}\)-samplable distributions in the broader literature).
+\end{itemize}
+
+\hypertarget{distributional-reductions-and-np-average-completeness}{%
+\subsubsection{Distributional Reductions and NP-Average Completeness}\label{distributional-reductions-and-np-average-completeness}}
+
+To transfer hardness results between average-case problems, TR1995-711 §3.2 defines \textbf{distributional reductions}. A reduction from \((L_1, \mu_1)\) to \((L_2, \mu_2)\) is a polynomial-time computable function \(f : \Sigma^* \to \Sigma^*\) such that:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  \textbf{Correctness:} \(x \in L_1 \iff f(x) \in L_2\) for all \(x\).
+\item
+  \textbf{Domination:} letting \(p_i(x) = \text{rank}_{\mu_i}(x)\), there exist constants \(c_0, c_1 > 0\) such that
+\end{enumerate}
+
+\[
+p_2(f(x)) \leq c_0 |x|^{c_1} p_1(x)
+\]
+
+for all \(x\).
+
+The domination condition ensures that if \((L_2, \mu_2)\) is solvable in average polynomial time, tractability is preserved for \((L_1, \mu_1)\): \(f\) cannot map many low-rank inputs of \(\mu_1\) into disproportionately high-rank images under \(\mu_2\).
+
+A distributional problem \((L, \mu)\) is \textbf{NP-average complete} (NP-distributional complete) if: * \((L, \mu) \in \text{distNP}\), and * every \((L', \mu') \in \text{distNP}\) is distributionally reducible to \((L, \mu)\).
+
+TR1995-711 Corollary 5.1 (page 12) states that \textbf{MLS satisfiability} is NP-average complete; related corollaries cover EMLS, FP/LP, and further set-theoretic fragments. The proofs combine distributional reductions from bounded halting for NTMs with the rankable distributions constructed in the report.
+
+\hypertarget{lean-encoding-phases-1a1d}{%
+\subsubsection{Lean encoding (Phases 1A--1D)}\label{lean-encoding-phases-1a1d}}
+
+Here we translate TR1995-711 §3.2 into Lean 4 using the RS93 rank-sum definition of \(\text{Av}(T)\). The module \protect\hyperlink{avgcasemls-avcom-lean}{AvgCaseMls/AvCom.lean} currently defines:
+
+\begin{itemize}
+\item
+  \texttt{Bitstring}, \texttt{len}, \texttt{lenBot} --- inputs \(x \in \{0,1\}^*\), length \(|x|\), and \texttt{max\ 1\ \textbar{}x\textbar{}} for RS93 denominators (see \href{DEFINITION_FORKS.md}{\texttt{DEFINITION\_FORKS.md}});
+\item
+  \texttt{Distribution} --- finite \texttt{support}, non-negative \texttt{prob}, mass zero off support, \texttt{support.sum\ prob\ ≤\ 1}; constructors \texttt{pointMass}, \texttt{uniformOn};
+\item
+  \texttt{DistributionalProblem}, \texttt{IsPolynomial} (+ basic lemmas) --- Phase \textbf{1A} complete in \protect\hyperlink{avgcasemls-avcom-lean}{AvgCaseMls/AvCom.lean};
+\item
+  \texttt{rank} --- \(\text{rank}_\mu(x)\) as a support filter cardinality; rank \texttt{0} when \texttt{μ.prob\ x\ =\ 0} (Phase \textbf{1B});
+\item
+  \texttt{T\_inv} --- partial search for \(\min\{ n \mid T(n) \ge m \}\) from \texttt{n\ =\ 0} (Phase \textbf{1B});
+\item
+  \texttt{IsAvTime}, \texttt{IsAv}, \texttt{rankLe} --- RS93 rank-sum average time (Phase \textbf{1C});
+\item
+  \texttt{IsTRankable}, \texttt{IsPolRankable}, \texttt{DistTime}, \texttt{AvDTime} --- dist-time classes (Phase \textbf{1C});
+\item
+  \texttt{AvP}, \texttt{InDistNP}, \texttt{DistributionalReduction}, \texttt{IsNPAverageComplete} --- average classes and reductions (Phase \textbf{1D}).
+\end{itemize}
+
+All Phase \textbf{1} AvCom scaffolding is in \protect\hyperlink{avgcasemls-avcom-lean}{AvgCaseMls/AvCom.lean}. Later phases connect MLS (§6--§8) and hardness (§8).
+
+\hypertarget{mapping-the-nose-diagram-to-lean-types}{%
+\paragraph{Mapping the Nose diagram to Lean types}\label{mapping-the-nose-diagram-to-lean-types}}
+
+Section 2's \textbf{Nose} diagram (Figure 1) plots a language \(L\) by two polynomial bounds:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  \textbf{Worst-case complexity (\(V\)):} in Lean, a function \texttt{V\ :\ Nat\ →\ Nat} with \texttt{IsPolynomial\ V}, used in \texttt{IsTRankable\ V\ μ} --- the worst-case cost of computing \(\text{rank}_\mu(x)\) on inputs of length \(|x|\).
+\item
+  \textbf{Average-case complexity (\(T\)):} in Lean, a function \texttt{T\ :\ Nat\ →\ Nat} with \texttt{IsPolynomial\ T}, used in \texttt{DistTime\ T\ ⟨L,\ μ⟩} --- average running time under the RS93 rank-sum bound for distribution \texttt{μ}.
+\end{enumerate}
+
+The tractable \textbf{nose} boundary \(\text{nose}(L) = \{ (T, V) \in (\text{POL}, \text{POL}) : L \in \text{AvDTime}(T, V\text{-rankable}) \}\) is therefore realized directly as pairs of polynomial bounds satisfying \texttt{AvDTime\ T\ V\ ⟨L,\ μ⟩}, i.e.~\texttt{IsTRankable\ V\ μ\ ∧\ DistTime\ T\ ⟨L,\ μ⟩}. NP-average complete targets such as MLS satisfiability have empty or trivial noses under simple POL-rankable distributions unless \(\text{NEXP} = \text{EXP}\) --- the conditional hardness corollaries in §8.
+
+\hypertarget{avgcasemls-avcom-lean}{%
+\subsubsection{AvgCaseMls/AvCom.lean}\label{avgcasemls-avcom-lean}}
+
+\noindent\textbf{AvgCaseMls/AvCom.lean}
+
+\begin{leancertbox}
+\lstinputlisting[style=leanbox]{build/arxiv-tex-listings/AvgCaseMls-AvCom.lean}
+\end{leancertbox}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\hypertarget{multilevel-syllogistic-mls-grammar-and-lean-encoding}{%
+\subsection{6. Multilevel Syllogistic (MLS): Grammar and Lean Encoding}\label{multilevel-syllogistic-mls-grammar-and-lean-encoding}}
+
+\hypertarget{syntax-of-mls-and-emls}{%
+\subsubsection{Syntax of MLS and EMLS}\label{syntax-of-mls-and-emls}}
+
+Multilevel Syllogistic (MLS) is a decidable fragment of Zermelo-Fraenkel set theory. Its syntax allows set variables, the empty set (\(\emptyset\)), binary set operators (union \(\cup\), intersection \(\cap\), set difference \(\setminus\)), binary set relations (membership \(\in\), non-membership \(\notin\), equality \(=\), inequality \(\neq\)), and standard propositional connectives.
+
+The grammar is formally defined as: * \textbf{Terms:} \(T \to v_i \mid \emptyset \mid T \cup T \mid T \cap T \mid T \setminus T\) * \textbf{Literals:} \(L \to T \in T \mid T \notin T \mid T = T \mid T \neq T\) * \textbf{Formulas:} \(\Phi \to L \mid \neg \Phi \mid \Phi \land \Phi \mid \Phi \lor \Phi \mid \Phi \Rightarrow \Phi \mid \Phi \equiv \Phi\)
+
+\textbf{Elementary Multilevel Syllogistic (EMLS)} simplifies the terms by restricting conjuncts to ``flat'' elementary literals:
+
+\[
+v_i = \emptyset, \quad v_i = v_j \cup v_k, \quad v_i = v_j \setminus v_k, \quad v_i = v_j \cap v_k, \quad v_i \in v_j, \quad v_i \notin v_j, \quad v_i \neq v_j
+\]
+
+\hypertarget{lean-encoding-phase-2a}{%
+\subsubsection{Lean encoding (Phase 2A)}\label{lean-encoding-phase-2a}}
+
+\textbf{Scope.} \protect\hyperlink{avgcasemls-mls-lean}{AvgCaseMls/MLS.lean} (Phase \textbf{2A}) and \protect\hyperlink{avgcasemls-emls-lean}{AvgCaseMls/EMLS.lean} (Phase \textbf{2B}) compile with no \texttt{sorry}. Phase \textbf{2C} (decision procedure, §7) and \textbf{2D} (serialization and step counting, §8) are separate obligations.
+
+Set variables are identified with natural-number indices (\texttt{Nat\ →\ ZFSet} environments), matching the report's \(v_i\) notation. MLS formulas talk about membership chains \(v_i \in v_j \in v_k \in \cdots\). We use a custom axiomatized \texttt{ZFSet} sort so the development is self-contained and \texttt{evalTerm}/\texttt{evalFormula} are explicitly \texttt{noncomputable} (axioms are not compiled). A Mathlib-backed refactor would replace \texttt{axiom\ ZFSet} with imports from \texttt{Mathlib.Data.ZFC.Basic}.
+
+The listing below matches \protect\hyperlink{avgcasemls-mls-lean}{AvgCaseMls/MLS.lean}.
+
+\hypertarget{avgcasemls-mls-lean}{%
+\subsubsection{AvgCaseMls/MLS.lean}\label{avgcasemls-mls-lean}}
+
+\noindent\textbf{AvgCaseMls/MLS.lean}
+
+\begin{leancertbox}
+\lstinputlisting[style=leanbox]{build/arxiv-tex-listings/AvgCaseMls-MLS.lean}
+\end{leancertbox}
+
+\textbf{EMLS (Phase 2B).} Elementary literals and translation into MLS live in \protect\hyperlink{avgcasemls-emls-lean}{AvgCaseMls/EMLS.lean}, following Ferro--Omodeo--Schwartz {[}FOS80{]} §3 (\href{3-540-10009-1_8.pdf}{\texttt{3-540-10009-1\_8.pdf}}):
+
+\hypertarget{avgcasemls-emls-lean}{%
+\subsubsection{AvgCaseMls/EMLS.lean}\label{avgcasemls-emls-lean}}
+
+\noindent\textbf{AvgCaseMls/EMLS.lean}
+
+\begin{leancertbox}
+\lstinputlisting[style=leanbox]{build/arxiv-tex-listings/AvgCaseMls-EMLS.lean}
+\end{leancertbox}
+
+Normalization from general MLS formulas to EMLS conjuncts remains partial (\texttt{formulaToConjunct?} in §7); the model-graph decision procedure is §7 only.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\hypertarget{decision-procedures-for-mls-and-emls-in-lean-4}{%
+\subsection{7. Decision Procedures for MLS and EMLS in Lean 4}\label{decision-procedures-for-mls-and-emls-in-lean-4}}
+
+Phase \textbf{2C.} This section merges the decision-procedure mathematics with the Lean encoding. The primary reference is Ferro, Omodeo, and Schwartz {[}FOS80{]}---\emph{Decision procedures for some fragments of set theory}---as reproduced in \href{3-540-10009-1_8.pdf}{\texttt{3-540-10009-1\_8.pdf}} (§3: multilevel syllogistic without singleton or cardinality). TR1995-711 and §6 cite the same \textbf{model-graph / elementary-literal} pipeline.
+
+\hypertarget{problem-shape-fos80-3}{%
+\subsubsection{Problem shape (FOS80 §3)}\label{problem-shape-fos80-3}}
+
+Validity of an MLS formula reduces to satisfiability of a \textbf{conjunction} \(q\) of elementary literals over set variables \(x,y,z,\ldots\):
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.4000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.6000}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Form
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Literal
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\((*)\) & \(x = y \diamond z\) with \(\diamond \in \{\cup,\cap,\setminus\}\) \\
+\((\in)\) & \(x \in y\) \\
+\((\notin)\) & \(x \notin y\) \\
+\((\neq)\) & \(x \neq y\) \\
+\end{longtable}
+
+Let \(q^*\) be the sub-conjunction of \((*)\) literals, \(V_{\in}\) the variables appearing on the left of \((\in)\) / \((\notin)\) literals, and \(L_x\) the literals whose left-hand side is \(x\).
+
+\hypertarget{algorithm-outline-fos80-3}{%
+\subsubsection{Algorithm outline ({[}FOS80{]} §3)}\label{algorithm-outline-fos80-3}}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  \textbf{Step 1 (substitution):} For each \(x \in V_{\in}\), expand \(L_x\) using \((\neq)\) literals and merge equivalence classes from \(q^*\); replace membership literals \(x \in y\), \(x \notin y\) accordingly.
+\item
+  \textbf{Step 2:} If any literal \(x \neq x\) appears, return \textbf{UNSATISFIABLE}.
+\item
+  \textbf{Step 3:} If \(V_{\in}\) is empty, return \textbf{SATISFIABLE}.
+\item
+  \textbf{Step 4:} Search for a \textbf{singleton model} (every variable interpreted as a subset of \(\{\emptyset\}\)) by assigning an ordering \(x < y\) when \(M(x) \in M(y)\); detect cycles (e.g.~\(x \in y \land y \in z \land z \in x\)) as unsatisfiable. In the worst case TR1995-711 cites \(2^{4n^3}\) candidate models for \(n\) variables.
+\end{enumerate}
+
+{[}FOS80{]} §4 extends the language with singletons, cardinality, and arithmetic; we do \textbf{not} encode that extension yet.
+
+\hypertarget{lean-modules}{%
+\subsubsection{Lean modules}\label{lean-modules}}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.5000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.5000}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+File
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Role
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\protect\hyperlink{avgcasemls-emls-lean}{AvgCaseMls/EMLS.lean} & \texttt{Literal}, \texttt{Conjunct}, \texttt{literalToFormula}, \texttt{conjunctToFormula} \\
+\protect\hyperlink{avgcasemls-decidemls-lean}{AvgCaseMls/DecideMLS.lean} & \texttt{formulaToConjunct?}, \texttt{decideConjunct}, \texttt{decideMLSSat}, soundness/completeness \\
+\end{longtable}
+
+\textbf{Implemented today:} partial normalization (\texttt{formulaToConjunct?} on conjunctions of flat literals), FOS80 \textbf{Step 2} contradictions (\(x \neq x\), \(x \in y \land x \notin y\)), \textbf{Step 3} (no membership literals ⇒ SAT), and a \textbf{partial Step 4} (membership-order cycle detection). \textbf{Open:} full Step 1 substitution, complete singleton-model search, and proofs.
+
+\textbf{Satisfiability} (not validity):
+
+\begin{itemize}
+\item
+  \textbf{Soundness:} if \texttt{decideMLSSat\ φ\ =\ true}, then \(\exists env,\ \text{evalFormula}\ env\ \varphi\).
+\item
+  \textbf{Completeness:} if \(\varphi\) is satisfiable, then \texttt{decideMLSSat\ φ\ =\ true} (on the implemented fragment).
+\end{itemize}
+
+\hypertarget{avgcasemls-decidemls-lean}{%
+\subsubsection{AvgCaseMls/DecideMLS.lean}\label{avgcasemls-decidemls-lean}}
+
+\noindent\textbf{AvgCaseMls/DecideMLS.lean}
+
+\begin{leancertbox}
+\lstinputlisting[style=leanbox]{build/arxiv-tex-listings/AvgCaseMls-DecideMLS.lean}
+\end{leancertbox}
+
+The live implementation is \protect\hyperlink{avgcasemls-decidemls-lean}{AvgCaseMls/DecideMLS.lean}. A \textbf{step-counting} function \texttt{stepsMLS} (Phase 2D) will relate the procedure to \(\mathrm{Av}(T)\) in §5.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\hypertarget{lean-4-verification-proving-average-case-hardness-properties}{%
+\subsection{8. Lean 4 Verification: Proving Average-Case Hardness Properties}\label{lean-4-verification-proving-average-case-hardness-properties}}
+
+The AvCom classes are defined in §5; MLS syntax is in §6; decision procedures are in §7.
+
+\hypertarget{phase-3-encoding-and-np-membership}{%
+\subsubsection{Phase 3 --- Encoding and NP membership}\label{phase-3-encoding-and-np-membership}}
+
+\protect\hyperlink{avgcasemls-serialization-lean}{AvgCaseMls/Serialization.lean} defines \texttt{serializeFormula}, \texttt{SatMLS}, and encoding-size bounds. \protect\hyperlink{avgcasemls-npmembership-lean}{AvgCaseMls/NPMembership.lean} proves checker-based NP membership (\texttt{SatMLSChecker\_in\_NP}).
+
+\hypertarget{avgcasemls-serialization-lean}{%
+\subsubsection{AvgCaseMls/Serialization.lean}\label{avgcasemls-serialization-lean}}
+
+\noindent\textbf{AvgCaseMls/Serialization.lean}
+
+\begin{leancertbox}
+\lstinputlisting[style=leanbox]{build/arxiv-tex-listings/AvgCaseMls-Serialization.lean}
+\end{leancertbox}
+
+\hypertarget{avgcasemls-npmembership-lean}{%
+\subsubsection{AvgCaseMls/NPMembership.lean}\label{avgcasemls-npmembership-lean}}
+
+\noindent\textbf{AvgCaseMls/NPMembership.lean}
+
+\begin{leancertbox}
+\lstinputlisting[style=leanbox]{build/arxiv-tex-listings/AvgCaseMls-NPMembership.lean}
+\end{leancertbox}
+
+\hypertarget{phase-4-nbh-reduction-and-completeness}{%
+\subsubsection{Phase 4 --- NBH, reduction, and completeness}\label{phase-4-nbh-reduction-and-completeness}}
+
+\protect\hyperlink{avgcasemls-nbh-lean}{AvgCaseMls/NBH.lean} formalizes bounded halting (NBH), the rankable distribution μ₀, and distNP membership. \protect\hyperlink{avgcasemls-reduction-lean}{AvgCaseMls/Reduction.lean} constructs the domination-preserving reduction into \texttt{SatMLS}. \protect\hyperlink{avgcasemls-completeness-lean}{AvgCaseMls/Completeness.lean} proves NP-average completeness of \texttt{SatMLS}.
+
+\hypertarget{avgcasemls-nbh-lean}{%
+\subsubsection{AvgCaseMls/NBH.lean}\label{avgcasemls-nbh-lean}}
+
+\noindent\textbf{AvgCaseMls/NBH.lean}
+
+\begin{leancertbox}
+\lstinputlisting[style=leanbox]{build/arxiv-tex-listings/AvgCaseMls-NBH.lean}
+\end{leancertbox}
+
+\hypertarget{avgcasemls-reduction-lean}{%
+\subsubsection{AvgCaseMls/Reduction.lean}\label{avgcasemls-reduction-lean}}
+
+\noindent\textbf{AvgCaseMls/Reduction.lean}
+
+\begin{leancertbox}
+\lstinputlisting[style=leanbox]{build/arxiv-tex-listings/AvgCaseMls-Reduction.lean}
+\end{leancertbox}
+
+\hypertarget{avgcasemls-completeness-lean}{%
+\subsubsection{AvgCaseMls/Completeness.lean}\label{avgcasemls-completeness-lean}}
+
+\noindent\textbf{AvgCaseMls/Completeness.lean}
+
+\begin{leancertbox}
+\lstinputlisting[style=leanbox]{build/arxiv-tex-listings/AvgCaseMls-Completeness.lean}
+\end{leancertbox}
+
+\hypertarget{phase-5-hardness-and-non-avp-consequences}{%
+\subsubsection{Phase 5 --- Hardness and non-AvP consequences}\label{phase-5-hardness-and-non-avp-consequences}}
+
+The 1995 paper proves that the satisfiability of MLS formulas is \textbf{NP-average complete}. Under the defined AvCom classes, this implies that MLS cannot belong to \(\text{AvP}\) under certain rankable distributions unless the nondeterministic and deterministic exponential-time hierarchies collapse.
+
+We represent this structurally in Lean 4:
+
+\hypertarget{avgcasemls-complexityaxioms-lean}{%
+\subsubsection{AvgCaseMls/ComplexityAxioms.lean}\label{avgcasemls-complexityaxioms-lean}}
+
+\noindent\textbf{AvgCaseMls/ComplexityAxioms.lean}
+
+\begin{leancertbox}
+\lstinputlisting[style=leanbox]{build/arxiv-tex-listings/AvgCaseMls-ComplexityAxioms.lean}
+\end{leancertbox}
+
+\hypertarget{avgcasemls-averagehardness-lean}{%
+\subsubsection{AvgCaseMls/AverageHardness.lean}\label{avgcasemls-averagehardness-lean}}
+
+\noindent\textbf{AvgCaseMls/AverageHardness.lean}
+
+\begin{leancertbox}
+\lstinputlisting[style=leanbox]{build/arxiv-tex-listings/AvgCaseMls-AverageHardness.lean}
+\end{leancertbox}
+
+\hypertarget{avgcasemls-nonavp-lean}{%
+\subsubsection{AvgCaseMls/NonAvP.lean}\label{avgcasemls-nonavp-lean}}
+
+\noindent\textbf{AvgCaseMls/NonAvP.lean}
+
+\begin{leancertbox}
+\lstinputlisting[style=leanbox]{build/arxiv-tex-listings/AvgCaseMls-NonAvP.lean}
+\end{leancertbox}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\hypertarget{results}{%
+\subsection{9. Results}\label{results}}
+
+§9 is the \textbf{report card} for the proof program. Each row is a \textbf{subphase} from §1. \textbf{Outcome} is \textbf{TBD} while work is in progress, or one of the four accepted outcomes (\emph{Proofs check}; \emph{Lean is not expressive enough (yet)}; \emph{Paper proofs are wrong}; \emph{Field definitions are not solid}). Phase 0 (infrastructure) is complete and not graded here.
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.2500}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.4286}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3214}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Phase
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Phase goal
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Outcome
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\textbf{1A} & \texttt{Bitstring}, \texttt{len}, \texttt{lenBot}, \texttt{Distribution}, \texttt{DistributionalProblem}, \texttt{IsPolynomial} (§5); finite-support fork in \href{DEFINITION_FORKS.md}{\texttt{DEFINITION\_FORKS.md}} & Proofs check \\
+\textbf{1B} & \texttt{rank}, \texttt{T\_inv} without \texttt{sorry}; finite-support rank + partial \texttt{T\_inv} in \href{DEFINITION_FORKS.md}{\texttt{DEFINITION\_FORKS.md}} & Proofs check \\
+\textbf{1C} & \texttt{IsAvTime}, \texttt{rankLe}, \texttt{DistTime}, \texttt{AvDTime}, \texttt{IsTRankable}; forks in \href{DEFINITION_FORKS.md}{\texttt{DEFINITION\_FORKS.md}} & Proofs check \\
+\textbf{1D} & \texttt{AvP}, \texttt{InDistNP}, \texttt{DistributionalReduction}, \texttt{IsNPAverageComplete}; forks in \href{DEFINITION_FORKS.md}{\texttt{DEFINITION\_FORKS.md}} & Proofs check \\
+\textbf{2A} & MLS syntax + axiomatic semantics (§6) & Proofs check \\
+\textbf{2B} & \texttt{Literal}, \texttt{literalToFormula}, \texttt{conjunctToFormula}, \texttt{Literal.holds} (§6) & Proofs check \\
+\textbf{2C} & \texttt{decideMLSSat}, FOS80 Steps 2--4; sound + partial completeness on sound fragment (§7) & Proofs check (\texttt{decideMLSSat\_complete} \texttt{sorry}) \\
+\textbf{2D} & \texttt{serializeFormula}, \texttt{SatMLS}, \texttt{stepsMLS} (§8) & Proofs check \\
+\textbf{3A} & \texttt{SatMLSChecker\_in\_NP}, \texttt{decodeFormula?\_serializeFormula}; checker vs semantic \texttt{SatMLS} fork (§8) & Proofs check \\
+\textbf{3B} & \texttt{encodingBound}, \texttt{formulaSize\_le\_encodingBound}, \texttt{encodingBound\_poly} (§8) & Proofs check \\
+\textbf{4A} & \texttt{NBHChecker\_in\_NP}, \texttt{μ₀\_polRankable}, \texttt{nbhProb\_in\_DistNP}, codec round-trip (§8) & Proofs check \\
+\textbf{4B} & \texttt{nbhToSatMLS\_red}, \texttt{reduce\_domination}, \texttt{reduce\_correct} (§8) & Proofs check (modulo \texttt{nbhToMlsMap\_*} axioms) \\
+\textbf{4C} & \texttt{satMLSProb\_NPAverageComplete}, \texttt{IsNPAverageComplete.of\_reductor}, \texttt{DistributionalReduction.trans} (§8) & Proofs check (modulo \texttt{distNP\_reduces\_to\_nbh} axiom) \\
+\textbf{5A} & \texttt{not\_AvP\_of\_NPAverageComplete}, \texttt{NEXP\_eq\_EXP\_of\_AvP\_complete}, \texttt{nbhProb\_not\_AvP} (§8) & Proofs check (modulo collapse axioms) \\
+\textbf{5B} & \texttt{SatMLS\_average\_hard}, \texttt{SatMLS\_semantic\_not\_AvP}, \texttt{exists\_simple\_rankable\_not\_AvP} (§8) & Proofs check \\
+\end{longtable}
+
+\emph{Last updated: Phases \textbf{1A--1D}, \textbf{2A--2D}, \textbf{3A}, \textbf{3B}, \textbf{4A--4C}, \textbf{5A--5B} graded \textbf{Proofs check} where noted (modulo named axioms in \href{DEFINITION_FORKS.md}{\texttt{DEFINITION\_FORKS.md}}).}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\hypertarget{suggestions-for-future-work}{%
+\subsection{10. Suggestions for Future Work}\label{suggestions-for-future-work}}
+
+Building on this integration of automated theorem proving and structural complexity, several avenues for future work emerge:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  \textbf{Formalizing Smoothed Analysis in Lean 4:} While average-case complexity under fixed distributions can be overly pessimistic, formalizing Spielman-Teng smoothed analysis would allow researchers to verify the typical-case tractability of modern SAT/SMT algorithms under random perturbations.
+\item
+  \textbf{Verified SMT Solvers with Monadic Cost Models:} One could implement an executable SMT solver in Lean 4 (using a monadic state to track recursive steps) and formally prove that it runs in polynomial time on structured, non-random formula distributions.
+\item
+  \textbf{Extending Mathlib's Complexity Library:} The current complexity theory developments in Mathlib4 are focused on worst-case bounds. Standardizing Levin's structural average-case reductions, the domination condition, \(\text{DistTime}\), \(\text{AvDTime}\), and \(\text{AvP}\) in Mathlib would provide a robust framework for certifying post-quantum security and for revisiting TR1995-711-style applied completeness proofs.
+\item
+  \textbf{Step-counting the model-graph procedure:} Instrument \texttt{decideMLS} (or the full model-graph search) with a monadic step counter and prove \texttt{(stepsMLS,\ μ)\ ∈\ Av(T)} for the rankable distributions used in the report---closing the loop between §5 complexity classes and §6 decision procedures.
+\end{enumerate}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\hypertarget{acknowledgements}{%
+\subsection{Acknowledgements}\label{acknowledgements}}
+
+The human authors retain sole responsibility for the mathematical content, definition forks, axioms, and every statement graded in §9. Following standard publisher practice (e.g., COPE guidance on authorship and AI tools {[}COPE24{]}), \textbf{no large language model is listed as a co-author}---authorship implies accountability that automated systems cannot bear.
+
+We gratefully acknowledge assistance from the following tools:
+
+\textbf{Cursor} ({[}Cur25{]}): agent-assisted editing in the Cursor IDE, including models routed through Cursor's \textbf{Auto} agent mode (which may invoke Composer-family and other backend models depending on task). These agents helped draft and refactor Lean 4 modules, suggest proof and refactoring strategies, debug \texttt{lake} / type-class errors, maintain \texttt{./run\_lean\_check.sh} and smoke tests, and build the \texttt{arxiv\_with\_includes.md} pipeline. Generated Lean was treated as provisional until it compiled under CI and matched our forks in \texttt{DEFINITION\_FORKS.md}.
+
+\textbf{Google Gemini 3.5 Flash} ({[}Gem25{]}): independent technical briefs on Phases \textbf{4} and \textbf{5} (NBH codec invertibility, distributional-reduction transitivity, reduction correctness, and complexity-collapse axiomatization). Those briefs informed subsequent human-directed revisions; we did not adopt every recommendation verbatim (for example, we kept full \texttt{NBHChecker} scope via an axiomatized general TM→MLS map rather than restricting to a singleton language).
+
+All definitions, axiom choices, remaining \texttt{sorry} obligations, and final prose were reviewed and owned by the human authors. Intellectual property in the Lean codebase and this note rests with the authors under the project's stated license.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+\hypertarget{references}{%
+\subsection{References}\label{references}}
+
+\begin{itemize}
+\item
+  \textbf{{[}Ajt96{]}} Ajtai, M. (1996). Generating hard instances of lattice problems. \emph{STOC}.
+\item
+  \textbf{{[}BDCGL89{]}} Ben-David, S., Chor, B., Goldreich, O., \& Luby, M. (1989). On the theory of average case complexity. \emph{STOC}.
+\item
+  \textbf{{[}COPE24{]}} Committee on Publication Ethics (COPE). (2024). Authorship and AI tools: COPE position statement. https://publicationethics.org/guidance/cope-position/authorship-and-ai-tools
+\item
+  \textbf{{[}Cur25{]}} Anysphere, Inc.~Cursor: AI-native code editor and agent environment. https://cursor.com (accessed 2025).
+\item
+  \textbf{{[}deM08{]}} de Moura, L., \& Bjørner, N. (2008). Z3: An efficient SMT solver. \emph{TACAS}.
+\item
+  \textbf{{[}CEM95{]}} Cox, J., Ericson, L., \& Mishra, B. (1995). The average case complexity of multilevel syllogistic. \emph{NYU Courant Institute Technical Report TR1995-711}.
+\item
+  \textbf{{[}DS77{]}} Davis, M., \& Schwartz, J. T. (1977). Metamathematical extensibility for theorem verifiers. \emph{NYU Technical Report}.
+\item
+  \textbf{{[}FOS80{]}} Ferro, A., Omodeo, E. G., \& Schwartz, J. T. (1980). Decision procedures for elementary sublanguages of set theory. \emph{CPAM}.
+\item
+  \textbf{{[}Gol79{]}} Goldberg, A. T. (1979). On the complexity of the satisfiability problem. \emph{NYU PhD Thesis}.
+\item
+  \textbf{{[}Gem25{]}} Google DeepMind. (2025). Gemini model family (including Flash). Technical documentation and model cards. https://ai.google.dev/gemini-api/docs/models
+\item
+  \textbf{{[}Gur91{]}} Gurevich, Y. (1991). Average case completeness. \emph{Journal of Computer and System Sciences}.
+\item
+  \textbf{{[}Lev86{]}} Levin, L. (1986). Average case complete problems. \emph{SIAM Journal on Computing}.
+\item
+  \textbf{{[}Reg05{]}} Regev, O. (2005). On lattices, learning with errors, and cryptography. \emph{STOC}.
+\item
+  \textbf{{[}RS93{]}} Reischuk, R., \& Schindelhauer, C. (1993). Precise average case complexity. \emph{STOC}.
+\item
+  \textbf{{[}SY92{]}} Schnorr, C. P., \& Yoshida, T. (1992). Average-case complexity of NP-complete problems. \emph{STOC}.
+\item
+  \textbf{{[}Sny90a{]}} Snyder, W. K. (1990). The SETL2 programming language. \emph{NYU Technical Report}.
+\item
+  \textbf{{[}ST01{]}} Spielman, D. A., \& Teng, S. H. (2001). Smoothed analysis of algorithms. \emph{STOC}.
+\item
+  \textbf{{[}VR92{]}} Venkatesan, R., \& Rajagopalan, S. (1992). Average case intractability of matrix and Diophantine problems. \emph{STOC}.
+\end{itemize}
+
+
+\end{document}

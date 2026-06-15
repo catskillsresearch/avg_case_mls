@@ -52,6 +52,7 @@ Most theorem proofs are still `sorry`; tests cover the MLS embedding, FOS80 conj
 ./scripts/build_arxiv_with_includes.sh      # arxiv.md → arxiv_with_includes.md
 ./scripts/build_arxiv_with_includes_tex.sh  # arxiv_with_includes.md → arxiv_with_includes.tex
 latexmk arxiv_with_includes.tex             # LuaLaTeX PDF (see .latexmkrc)
+./scripts/package_arxiv_submit.sh           # dist/arxiv_with_includes_submit.zip for arXiv upload
 ```
 
 The TeX version uses the same `leancertbox` / `listings` preamble pattern as [icon2lean](https://github.com/catskillsresearch/icon2lean); full Lean modules are written to `build/arxiv-tex-listings/` and included via `\lstinputlisting`.

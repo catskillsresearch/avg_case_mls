@@ -1,6 +1,7 @@
 .vscode
 .lake
 /build/
+/dist/
 
 # LaTeX auxiliary / build files (PDFs are kept)
 *.aux

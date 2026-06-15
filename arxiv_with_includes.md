@@ -646,6 +646,11 @@ theorem of_avTime {T : Nat → Nat} {prob : DistributionalProblem} {f : Bitstrin
 theorem zero (T : Nat → Nat) (prob : DistributionalProblem) : DistTime T prob :=
   of_avTime (IsAvTime.zero T prob.μ)
 
+/-- Average-time witnesses depend only on the distribution, not the language label. -/
+theorem same_μ {L L' : Set Bitstring} {μ : Distribution} {T : Nat → Nat} :
+    DistTime T ⟨L, μ⟩ ↔ DistTime T ⟨L', μ⟩ :=
+  Iff.rfl
+
 end DistTime
 
 /--
@@ -810,6 +815,11 @@ theorem of_distTime {prob : DistributionalProblem} (hμ : IsPolRankable prob.μ)
 theorem zero {prob : DistributionalProblem} (hμ : IsPolRankable prob.μ) {T : Nat → Nat}
     (hT : IsPolynomial T) : AvP prob :=
   of_distTime hμ hT (DistTime.zero T prob)
+
+/-- [`AvP`] depends on the distribution and time bounds, not the language label (see [`DistTime.same_μ`]). -/
+theorem same_μ {L L' : Set Bitstring} {μ : Distribution} :
+    AvP ⟨L, μ⟩ ↔ AvP ⟨L', μ⟩ := by
+  constructor <;> intro ⟨hμ, T, hT, hDT⟩ <;> exact ⟨hμ, T, hT, by simpa [DistTime] using hDT⟩
 
 end AvP
 
@@ -2963,34 +2973,105 @@ theorem go_delim_suffix (pref suffix : Bitstring) :
   | nil => simp [go, delim]
   | cons b pref' _ => simp [go, delim, List.cons_append, List.nil_append]
 
-/--
-If `pref` does not contain the field delimiter, the first split in `pref ++ delim ++ suffix`
-occurs exactly at the intended boundary.
--/
-theorem append (pref suffix : Bitstring) (_h : delimFree pref) :
-    splitDelim (pref ++ delim ++ suffix) = some (pref, suffix) := by
-  sorry
+theorem delimFree_cons_append_eq_delim (b : Bool) (pref' s t : Bitstring)
+    (h : delimFree (b :: pref'))
+    (heq : b :: pref' ++ (delim ++ s) = delim ++ t) : False := by
+  rw [delim] at heq
+  set p := b :: pref'
+  by_cases hlt : p.length < 3
+  · have htake : List.take 3 (p ++ false :: false :: true :: s) = [false, false, true] :=
+      congrArg (List.take 3) heq
+    revert h
+    rcases b with rfl | rfl
+    · cases pref' with
+      | nil =>
+        have hleft : List.take 3 (p ++ false :: false :: true :: s) = [false, false, false] := by
+          simp [p, List.take, List.cons_append]
+        rw [hleft] at htake; exact fun _ => by cases htake
+      | cons head tail =>
+        cases head with
+        | false =>
+          cases tail with
+          | nil =>
+            have hleft : List.take 3 (p ++ false :: false :: true :: s) = [false, false, false] := by
+              simp [p, List.take, List.cons_append]
+            rw [hleft] at htake; exact fun _ => by cases htake
+          | cons _ tl =>
+            have hlen : 3 ≤ p.length := by simp [p]
+            exact fun _ => absurd hlt (Nat.not_lt.mpr hlen)
+        | true =>
+          cases tail with
+          | nil =>
+            have hleft : List.take 3 (p ++ false :: false :: true :: s) = [false, true, false] := by
+              simp [p, List.take, List.cons_append]
+            rw [hleft] at htake; exact fun _ => by cases htake
+          | cons _ tl =>
+            have hlen : 3 ≤ p.length := by simp [p]
+            exact fun _ => absurd hlt (Nat.not_lt.mpr hlen)
+    · cases pref' with
+      | nil =>
+        have hleft : List.take 3 (p ++ false :: false :: true :: s) = [true, false, false] := by
+          simp [p, List.take, List.cons_append]
+        rw [hleft] at htake; exact fun _ => by cases htake
+      | cons head tail =>
+        cases tail with
+        | nil =>
+          have hleft : List.take 3 (p ++ false :: false :: true :: s) = [true, head, false] := by
+            simp [p, List.take, List.cons_append]
+          rw [hleft] at htake; exact fun _ => by cases htake
+        | cons _ tl =>
+          have hlen : 3 ≤ p.length := by simp [p]
+          exact fun _ => absurd hlt (Nat.not_lt.mpr hlen)
+  · have hp : 3 ≤ p.length := Nat.le_of_not_gt hlt
+    have htake : p.take 3 = delim := by
+      have eq := congrArg (List.take 3) heq
+      simp [List.take_append, hp, delim] at eq
+      exact eq
+    apply h
+    exact List.IsPrefix.sublist ⟨p.drop 3, by rw [← htake, List.take_append_drop 3 p]⟩
+
+theorem go_cons_not_delim (acc : Bitstring) (headBit : Bool) (rest : Bitstring)
+    (hdel : ¬ ∃ s, headBit :: rest = false :: false :: true :: s) :
+    go acc (headBit :: rest) = go (acc ++ [headBit]) rest := by
+  cases rest with
+  | nil => simp [go]
+  | cons bf rest1 =>
+    cases bf with
+    | true => simp [go]
+    | false =>
+      cases rest1 with
+      | nil => simp [go]
+      | cons bf' rest2 =>
+        cases bf' with
+        | true =>
+          by_cases hh : headBit = false
+          · exact absurd ⟨rest2, by simp [hh]⟩ hdel
+          · cases headBit <;> simp_all [go]
+        | false => simp [go]
+
+theorem go_acc_append (acc pref suffix : Bitstring) (h : delimFree pref) :
+    splitDelim.go acc (pref ++ (delim ++ suffix)) = some (acc ++ pref, suffix) := by
+  induction pref generalizing acc suffix with
+  | nil => simp [go_delim_suffix, List.nil_append]
+  | cons b pref' ih =>
+    rw [List.cons_append]
+    by_cases hdel : ∃ s, b :: (pref' ++ (delim ++ suffix)) = false :: false :: true :: s
+    · obtain ⟨s, heq⟩ := hdel
+      exfalso
+      apply delimFree_cons_append_eq_delim b pref' suffix s h
+      rw [delim] at heq
+      exact heq
+    · rw [go_cons_not_delim acc b (pref' ++ (delim ++ suffix)) hdel]
+      simpa [List.cons_append] using ih (acc ++ [b]) suffix fun hsub => h (List.Sublist.cons b hsub)
+
+theorem append (pref suffix : Bitstring) (h : delimFree pref) :
+    splitDelim (pref ++ (delim ++ suffix)) = some (pref, suffix) := by
+  rw [splitDelim, go_acc_append [] pref suffix h, List.nil_append]
 
 end splitDelim
 
-namespace encodeNat
-
-theorem length (n : Nat) : (encodeNat n).length = n + 1 := by
-  induction n with
-  | zero => rfl
-  | succ n ih => simp [encodeNat, ih]
-
-/-- `encodeNat` outputs never contain two consecutive `false` bits (so not the delimiter). -/
-theorem not_sublist_delim (n : Nat) : ¬ List.Sublist delim (encodeNat n) := by
-  sorry
-
-theorem delimFree (n : Nat) : delimFree (encodeNat n) :=
-  not_sublist_delim n
-
-end encodeNat
-
 def encode (inst : NBHInstance) : Bitstring :=
-  inst.input ++ delim ++ encodeNat inst.machineId ++ delim ++ encodeNat inst.bound
+  inst.input ++ (delim ++ (encodeNat inst.machineId ++ (delim ++ encodeNat inst.bound)))
 
 def decode? (s : Bitstring) : Option (NBHInstance × Bitstring) :=
   match splitDelim s with
@@ -3009,13 +3090,46 @@ def decode? (s : Bitstring) : Option (NBHInstance × Bitstring) :=
 def ntm? (inst : NBHInstance) : Option NTM :=
   lookupMachine? inst.machineId
 
+end NBHInstance
+
+namespace encodeNat
+
+theorem length (n : Nat) : (encodeNat n).length = n + 1 := by
+  induction n with
+  | zero => rfl
+  | succ n ih => simp [encodeNat, ih]
+
+theorem count_false (n : Nat) : (encodeNat n).count false = 1 := by
+  induction n with
+  | zero => simp [encodeNat, List.count]
+  | succ n ih => simp [encodeNat, List.count_cons, ih, Bool.false_eq_true]
+
+theorem not_sublist_delim (n : Nat) : ¬ List.Sublist NBHInstance.delim (encodeNat n) := by
+  intro hsub
+  have hle := List.Sublist.count_le (a := false) hsub
+  have hdelim : NBHInstance.delim.count false = 2 := by decide
+  simpa [count_false, hdelim] using hle
+
+theorem delimFree (n : Nat) : NBHInstance.delimFree (encodeNat n) :=
+  not_sublist_delim n
+
+end encodeNat
+
+namespace NBHInstance
+
 theorem decode_encode (inst : NBHInstance) (h : WellFormed inst) :
     decode? (encode inst) = some (inst, []) := by
-  sorry
+  simp only [decode?, encode]
+  rw [splitDelim.append inst.input (encodeNat inst.machineId ++ (delim ++ encodeNat inst.bound)) h]
+  simp only [splitDelim.append (encodeNat inst.machineId) (encodeNat inst.bound)
+    (encodeNat.delimFree inst.machineId), decodeNat?.encode]
 
 theorem decode_encode_trivial (inst : NBHInstance) (h : inst.input = []) :
     decode? (encode inst) = some (inst, []) :=
-  decode_encode inst (by simp [WellFormed, delimFree, h, delim])
+  decode_encode inst (by
+    intro hsub
+    rw [h] at hsub
+    exact (by simp [delim] : delim ≠ []) (List.eq_nil_of_sublist_nil hsub))
 
 end NBHInstance
 
@@ -3029,6 +3143,12 @@ structure Config where
 
 namespace Config
 
+def delimFree (tape : Bitstring) : Prop :=
+  NBHInstance.delimFree tape
+
+def WellFormed (c : Config) : Prop :=
+  delimFree c.tape
+
 def initial (M : NTM) (input : Bitstring) : Config :=
   { state := M.start, head := 0, tape := input }
 
@@ -3038,8 +3158,9 @@ def step (M : NTM) (c : Config) : Option Config :=
   | some (s, h, t) => some { state := s, head := h, tape := t }
 
 def encode (c : Config) : Bitstring :=
-  encodeNat c.state ++ NBHInstance.delim ++ encodeNat c.head ++ NBHInstance.delim ++
-    encodeNat c.tape.length ++ c.tape
+  encodeNat c.state ++ (NBHInstance.delim ++
+    (encodeNat c.head ++ (NBHInstance.delim ++
+      encodeNat c.tape.length ++ (NBHInstance.delim ++ c.tape))))
 
 def decode? (s : Bitstring) : Option (Config × Bitstring) :=
   match NBHInstance.splitDelim s with
@@ -3054,36 +3175,111 @@ def decode? (s : Bitstring) : Option (Config × Bitstring) :=
         match decodeNat? headBits with
         | none => none
         | some (head, _) =>
-          match decodeNat? rest2 with
+          match NBHInstance.splitDelim rest2 with
           | none => none
-          | some (tapeLen, rest3) =>
-            if tapeLen ≤ rest3.length then
-              some ({ state, head, tape := rest3.take tapeLen }, rest3.drop tapeLen)
-            else
-              none
+          | some (tapeLenBits, rest3) =>
+            match decodeNat? tapeLenBits with
+            | none => none
+            | some (tapeLen, _) =>
+              if tapeLen ≤ rest3.length then
+                some ({ state, head, tape := rest3.take tapeLen }, rest3.drop tapeLen)
+              else
+                none
 
 theorem decode_encode (c : Config) : decode? (encode c) = some (c, []) := by
-  sorry
+  simp only [decode?, encode]
+  rw [NBHInstance.splitDelim.append (encodeNat c.state)
+    (encodeNat c.head ++ (NBHInstance.delim ++ encodeNat c.tape.length ++ (NBHInstance.delim ++ c.tape)))
+    (encodeNat.delimFree c.state)]
+  simp [decodeNat?.encode]
+  rw [NBHInstance.splitDelim.append (encodeNat c.head)
+    (encodeNat c.tape.length ++ (NBHInstance.delim ++ c.tape)) (encodeNat.delimFree c.head)]
+  simp [decodeNat?.encode]
+  rw [NBHInstance.splitDelim.append (encodeNat c.tape.length) c.tape (encodeNat.delimFree c.tape.length)]
+  simp [decodeNat?.encode, encodeNat.length, if_pos (Nat.le_refl c.tape.length),
+    List.take_length, List.drop_length]
+
+theorem decode?_append (c : Config) (rest : Bitstring) :
+    decode? (encode c ++ rest) = some (c, rest) := by
+  have henc :
+      encode c ++ rest =
+        encodeNat c.state ++
+          (NBHInstance.delim ++
+            (encodeNat c.head ++ (NBHInstance.delim ++
+              encodeNat c.tape.length ++ (NBHInstance.delim ++ (c.tape ++ rest))))) := by
+    simp [encode, List.append_assoc]
+  simp only [decode?]
+  rw [henc]
+  rw [NBHInstance.splitDelim.append (encodeNat c.state)
+    (encodeNat c.head ++ (NBHInstance.delim ++ encodeNat c.tape.length ++ (NBHInstance.delim ++ (c.tape ++ rest))))
+    (encodeNat.delimFree c.state)]
+  simp [decodeNat?.encode]
+  rw [NBHInstance.splitDelim.append (encodeNat c.head)
+    (encodeNat c.tape.length ++ (NBHInstance.delim ++ (c.tape ++ rest))) (encodeNat.delimFree c.head)]
+  simp [decodeNat?.encode]
+  rw [NBHInstance.splitDelim.append (encodeNat c.tape.length) (c.tape ++ rest)
+    (encodeNat.delimFree c.tape.length)]
+  have hle : c.tape.length ≤ (c.tape ++ rest).length := by
+    rw [List.length_append]
+    exact Nat.le_add_right _ _
+  simp [decodeNat?.encode, encodeNat.length, if_pos hle, List.length_take,
+    List.take_append, List.drop_append]
+
+theorem encode_length_pos (c : Config) : 0 < (encode c).length := by
+  simp [encode, NBHInstance.delim, encodeNat.length]
 
 end Config
 
 def encodeRun (run : List Config) : Bitstring :=
   run.foldl (fun acc c => acc ++ Config.encode c) []
 
-partial def decodeRun? (s : Bitstring) : Option (List Config × Bitstring) :=
-  if s = [] then
-    some ([], [])
-  else
+theorem encodeRun_cons (c : Config) (cs : List Config) :
+    encodeRun (c :: cs) = Config.encode c ++ encodeRun cs := by
+  simp [encodeRun, List.foldl_cons, List.foldl_nil, List.append_nil]
+
+def decodeRun?Fuel : Nat → Bitstring → Option (List Config × Bitstring)
+  | 0, _ => none
+  | fuel + 1, [] => some ([], [])
+  | fuel + 1, s =>
     match Config.decode? s with
     | none => none
     | some (c, rest) =>
-      match decodeRun? rest with
+      match decodeRun?Fuel fuel rest with
       | none => none
       | some (run, rest') => some (c :: run, rest')
 
+def decodeRun? (s : Bitstring) : Option (List Config × Bitstring) :=
+  decodeRun?Fuel (s.length + 1) s
+
+theorem decodeRun?Fuel_ge (fuel : Nat) (run : List Config)
+    (h : (encodeRun run).length + 1 ≤ fuel) :
+    decodeRun?Fuel fuel (encodeRun run) = some (run, []) := by
+  revert fuel
+  induction run with
+  | nil =>
+    intro fuel h
+    cases fuel with
+    | zero => omega
+    | succ fuel => simp [encodeRun, decodeRun?Fuel]
+  | cons c cs ih =>
+    intro fuel h
+    rw [encodeRun_cons] at h
+    rw [List.length_append] at h
+    have hpos := Config.encode_length_pos c
+    cases fuel with
+    | zero => omega
+    | succ fuel =>
+      have hcs := ih fuel (by omega)
+      have hlen : 0 < (c.encode ++ encodeRun cs).length := by
+        rw [List.length_append]
+        exact Nat.lt_of_lt_of_le hpos (Nat.le_add_right _ _)
+      have hne : c.encode ++ encodeRun cs ≠ [] := List.ne_nil_of_length_pos hlen
+      simp [encodeRun_cons, decodeRun?Fuel, Config.decode?_append, hcs, hne]
+
 theorem decodeRun?_encodeRun (run : List Config) :
     decodeRun? (encodeRun run) = some (run, []) := by
-  sorry
+  simp [decodeRun?]
+  exact decodeRun?Fuel_ge _ _ (Nat.le_refl _)
 
 def runSteps (run : List Config) : Nat :=
   run.length.pred
@@ -3272,6 +3468,11 @@ theorem satTargetEnc_ne_unsatTargetEnc : satTargetEnc ≠ unsatTargetEnc := by
 theorem satTargetEnc_in_checker : satTargetEnc ∈ SatMLSChecker := by
   rw [← verifySatMLS_true_iff]
   native_decide
+
+theorem satTargetEnc_in_SatMLS : satTargetEnc ∈ SatMLS := by
+  refine ⟨satTargetFormula, rfl, ?_⟩
+  refine ⟨fun _ => ZFSet.empty, ?_⟩
+  simp [evalFormula, evalTerm, satTargetFormula, Relation.eq]
 
 theorem unsatTargetEnc_not_in_checker : unsatTargetEnc ∉ SatMLSChecker := by
   intro h
@@ -3648,10 +3849,14 @@ theorem exists_simple_rankable_not_AvP (h : NEXP_neq_EXP) :
   exists_simple_rankable_checker_not_AvP h
 
 /--
-Semantic [`SatMLS`] on the same simple distribution — follows from checker AvP on the support point.
+Semantic [`SatMLS`] on the same simple distribution — [`AvP`] depends only on [`simpleSatμ`]
+(see [`AvP.same_μ`]), so checker hardness transfers directly.
 -/
 theorem SatMLS_semantic_not_AvP (h : NEXP_neq_EXP) : ¬ AvP ⟨SatMLS, simpleSatμ⟩ := by
-  sorry
+  intro hAvP
+  have hchecker : AvP satMLSProb := by
+    simpa [satMLSProb, simpleSatμ] using (AvP.same_μ (L := SatMLS) (L' := SatMLSChecker)).mp hAvP
+  exact SatMLS_average_hard h hchecker
 
 end NonAvP
 ```
@@ -3675,7 +3880,7 @@ end NonAvP
 | **2D** | `serializeFormula`, `SatMLS`, `stepsMLS` (§8) | Proofs check |
 | **3A** | `SatMLSChecker_in_NP`, `decodeFormula?_serializeFormula`; checker vs semantic `SatMLS` fork (§8) | Proofs check |
 | **3B** | `encodingBound`, `formulaSize_le_encodingBound`, `encodingBound_poly` (§8) | Proofs check |
-| **4A** | `NBHChecker_in_NP`, `μ₀_polRankable`, `nbhProb_in_DistNP` (§8) | Proofs check (`splitDelim.append`, `decode_encode` `sorry`) |
+| **4A** | `NBHChecker_in_NP`, `μ₀_polRankable`, `nbhProb_in_DistNP`, codec round-trip (§8) | Proofs check |
 | **4B** | `nbhToSatMLS_red`, `reduce_domination`, `reduce_correct` (§8) | Proofs check (modulo `nbhToMlsMap_*` axioms) |
 | **4C** | `satMLSProb_NPAverageComplete`, `IsNPAverageComplete.of_reductor`, `DistributionalReduction.trans` (§8) | Proofs check (modulo `distNP_reduces_to_nbh` axiom) |
 | **5A** | `not_AvP_of_NPAverageComplete`, `NEXP_eq_EXP_of_AvP_complete`, `nbhProb_not_AvP` (§8) | Proofs check (modulo collapse axioms) |

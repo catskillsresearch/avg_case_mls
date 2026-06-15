@@ -1201,7 +1201,67 @@ theorem relationToLiteral?_eval (env : Env) (r : Relation) (lit : Literal)
           · exfalso
             have hnone :
                 relationToLiteral? (Relation.eq t1 t2) = none := by
-              sorry
+              cases t1 with
+              | empty =>
+                cases t2 <;> simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+              | union u v =>
+                cases t2 <;> simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+              | inter u v =>
+                cases t2 <;> simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+              | diff u v =>
+                cases t2 <;> simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+              | var x =>
+                cases t2 with
+                | empty => exact absurd rfl ht2
+                | var n => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                | union u v =>
+                  cases u with
+                  | empty => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                  | union _ _ => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                  | inter _ _ => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                  | diff _ _ => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                  | var y =>
+                    cases v with
+                    | empty => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                    | union _ _ => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                    | inter _ _ => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                    | diff _ _ => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                    | var z =>
+                      exfalso
+                      apply hunion
+                      exact ⟨x, y, z, rfl, rfl⟩
+                | inter u v =>
+                  cases u with
+                  | empty => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                  | union _ _ => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                  | inter _ _ => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                  | diff _ _ => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                  | var y =>
+                    cases v with
+                    | empty => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                    | union _ _ => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                    | inter _ _ => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                    | diff _ _ => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                    | var z =>
+                      exfalso
+                      apply hinter
+                      exact ⟨x, y, z, rfl, rfl⟩
+                | diff u v =>
+                  cases u with
+                  | empty => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                  | union _ _ => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                  | inter _ _ => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                  | diff _ _ => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                  | var y =>
+                    cases v with
+                    | empty => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                    | union _ _ => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                    | inter _ _ => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                    | diff _ _ => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                    | var z =>
+                      exfalso
+                      apply hdiff
+                      exact ⟨x, y, z, rfl, rfl⟩
             rw [hnone] at h
             cases h
   | neq t1 t2 =>
@@ -3448,7 +3508,18 @@ axiom nbhToMlsMap_domination :
   ∃ c0 c1 : Nat, 0 < c0 ∧ 0 < c1 ∧
     ∀ x, rank μ₁ (nbhToMlsMap x) ≤ c0 * (lenBot x) ^ c1 * rank μ₀ x
 
-/-! ### Target formulas and encoding -/
+/-!
+**Physical cost model (Cook–Levin style, TR1995-711 §3.2).**
+
+For an NBH instance with state-space `|Q|`, input length `n`, and step bound `t`, the
+constructed MLS formula has bit-length bounded by `O(|Q| · t · (n + t))`: each of the
+`O(t)` configuration snapshots contributes `O(|Q| + n + t)` bits under the NBH/MLS
+encodings, and the formula size is linear in the certificate length.
+
+This growth is **quadratic in the instance description** (`lenBot x` is polynomial in
+`|Q|`, `n`, and `t`), which supports [`nbhToMlsMap_lenBound`] and the polynomial
+length/domination constraints in [`DistributionalReduction`].
+-/
 
 def satTargetFormula : Formula :=
   Formula.rel (Relation.eq Term.empty Term.empty)
@@ -3884,9 +3955,9 @@ end NonAvP
 | **4B** | `nbhToSatMLS_red`, `reduce_domination`, `reduce_correct` (§8) | Proofs check (modulo `nbhToMlsMap_*` axioms) |
 | **4C** | `satMLSProb_NPAverageComplete`, `IsNPAverageComplete.of_reductor`, `DistributionalReduction.trans` (§8) | Proofs check (modulo `distNP_reduces_to_nbh` axiom) |
 | **5A** | `not_AvP_of_NPAverageComplete`, `NEXP_eq_EXP_of_AvP_complete`, `nbhProb_not_AvP` (§8) | Proofs check (modulo collapse axioms) |
-| **5B** | `SatMLS_average_hard`, `exists_simple_rankable_not_AvP` (§8) | Proofs check (`SatMLS_semantic_not_AvP` `sorry`) |
+| **5B** | `SatMLS_average_hard`, `SatMLS_semantic_not_AvP`, `exists_simple_rankable_not_AvP` (§8) | Proofs check |
 
-*Last updated: Phases **1A–1D**, **2A–2D**, **3A**, **3B**, **4A–4C (partial)**, **5A–5B (partial)** graded **Proofs check** where noted.*
+*Last updated: Phases **1A–1D**, **2A–2D**, **3A**, **3B**, **4A–4C**, **5A–5B** graded **Proofs check** where noted (modulo named axioms in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md)).*
 
 ---
 

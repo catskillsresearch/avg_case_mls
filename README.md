@@ -51,11 +51,15 @@ Most theorem proofs are still `sorry`; tests cover the MLS embedding, FOS80 conj
 ```bash
 ./scripts/build_arxiv_with_includes.sh      # arxiv.md → arxiv_with_includes.md
 ./scripts/build_arxiv_with_includes_tex.sh  # arxiv_with_includes.md → arxiv_with_includes.tex
-latexmk arxiv_with_includes.tex             # LuaLaTeX PDF (see .latexmkrc)
+latexmk arxiv_with_includes.tex             # local PDF (LuaLaTeX via .latexmkrc)
+pdflatex arxiv_with_includes.tex            # same sources; matches arXiv AutoTeX
 ./scripts/package_arxiv_submit.sh           # dist/arxiv_with_includes_submit.zip for arXiv upload
+./scripts/package_arxiv_pdf_only.sh         # PDF-only fallback if Check Files UI is stuck
 ```
 
-The TeX version uses the same `leancertbox` / `listings` preamble pattern as [icon2lean](https://github.com/catskillsresearch/icon2lean); full Lean modules are written to `build/arxiv-tex-listings/` and included via `\lstinputlisting`.
+**arXiv Check Files stuck?** On Add Files, click **Delete All** before uploading a new zip — arXiv **merges** uploads; it does not replace the old package, so stale files (old `build/`, `00README.json`, etc.) linger until you clear them. Then upload one fresh zip, click **Check Files** on the right, wait 1–2 minutes, and hard-refresh (Ctrl+Shift+R). If the TeX UI remains broken, use `./scripts/package_arxiv_pdf_only.sh` and submit the PDF.
+
+The TeX build uses `scripts/tex_preamble_arxiv.tex` (pdfLaTeX-safe). Lean appendix listings live in `lean-listings/` (ASCII-transliterated for arXiv) and are included via `\lstinputlisting`.
 
 ## Contributions and Collaboration
 

@@ -10,10 +10,15 @@ import textwrap
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+SCRIPTS = Path(__file__).resolve().parent
+sys.path.insert(0, str(SCRIPTS))
+from lean_listing_sanitize import chunk_line_ranges, sanitize_lean_for_arxiv
+
 SRC = ROOT / "arxiv_with_includes.md"
 OUT = ROOT / "arxiv_with_includes.tex"
-PREAMBLE = Path(__file__).resolve().parent / "tex_preamble.tex"
-LISTINGS_DIR = ROOT / "build" / "arxiv-tex-listings"
+PREAMBLE = Path(__file__).resolve().parent / "tex_preamble_arxiv.tex"
+LISTINGS_DIR = ROOT / "lean-listings"
+LISTING_CHUNK_LINES = 400
 
 PORTABLE_RE = re.compile(
     r"^> \*\*Portable edition:\*\*.*?(?:\n(?!\n|\#).*)*\n\n",
@@ -75,15 +80,32 @@ def escape_latex(text: str) -> str:
 
 def lean_block_latex(title: str | None, code: str, listing_name: str) -> str:
     LISTINGS_DIR.mkdir(parents=True, exist_ok=True)
+    sanitized = sanitize_lean_for_arxiv(code).rstrip("\n")
     listing_path = LISTINGS_DIR / listing_name
-    listing_path.write_text(code.rstrip("\n") + "\n", encoding="utf-8")
+    listing_path.write_text(sanitized + "\n", encoding="ascii", errors="strict")
     rel_path = listing_path.relative_to(ROOT).as_posix()
+    line_count = len(sanitized.splitlines()) if sanitized else 0
+    ranges = chunk_line_ranges(line_count, LISTING_CHUNK_LINES)
+
     parts: list[str] = []
     if title:
         parts.append(f"\\noindent\\textbf{{{escape_latex(title)}}}\n\n")
-    parts.append("\\begin{leancertbox}\n")
-    parts.append(f"\\lstinputlisting[style=leanbox]{{{rel_path}}}\n")
-    parts.append("\\end{leancertbox}\n\n")
+    for first, last in ranges:
+        if first == 1 and last == line_count:
+            parts.append(
+                "\\vspace{0.75\\baselineskip}\n"
+                "\\noindent\\textcolor{green!40!black}{\\textbf{Lean 4 Certificate}}"
+                "\\par\\vspace{0.25\\baselineskip}\n"
+                f"\\lstinputlisting[style=leanbox]{{{rel_path}}}\n"
+                "\\vspace{0.75\\baselineskip}\n\n"
+            )
+        else:
+            parts.append(
+                f"\\noindent\\textcolor{{green!40!black}}{{\\textbf{{Lean 4 Certificate "
+                f"(lines {first}--{last})}}}}\\par\\vspace{{0.25\\baselineskip}}\n"
+                f"\\lstinputlisting[style=leanbox,firstline={first},lastline={last}]"
+                f"{{{rel_path}}}\n\n"
+            )
     return "".join(parts)
 
 

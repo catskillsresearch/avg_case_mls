@@ -1,0 +1,63 @@
+{
+  "process": {
+    "compiler": "pdflatex"
+  },
+  "sources": [
+    {
+      "filename": "arxiv_with_includes.tex",
+      "usage": "toplevel"
+    },
+    {
+      "filename": "figures/nose.png",
+      "usage": "include"
+    },
+    {
+      "filename": "lean-listings/AvgCaseMls-AvCom.lean",
+      "usage": "include"
+    },
+    {
+      "filename": "lean-listings/AvgCaseMls-AverageHardness.lean",
+      "usage": "include"
+    },
+    {
+      "filename": "lean-listings/AvgCaseMls-Completeness.lean",
+      "usage": "include"
+    },
+    {
+      "filename": "lean-listings/AvgCaseMls-ComplexityAxioms.lean",
+      "usage": "include"
+    },
+    {
+      "filename": "lean-listings/AvgCaseMls-DecideMLS.lean",
+      "usage": "include"
+    },
+    {
+      "filename": "lean-listings/AvgCaseMls-EMLS.lean",
+      "usage": "include"
+    },
+    {
+      "filename": "lean-listings/AvgCaseMls-MLS.lean",
+      "usage": "include"
+    },
+    {
+      "filename": "lean-listings/AvgCaseMls-NBH.lean",
+      "usage": "include"
+    },
+    {
+      "filename": "lean-listings/AvgCaseMls-NPMembership.lean",
+      "usage": "include"
+    },
+    {
+      "filename": "lean-listings/AvgCaseMls-NonAvP.lean",
+      "usage": "include"
+    },
+    {
+      "filename": "lean-listings/AvgCaseMls-Reduction.lean",
+      "usage": "include"
+    },
+    {
+      "filename": "lean-listings/AvgCaseMls-Serialization.lean",
+      "usage": "include"
+    }
+  ]
+}

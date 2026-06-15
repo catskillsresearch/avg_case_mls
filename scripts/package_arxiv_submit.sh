@@ -7,7 +7,7 @@ cd "$ROOT"
 
 TEX="arxiv_with_includes.tex"
 FIGURE="figures/nose.png"
-LISTINGS_DIR="build/arxiv-tex-listings"
+LISTINGS_DIR="lean-listings"
 OUT_DIR="dist"
 ZIP="${OUT_DIR}/arxiv_with_includes_submit.zip"
 
@@ -39,8 +39,23 @@ fi
 mkdir -p "$OUT_DIR"
 rm -f "$ZIP"
 
-echo "==> Packaging (paths relative to $TEX)"
+echo "==> Writing 00README.json (mark .lean files as include so arXiv does not drop them)"
+python3 - <<'PY'
+import json
+from pathlib import Path
+
+sources = [{"filename": "arxiv_with_includes.tex", "usage": "toplevel"}]
+sources.append({"filename": "figures/nose.png", "usage": "include"})
+for path in sorted(Path("lean-listings").glob("*.lean")):
+    sources.append({"filename": path.as_posix(), "usage": "include"})
+readme = {"process": {"compiler": "pdflatex"}, "sources": sources}
+Path("00README.json").write_text(json.dumps(readme, indent=2) + "\n")
+print(f"  {len(sources)} sources")
+PY
+
+echo "==> Packaging"
 zip -r "$ZIP" \
+  00README.json \
   "$TEX" \
   "$FIGURE" \
   "$LISTINGS_DIR"/*.lean
@@ -49,4 +64,7 @@ echo "wrote $ZIP ($(du -h "$ZIP" | cut -f1))"
 echo "Contents:"
 zipinfo -1 "$ZIP" | sed 's/^/  /'
 echo
-echo "Upload $ZIP to arXiv. Compile with LuaLaTeX (pdfLaTeX may run out of memory)."
+echo "Upload $ZIP to arXiv (pdfLaTeX; Lean listings are ASCII-sanitized for AutoTeX)."
+echo
+echo "On arXiv Add Files: Delete All before uploading (uploads merge, they do not replace)."
+echo "On arXiv Review Files: if any lean-listings/*.lean are marked for deletion, UNCHECK them."

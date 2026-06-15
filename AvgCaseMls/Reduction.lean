@@ -59,6 +59,11 @@ theorem satTargetEnc_in_checker : satTargetEnc ∈ SatMLSChecker := by
   rw [← verifySatMLS_true_iff]
   native_decide
 
+theorem satTargetEnc_in_SatMLS : satTargetEnc ∈ SatMLS := by
+  refine ⟨satTargetFormula, rfl, ?_⟩
+  refine ⟨fun _ => ZFSet.empty, ?_⟩
+  simp [evalFormula, evalTerm, satTargetFormula, Relation.eq]
+
 theorem unsatTargetEnc_not_in_checker : unsatTargetEnc ∉ SatMLSChecker := by
   intro h
   have hver : verifySatMLS unsatTargetEnc [] = true := (verifySatMLS_true_iff unsatTargetEnc).mpr h

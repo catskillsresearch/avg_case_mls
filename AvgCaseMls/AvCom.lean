@@ -312,6 +312,11 @@ theorem of_avTime {T : Nat → Nat} {prob : DistributionalProblem} {f : Bitstrin
 theorem zero (T : Nat → Nat) (prob : DistributionalProblem) : DistTime T prob :=
   of_avTime (IsAvTime.zero T prob.μ)
 
+/-- Average-time witnesses depend only on the distribution, not the language label. -/
+theorem same_μ {L L' : Set Bitstring} {μ : Distribution} {T : Nat → Nat} :
+    DistTime T ⟨L, μ⟩ ↔ DistTime T ⟨L', μ⟩ :=
+  Iff.rfl
+
 end DistTime
 
 /--
@@ -476,6 +481,11 @@ theorem of_distTime {prob : DistributionalProblem} (hμ : IsPolRankable prob.μ)
 theorem zero {prob : DistributionalProblem} (hμ : IsPolRankable prob.μ) {T : Nat → Nat}
     (hT : IsPolynomial T) : AvP prob :=
   of_distTime hμ hT (DistTime.zero T prob)
+
+/-- [`AvP`] depends on the distribution and time bounds, not the language label (see [`DistTime.same_μ`]). -/
+theorem same_μ {L L' : Set Bitstring} {μ : Distribution} :
+    AvP ⟨L, μ⟩ ↔ AvP ⟨L', μ⟩ := by
+  constructor <;> intro ⟨hμ, T, hT, hDT⟩ <;> exact ⟨hμ, T, hT, by simpa [DistTime] using hDT⟩
 
 end AvP
 

@@ -80,9 +80,13 @@ theorem exists_simple_rankable_not_AvP (h : NEXP_neq_EXP) :
   exists_simple_rankable_checker_not_AvP h
 
 /--
-Semantic [`SatMLS`] on the same simple distribution — follows from checker AvP on the support point.
+Semantic [`SatMLS`] on the same simple distribution — [`AvP`] depends only on [`simpleSatμ`]
+(see [`AvP.same_μ`]), so checker hardness transfers directly.
 -/
 theorem SatMLS_semantic_not_AvP (h : NEXP_neq_EXP) : ¬ AvP ⟨SatMLS, simpleSatμ⟩ := by
-  sorry
+  intro hAvP
+  have hchecker : AvP satMLSProb := by
+    simpa [satMLSProb, simpleSatμ] using (AvP.same_μ (L := SatMLS) (L' := SatMLSChecker)).mp hAvP
+  exact SatMLS_average_hard h hchecker
 
 end NonAvP

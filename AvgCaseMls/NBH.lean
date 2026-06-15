@@ -145,34 +145,64 @@ theorem go_delim_suffix (pref suffix : Bitstring) :
   | nil => simp [go, delim]
   | cons b pref' _ => simp [go, delim, List.cons_append, List.nil_append]
 
-/--
-If `pref` does not contain the field delimiter, the first split in `pref ++ delim ++ suffix`
-occurs exactly at the intended boundary.
--/
-theorem append (pref suffix : Bitstring) (_h : delimFree pref) :
-    splitDelim (pref ++ delim ++ suffix) = some (pref, suffix) := by
-  sorry
+theorem delimFree_cons_append_eq_delim (b : Bool) (pref' s t : Bitstring)
+    (h : delimFree (b :: pref'))
+    (heq : b :: pref' ++ (delim ++ s) = delim ++ t) : False := by
+  rw [delim] at heq
+  set p := b :: pref'
+  by_cases hlt : p.length < 3
+  · have h1 := congrArg (fun l => l[1]!) heq
+    have h2 := congrArg (fun l => l[2]!) heq
+    rcases b with rfl | rfl
+    · cases pref' with
+      | nil => simp [List.cons_append, delim] at h1 h2
+      | cons head tail =>
+        cases head with
+        | false =>
+          cases tail with
+          | nil => simp [List.cons_append, delim] at h1 h2
+          | cons b1 tl => cases b1 <;> cases tl <;> simp [List.cons_append, delim] at h1 h2
+        | true => simp [List.cons_append, delim] at h1 h2
+    · simp [p, List.cons_append, delim] at h1 h2
+  · have hp : 3 ≤ p.length := Nat.le_of_not_gt hlt
+    have htake : p.take 3 = delim := by
+      have eq := congrArg (List.take 3) heq
+      simp [List.take_append, hp, delim] at eq
+      exact eq
+    apply h
+    exact List.IsPrefix.sublist ⟨p.drop 3, by rw [← htake, List.take_append_drop 3 p]⟩
+
+theorem go_cons_not_delim (acc : Bitstring) (headBit : Bool) (rest : Bitstring)
+    (hne : headBit :: rest ≠ [])
+    (hdel : ¬ ∃ s, headBit :: rest = false :: false :: true :: s) :
+    go acc (headBit :: rest) = go (acc ++ [headBit]) rest := by
+  rw [go]
+  simp [hne, hdel, delim]
+
+theorem go_acc_append (acc pref suffix : Bitstring) (h : delimFree pref) :
+    splitDelim.go acc (pref ++ (delim ++ suffix)) = some (acc ++ pref, suffix) := by
+  induction pref generalizing acc suffix with
+  | nil => simp [go_delim_suffix, List.nil_append]
+  | cons b pref' ih =>
+    rw [List.cons_append]
+    by_cases hdel : ∃ s, b :: (pref' ++ (delim ++ suffix)) = false :: false :: true :: s
+    · obtain ⟨s, heq⟩ := hdel
+      exfalso
+      apply delimFree_cons_append_eq_delim b pref' suffix s h
+      rw [delim] at heq
+      exact heq
+    · rw [go_cons_not_delim acc b (pref' ++ (delim ++ suffix))
+        (List.cons_ne_nil _ _) hdel]
+      exact ih (acc ++ [b]) suffix fun hsub => h (List.Sublist.cons b hsub)
+
+theorem append (pref suffix : Bitstring) (h : delimFree pref) :
+    splitDelim (pref ++ (delim ++ suffix)) = some (pref, suffix) := by
+  rw [splitDelim, go_acc_append [] pref suffix h, List.nil_append]
 
 end splitDelim
 
-namespace encodeNat
-
-theorem length (n : Nat) : (encodeNat n).length = n + 1 := by
-  induction n with
-  | zero => rfl
-  | succ n ih => simp [encodeNat, ih]
-
-/-- `encodeNat` outputs never contain two consecutive `false` bits (so not the delimiter). -/
-theorem not_sublist_delim (n : Nat) : ¬ List.Sublist delim (encodeNat n) := by
-  sorry
-
-theorem delimFree (n : Nat) : delimFree (encodeNat n) :=
-  not_sublist_delim n
-
-end encodeNat
-
 def encode (inst : NBHInstance) : Bitstring :=
-  inst.input ++ delim ++ encodeNat inst.machineId ++ delim ++ encodeNat inst.bound
+  inst.input ++ (delim ++ (encodeNat inst.machineId ++ (delim ++ encodeNat inst.bound)))
 
 def decode? (s : Bitstring) : Option (NBHInstance × Bitstring) :=
   match splitDelim s with
@@ -191,13 +221,46 @@ def decode? (s : Bitstring) : Option (NBHInstance × Bitstring) :=
 def ntm? (inst : NBHInstance) : Option NTM :=
   lookupMachine? inst.machineId
 
+end NBHInstance
+
+namespace encodeNat
+
+theorem length (n : Nat) : (encodeNat n).length = n + 1 := by
+  induction n with
+  | zero => rfl
+  | succ n ih => simp [encodeNat, ih]
+
+theorem count_false (n : Nat) : (encodeNat n).count false = 1 := by
+  induction n with
+  | zero => simp [encodeNat, List.count]
+  | succ n ih => simp [encodeNat, List.count_cons, ih, Bool.false_eq_true]
+
+theorem not_sublist_delim (n : Nat) : ¬ List.Sublist NBHInstance.delim (encodeNat n) := by
+  intro hsub
+  have hle := List.Sublist.count_le (a := false) hsub
+  have hdelim : NBHInstance.delim.count false = 2 := by decide
+  simpa [count_false, hdelim] using hle
+
+theorem delimFree (n : Nat) : NBHInstance.delimFree (encodeNat n) :=
+  not_sublist_delim n
+
+end encodeNat
+
+namespace NBHInstance
+
 theorem decode_encode (inst : NBHInstance) (h : WellFormed inst) :
     decode? (encode inst) = some (inst, []) := by
-  sorry
+  simp only [decode?, encode]
+  rw [splitDelim.append inst.input (encodeNat inst.machineId ++ (delim ++ encodeNat inst.bound)) h]
+  simp only [splitDelim.append (encodeNat inst.machineId) (encodeNat inst.bound)
+    (encodeNat.delimFree inst.machineId), decodeNat?.encode]
 
 theorem decode_encode_trivial (inst : NBHInstance) (h : inst.input = []) :
     decode? (encode inst) = some (inst, []) :=
-  decode_encode inst (by simp [WellFormed, delimFree, h, delim])
+  decode_encode inst (by
+    intro hsub
+    rw [h] at hsub
+    exact (by simp [delim] : delim ≠ []) (List.eq_nil_of_sublist_nil hsub))
 
 end NBHInstance
 
@@ -211,6 +274,12 @@ structure Config where
 
 namespace Config
 
+def delimFree (tape : Bitstring) : Prop :=
+  NBHInstance.delimFree tape
+
+def WellFormed (c : Config) : Prop :=
+  delimFree c.tape
+
 def initial (M : NTM) (input : Bitstring) : Config :=
   { state := M.start, head := 0, tape := input }
 
@@ -220,8 +289,9 @@ def step (M : NTM) (c : Config) : Option Config :=
   | some (s, h, t) => some { state := s, head := h, tape := t }
 
 def encode (c : Config) : Bitstring :=
-  encodeNat c.state ++ NBHInstance.delim ++ encodeNat c.head ++ NBHInstance.delim ++
-    encodeNat c.tape.length ++ c.tape
+  encodeNat c.state ++ (NBHInstance.delim ++
+    (encodeNat c.head ++ (NBHInstance.delim ++
+      encodeNat c.tape.length ++ (NBHInstance.delim ++ c.tape))))
 
 def decode? (s : Bitstring) : Option (Config × Bitstring) :=
   match NBHInstance.splitDelim s with
@@ -236,36 +306,111 @@ def decode? (s : Bitstring) : Option (Config × Bitstring) :=
         match decodeNat? headBits with
         | none => none
         | some (head, _) =>
-          match decodeNat? rest2 with
+          match NBHInstance.splitDelim rest2 with
           | none => none
-          | some (tapeLen, rest3) =>
-            if tapeLen ≤ rest3.length then
-              some ({ state, head, tape := rest3.take tapeLen }, rest3.drop tapeLen)
-            else
-              none
+          | some (tapeLenBits, rest3) =>
+            match decodeNat? tapeLenBits with
+            | none => none
+            | some (tapeLen, _) =>
+              if tapeLen ≤ rest3.length then
+                some ({ state, head, tape := rest3.take tapeLen }, rest3.drop tapeLen)
+              else
+                none
 
 theorem decode_encode (c : Config) : decode? (encode c) = some (c, []) := by
-  sorry
+  simp only [decode?, encode]
+  rw [NBHInstance.splitDelim.append (encodeNat c.state)
+    (encodeNat c.head ++ (NBHInstance.delim ++ encodeNat c.tape.length ++ (NBHInstance.delim ++ c.tape)))
+    (encodeNat.delimFree c.state)]
+  simp [decodeNat?.encode]
+  rw [NBHInstance.splitDelim.append (encodeNat c.head)
+    (encodeNat c.tape.length ++ (NBHInstance.delim ++ c.tape)) (encodeNat.delimFree c.head)]
+  simp [decodeNat?.encode]
+  rw [NBHInstance.splitDelim.append (encodeNat c.tape.length) c.tape (encodeNat.delimFree c.tape.length)]
+  simp [decodeNat?.encode, encodeNat.length, if_pos (Nat.le_refl c.tape.length),
+    List.take_length, List.drop_length]
+
+theorem decode?_append (c : Config) (rest : Bitstring) :
+    decode? (encode c ++ rest) = some (c, rest) := by
+  have henc :
+      encode c ++ rest =
+        encodeNat c.state ++
+          (NBHInstance.delim ++
+            (encodeNat c.head ++ (NBHInstance.delim ++
+              encodeNat c.tape.length ++ (NBHInstance.delim ++ (c.tape ++ rest))))) := by
+    simp [encode, List.append_assoc]
+  simp only [decode?]
+  rw [henc]
+  rw [NBHInstance.splitDelim.append (encodeNat c.state)
+    (encodeNat c.head ++ (NBHInstance.delim ++ encodeNat c.tape.length ++ (NBHInstance.delim ++ (c.tape ++ rest))))
+    (encodeNat.delimFree c.state)]
+  simp [decodeNat?.encode]
+  rw [NBHInstance.splitDelim.append (encodeNat c.head)
+    (encodeNat c.tape.length ++ (NBHInstance.delim ++ (c.tape ++ rest))) (encodeNat.delimFree c.head)]
+  simp [decodeNat?.encode]
+  rw [NBHInstance.splitDelim.append (encodeNat c.tape.length) (c.tape ++ rest)
+    (encodeNat.delimFree c.tape.length)]
+  have hle : c.tape.length ≤ (c.tape ++ rest).length := by
+    rw [List.length_append]
+    exact Nat.le_add_right _ _
+  simp [decodeNat?.encode, encodeNat.length, if_pos hle, List.length_take,
+    List.take_append, List.drop_append]
+
+theorem encode_length_pos (c : Config) : 0 < (encode c).length := by
+  simp [encode, NBHInstance.delim, encodeNat.length]
 
 end Config
 
 def encodeRun (run : List Config) : Bitstring :=
   run.foldl (fun acc c => acc ++ Config.encode c) []
 
-partial def decodeRun? (s : Bitstring) : Option (List Config × Bitstring) :=
-  if s = [] then
-    some ([], [])
-  else
+theorem encodeRun_cons (c : Config) (cs : List Config) :
+    encodeRun (c :: cs) = Config.encode c ++ encodeRun cs := by
+  simp [encodeRun, List.foldl_cons, List.foldl_nil, List.append_nil]
+
+def decodeRun?Fuel : Nat → Bitstring → Option (List Config × Bitstring)
+  | 0, _ => none
+  | fuel + 1, [] => some ([], [])
+  | fuel + 1, s =>
     match Config.decode? s with
     | none => none
     | some (c, rest) =>
-      match decodeRun? rest with
+      match decodeRun?Fuel fuel rest with
       | none => none
       | some (run, rest') => some (c :: run, rest')
 
+def decodeRun? (s : Bitstring) : Option (List Config × Bitstring) :=
+  decodeRun?Fuel (s.length + 1) s
+
+theorem decodeRun?Fuel_ge (fuel : Nat) (run : List Config)
+    (h : (encodeRun run).length + 1 ≤ fuel) :
+    decodeRun?Fuel fuel (encodeRun run) = some (run, []) := by
+  revert fuel
+  induction run with
+  | nil =>
+    intro fuel h
+    cases fuel with
+    | zero => omega
+    | succ fuel => simp [encodeRun, decodeRun?Fuel]
+  | cons c cs ih =>
+    intro fuel h
+    rw [encodeRun_cons] at h
+    rw [List.length_append] at h
+    have hpos := Config.encode_length_pos c
+    cases fuel with
+    | zero => omega
+    | succ fuel =>
+      have hcs := ih fuel (by omega)
+      have hlen : 0 < (c.encode ++ encodeRun cs).length := by
+        rw [List.length_append]
+        exact Nat.lt_of_lt_of_le hpos (Nat.le_add_right _ _)
+      have hne : c.encode ++ encodeRun cs ≠ [] := List.ne_nil_of_length_pos hlen
+      simp [encodeRun_cons, decodeRun?Fuel, Config.decode?_append, hcs, hne]
+
 theorem decodeRun?_encodeRun (run : List Config) :
     decodeRun? (encodeRun run) = some (run, []) := by
-  sorry
+  simp [decodeRun?]
+  exact decodeRun?Fuel_ge _ _ (Nat.le_refl _)
 
 def runSteps (run : List Config) : Nat :=
   run.length.pred

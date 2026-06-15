@@ -227,7 +227,67 @@ theorem relationToLiteral?_eval (env : Env) (r : Relation) (lit : Literal)
           · exfalso
             have hnone :
                 relationToLiteral? (Relation.eq t1 t2) = none := by
-              sorry
+              cases t1 with
+              | empty =>
+                cases t2 <;> simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+              | union u v =>
+                cases t2 <;> simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+              | inter u v =>
+                cases t2 <;> simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+              | diff u v =>
+                cases t2 <;> simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+              | var x =>
+                cases t2 with
+                | empty => exact absurd rfl ht2
+                | var n => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                | union u v =>
+                  cases u with
+                  | empty => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                  | union _ _ => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                  | inter _ _ => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                  | diff _ _ => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                  | var y =>
+                    cases v with
+                    | empty => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                    | union _ _ => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                    | inter _ _ => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                    | diff _ _ => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                    | var z =>
+                      exfalso
+                      apply hunion
+                      exact ⟨x, y, z, rfl, rfl⟩
+                | inter u v =>
+                  cases u with
+                  | empty => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                  | union _ _ => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                  | inter _ _ => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                  | diff _ _ => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                  | var y =>
+                    cases v with
+                    | empty => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                    | union _ _ => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                    | inter _ _ => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                    | diff _ _ => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                    | var z =>
+                      exfalso
+                      apply hinter
+                      exact ⟨x, y, z, rfl, rfl⟩
+                | diff u v =>
+                  cases u with
+                  | empty => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                  | union _ _ => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                  | inter _ _ => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                  | diff _ _ => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                  | var y =>
+                    cases v with
+                    | empty => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                    | union _ _ => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                    | inter _ _ => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                    | diff _ _ => simp [relationToLiteral?, varTerm?, binaryOpTerm?]
+                    | var z =>
+                      exfalso
+                      apply hdiff
+                      exact ⟨x, y, z, rfl, rfl⟩
             rw [hnone] at h
             cases h
   | neq t1 t2 =>

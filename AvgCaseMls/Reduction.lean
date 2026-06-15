@@ -38,7 +38,18 @@ axiom nbhToMlsMap_domination :
   ∃ c0 c1 : Nat, 0 < c0 ∧ 0 < c1 ∧
     ∀ x, rank μ₁ (nbhToMlsMap x) ≤ c0 * (lenBot x) ^ c1 * rank μ₀ x
 
-/-! ### Target formulas and encoding -/
+/-!
+**Physical cost model (Cook–Levin style, TR1995-711 §3.2).**
+
+For an NBH instance with state-space `|Q|`, input length `n`, and step bound `t`, the
+constructed MLS formula has bit-length bounded by `O(|Q| · t · (n + t))`: each of the
+`O(t)` configuration snapshots contributes `O(|Q| + n + t)` bits under the NBH/MLS
+encodings, and the formula size is linear in the certificate length.
+
+This growth is **quadratic in the instance description** (`lenBot x` is polynomial in
+`|Q|`, `n`, and `t`), which supports [`nbhToMlsMap_lenBound`] and the polynomial
+length/domination constraints in [`DistributionalReduction`].
+-/
 
 def satTargetFormula : Formula :=
   Formula.rel (Relation.eq Term.empty Term.empty)

@@ -92,7 +92,7 @@ When the literature leaves a choice implicit, we record it here.
 
 **Lean fork — partial Steps 1 & 4:** `formulaToConjunct?` covers `rel` + `and` only; Step 4 cycle check is syntactic (no semantic completeness). `decideMLSSat_complete` remains `sorry`.
 
-**Lean fork — `relationToLiteral?`:** Maps only FOS80 §3 patterns (`var`/`empty`/`∪`/`∩`/`\\` on variables). The `relationToLiteral?_eval` proof uses `sorry` only for the unreachable branch where `relationToLiteral? (eq t1 t2) = some lit` but `(t1,t2)` is outside that fragment (dead code for the soundness path).
+**Lean fork — `relationToLiteral?`:** Maps only FOS80 §3 patterns (`var`/`empty`/`∪`/`∩`/`\\` on variables). [`relationToLiteral?_eval`] is fully proved (structural case split on non-flat `Relation.eq` branches).
 
 **Lean fork — sound fragment:** `InDecideSoundFragment` / `InDecideSoundFormula` hypothesis on `decideMLSSat_sound` and `decideConjunct_sound` (no membership/`eqOp` literals; Step 3 obstruction false).
 

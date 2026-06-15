@@ -16,8 +16,6 @@
 \usepackage{calc}
 \usepackage{newunicodechar}
 \usepackage{listings}
-\usepackage{tcolorbox}
-\tcbuselibrary{skins,listings,breakable}
 \usepackage[colorlinks=true,linkcolor=blue!40!black,citecolor=blue!40!black,urlcolor=blue!40!black]{hyperref}
 
 \newcommand{\Z}{\mathbb{Z}}
@@ -25,54 +23,15 @@
 \newcommand{\N}{\mathbb{N}}
 \newcommand{\F}{\mathbb{F}}
 
+% ASCII-only Lean listings (arxiv AutoTeX uses pdfLaTeX).
 \lstdefinestyle{leanbox}{
   basicstyle=\small\ttfamily,
   columns=flexible,
   breaklines=true,
   keepspaces=true,
   showstringspaces=false,
-  extendedchars=true,
-  literate={ℤ}{{\ensuremath{\mathbb{Z}}}}1
-           {ℚ}{{\ensuremath{\mathbb{Q}}}}1
-           {ℕ}{{\ensuremath{\mathbb{N}}}}1
-           {α}{{\ensuremath{\alpha}}}1
-           {β}{{\ensuremath{\beta}}}1
-           {λ}{{\ensuremath{\lambda}}}1
-           {μ}{{\ensuremath{\mu}}}1
-           {σ}{{\ensuremath{\sigma}}}1
-           {Λ}{{\ensuremath{\Lambda}}}1
-           {τ}{{\ensuremath{\tau}}}1
-           {Δ}{{\ensuremath{\Delta}}}1
-           {Σ}{{\ensuremath{\Sigma}}}1
-           {⟦}{{\ensuremath{\llbracket}}}1
-           {⟧}{{\ensuremath{\rrbracket}}}1
-           {⟨}{{\ensuremath{\langle}}}1
-           {⟩}{{\ensuremath{\rangle}}}1
-           {∈}{{\ensuremath{\in}}}1
-           {∉}{{\ensuremath{\notin}}}1
-           {⊆}{{\ensuremath{\subseteq}}}1
-           {∪}{{\ensuremath{\cup}}}1
-           {∩}{{\ensuremath{\cap}}}1
-           {∖}{{\ensuremath{\setminus}}}1
-           {∅}{{\ensuremath{\emptyset}}}1
-           {≠}{{\ensuremath{\neq}}}1
-           {≤}{{\ensuremath{\leq}}}1
-           {≥}{{\ensuremath{\geq}}}1
-           {→}{{\ensuremath{\rightarrow}}}1
-           {←}{{\ensuremath{\leftarrow}}}1
-           {⇒}{{\ensuremath{\Rightarrow}}}1
-           {⇐}{{\ensuremath{\Leftarrow}}}1
-           {⇔}{{\ensuremath{\Leftrightarrow}}}1
-           {∀}{{\ensuremath{\forall}}}1
-           {∃}{{\ensuremath{\exists}}}1
-           {×}{{\ensuremath{\times}}}1
-           {∧}{{\ensuremath{\wedge}}}1
-           {φ}{{\ensuremath{\varphi}}}1
-           {…}{{\ensuremath{\ldots}}}1
-           {–}{{-}}1
-           {—}{{-}}1
-           {⊥}{{\ensuremath{\bot}}}1
-           {■}{{\ensuremath{\blacksquare}}}1
+  extendedchars=false,
+  inputencoding=utf8,
 }
 \lstset{style=leanbox}
 
@@ -95,22 +54,9 @@
 \newunicodechar{∧}{\ensuremath{\wedge}}
 \newunicodechar{⇒}{\ensuremath{\Rightarrow}}
 \newunicodechar{φ}{\ensuremath{\varphi}}
-
-\newtcolorbox{leancertbox}{
-  enhanced,
-  breakable,
-  colback=green!5!white,
-  colframe=green!40!black,
-  coltitle=white,
-  fonttitle=\bfseries\sffamily,
-  title=Lean 4 Certificate,
-  attach boxed title to top left={yshift=-2mm, xshift=2mm},
-  boxed title style={colback=green!40!black},
-  sharp corners,
-  boxrule=1pt,
-  before skip=15pt,
-  after skip=15pt
-}
+\newunicodechar{₀}{\ensuremath{_0}}
+\newunicodechar{₁}{\ensuremath{_1}}
+\newunicodechar{₂}{\ensuremath{_2}}
 
 
 \title{\textbf{Revisiting average case complexity of multilevel syllogistic: From the 1995 Courant Technical Report to Lean 4 Formalization}}
@@ -666,9 +612,11 @@ The tractable \textbf{nose} boundary \(\text{nose}(L) = \{ (T, V) \in (\text{POL
 
 \noindent\textbf{AvgCaseMls/AvCom.lean}
 
-\begin{leancertbox}
-\lstinputlisting[style=leanbox]{build/arxiv-tex-listings/AvgCaseMls-AvCom.lean}
-\end{leancertbox}
+\noindent\textcolor{green!40!black}{\textbf{Lean 4 Certificate (lines 1--400)}}\par\vspace{0.25\baselineskip}
+\lstinputlisting[style=leanbox,firstline=1,lastline=400]{lean-listings/AvgCaseMls-AvCom.lean}
+
+\noindent\textcolor{green!40!black}{\textbf{Lean 4 Certificate (lines 401--516)}}\par\vspace{0.25\baselineskip}
+\lstinputlisting[style=leanbox,firstline=401,lastline=516]{lean-listings/AvgCaseMls-AvCom.lean}
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
@@ -702,9 +650,10 @@ The listing below matches \protect\hyperlink{avgcasemls-mls-lean}{AvgCaseMls/MLS
 
 \noindent\textbf{AvgCaseMls/MLS.lean}
 
-\begin{leancertbox}
-\lstinputlisting[style=leanbox]{build/arxiv-tex-listings/AvgCaseMls-MLS.lean}
-\end{leancertbox}
+\vspace{0.75\baselineskip}
+\noindent\textcolor{green!40!black}{\textbf{Lean 4 Certificate}}\par\vspace{0.25\baselineskip}
+\lstinputlisting[style=leanbox]{lean-listings/AvgCaseMls-MLS.lean}
+\vspace{0.75\baselineskip}
 
 \textbf{EMLS (Phase 2B).} Elementary literals and translation into MLS live in \protect\hyperlink{avgcasemls-emls-lean}{AvgCaseMls/EMLS.lean}, following Ferro--Omodeo--Schwartz {[}FOS80{]} §3 (\href{3-540-10009-1_8.pdf}{\texttt{3-540-10009-1\_8.pdf}}):
 
@@ -713,9 +662,10 @@ The listing below matches \protect\hyperlink{avgcasemls-mls-lean}{AvgCaseMls/MLS
 
 \noindent\textbf{AvgCaseMls/EMLS.lean}
 
-\begin{leancertbox}
-\lstinputlisting[style=leanbox]{build/arxiv-tex-listings/AvgCaseMls-EMLS.lean}
-\end{leancertbox}
+\vspace{0.75\baselineskip}
+\noindent\textcolor{green!40!black}{\textbf{Lean 4 Certificate}}\par\vspace{0.25\baselineskip}
+\lstinputlisting[style=leanbox]{lean-listings/AvgCaseMls-EMLS.lean}
+\vspace{0.75\baselineskip}
 
 Normalization from general MLS formulas to EMLS conjuncts remains partial (\texttt{formulaToConjunct?} in §7); the model-graph decision procedure is §7 only.
 
@@ -805,9 +755,10 @@ Role
 
 \noindent\textbf{AvgCaseMls/DecideMLS.lean}
 
-\begin{leancertbox}
-\lstinputlisting[style=leanbox]{build/arxiv-tex-listings/AvgCaseMls-DecideMLS.lean}
-\end{leancertbox}
+\vspace{0.75\baselineskip}
+\noindent\textcolor{green!40!black}{\textbf{Lean 4 Certificate}}\par\vspace{0.25\baselineskip}
+\lstinputlisting[style=leanbox]{lean-listings/AvgCaseMls-DecideMLS.lean}
+\vspace{0.75\baselineskip}
 
 The live implementation is \protect\hyperlink{avgcasemls-decidemls-lean}{AvgCaseMls/DecideMLS.lean}. A \textbf{step-counting} function \texttt{stepsMLS} (Phase 2D) will relate the procedure to \(\mathrm{Av}(T)\) in §5.
 
@@ -828,18 +779,24 @@ The AvCom classes are defined in §5; MLS syntax is in §6; decision procedures 
 
 \noindent\textbf{AvgCaseMls/Serialization.lean}
 
-\begin{leancertbox}
-\lstinputlisting[style=leanbox]{build/arxiv-tex-listings/AvgCaseMls-Serialization.lean}
-\end{leancertbox}
+\noindent\textcolor{green!40!black}{\textbf{Lean 4 Certificate (lines 1--400)}}\par\vspace{0.25\baselineskip}
+\lstinputlisting[style=leanbox,firstline=1,lastline=400]{lean-listings/AvgCaseMls-Serialization.lean}
+
+\noindent\textcolor{green!40!black}{\textbf{Lean 4 Certificate (lines 401--800)}}\par\vspace{0.25\baselineskip}
+\lstinputlisting[style=leanbox,firstline=401,lastline=800]{lean-listings/AvgCaseMls-Serialization.lean}
+
+\noindent\textcolor{green!40!black}{\textbf{Lean 4 Certificate (lines 801--1091)}}\par\vspace{0.25\baselineskip}
+\lstinputlisting[style=leanbox,firstline=801,lastline=1091]{lean-listings/AvgCaseMls-Serialization.lean}
 
 \hypertarget{avgcasemls-npmembership-lean}{%
 \subsection{AvgCaseMls/NPMembership.lean}\label{avgcasemls-npmembership-lean}}
 
 \noindent\textbf{AvgCaseMls/NPMembership.lean}
 
-\begin{leancertbox}
-\lstinputlisting[style=leanbox]{build/arxiv-tex-listings/AvgCaseMls-NPMembership.lean}
-\end{leancertbox}
+\vspace{0.75\baselineskip}
+\noindent\textcolor{green!40!black}{\textbf{Lean 4 Certificate}}\par\vspace{0.25\baselineskip}
+\lstinputlisting[style=leanbox]{lean-listings/AvgCaseMls-NPMembership.lean}
+\vspace{0.75\baselineskip}
 
 \hypertarget{phase-4-nbh-reduction-and-completeness}{%
 \subsection{Phase 4 --- NBH, reduction, and completeness}\label{phase-4-nbh-reduction-and-completeness}}
@@ -851,27 +808,31 @@ The AvCom classes are defined in §5; MLS syntax is in §6; decision procedures 
 
 \noindent\textbf{AvgCaseMls/NBH.lean}
 
-\begin{leancertbox}
-\lstinputlisting[style=leanbox]{build/arxiv-tex-listings/AvgCaseMls-NBH.lean}
-\end{leancertbox}
+\noindent\textcolor{green!40!black}{\textbf{Lean 4 Certificate (lines 1--400)}}\par\vspace{0.25\baselineskip}
+\lstinputlisting[style=leanbox,firstline=1,lastline=400]{lean-listings/AvgCaseMls-NBH.lean}
+
+\noindent\textcolor{green!40!black}{\textbf{Lean 4 Certificate (lines 401--576)}}\par\vspace{0.25\baselineskip}
+\lstinputlisting[style=leanbox,firstline=401,lastline=576]{lean-listings/AvgCaseMls-NBH.lean}
 
 \hypertarget{avgcasemls-reduction-lean}{%
 \subsection{AvgCaseMls/Reduction.lean}\label{avgcasemls-reduction-lean}}
 
 \noindent\textbf{AvgCaseMls/Reduction.lean}
 
-\begin{leancertbox}
-\lstinputlisting[style=leanbox]{build/arxiv-tex-listings/AvgCaseMls-Reduction.lean}
-\end{leancertbox}
+\vspace{0.75\baselineskip}
+\noindent\textcolor{green!40!black}{\textbf{Lean 4 Certificate}}\par\vspace{0.25\baselineskip}
+\lstinputlisting[style=leanbox]{lean-listings/AvgCaseMls-Reduction.lean}
+\vspace{0.75\baselineskip}
 
 \hypertarget{avgcasemls-completeness-lean}{%
 \subsection{AvgCaseMls/Completeness.lean}\label{avgcasemls-completeness-lean}}
 
 \noindent\textbf{AvgCaseMls/Completeness.lean}
 
-\begin{leancertbox}
-\lstinputlisting[style=leanbox]{build/arxiv-tex-listings/AvgCaseMls-Completeness.lean}
-\end{leancertbox}
+\vspace{0.75\baselineskip}
+\noindent\textcolor{green!40!black}{\textbf{Lean 4 Certificate}}\par\vspace{0.25\baselineskip}
+\lstinputlisting[style=leanbox]{lean-listings/AvgCaseMls-Completeness.lean}
+\vspace{0.75\baselineskip}
 
 \hypertarget{phase-5-hardness-and-non-avp-consequences}{%
 \subsection{Phase 5 --- Hardness and non-AvP consequences}\label{phase-5-hardness-and-non-avp-consequences}}
@@ -885,27 +846,30 @@ We represent this structurally in Lean 4:
 
 \noindent\textbf{AvgCaseMls/ComplexityAxioms.lean}
 
-\begin{leancertbox}
-\lstinputlisting[style=leanbox]{build/arxiv-tex-listings/AvgCaseMls-ComplexityAxioms.lean}
-\end{leancertbox}
+\vspace{0.75\baselineskip}
+\noindent\textcolor{green!40!black}{\textbf{Lean 4 Certificate}}\par\vspace{0.25\baselineskip}
+\lstinputlisting[style=leanbox]{lean-listings/AvgCaseMls-ComplexityAxioms.lean}
+\vspace{0.75\baselineskip}
 
 \hypertarget{avgcasemls-averagehardness-lean}{%
 \subsection{AvgCaseMls/AverageHardness.lean}\label{avgcasemls-averagehardness-lean}}
 
 \noindent\textbf{AvgCaseMls/AverageHardness.lean}
 
-\begin{leancertbox}
-\lstinputlisting[style=leanbox]{build/arxiv-tex-listings/AvgCaseMls-AverageHardness.lean}
-\end{leancertbox}
+\vspace{0.75\baselineskip}
+\noindent\textcolor{green!40!black}{\textbf{Lean 4 Certificate}}\par\vspace{0.25\baselineskip}
+\lstinputlisting[style=leanbox]{lean-listings/AvgCaseMls-AverageHardness.lean}
+\vspace{0.75\baselineskip}
 
 \hypertarget{avgcasemls-nonavp-lean}{%
 \subsection{AvgCaseMls/NonAvP.lean}\label{avgcasemls-nonavp-lean}}
 
 \noindent\textbf{AvgCaseMls/NonAvP.lean}
 
-\begin{leancertbox}
-\lstinputlisting[style=leanbox]{build/arxiv-tex-listings/AvgCaseMls-NonAvP.lean}
-\end{leancertbox}
+\vspace{0.75\baselineskip}
+\noindent\textcolor{green!40!black}{\textbf{Lean 4 Certificate}}\par\vspace{0.25\baselineskip}
+\lstinputlisting[style=leanbox]{lean-listings/AvgCaseMls-NonAvP.lean}
+\vspace{0.75\baselineskip}
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 

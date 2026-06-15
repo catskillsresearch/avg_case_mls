@@ -237,6 +237,8 @@ end Step3
 
 /-! ### FOS80 Step 4 (partial) -/
 
+/-- Syntactic membership-cycle check; self-loops refuted semantically by [`EMLS.step4_self_loop_unsat`]. -/
+
 def varsInConjunct (c : Conjunct) : List Nat :=
   (c.flatMap fun
     | .eqOp x y z _ => [x, y, z]

@@ -89,4 +89,9 @@ theorem SatMLS_semantic_not_AvP (h : NEXP_neq_EXP) : ¬ AvP ⟨SatMLS, simpleSat
     simpa [satMLSProb, simpleSatμ] using (AvP.same_μ (L := SatMLS) (L' := SatMLSChecker)).mp hAvP
   exact SatMLS_average_hard h hchecker
 
+/-! ### Axiom audit (peer-review transparency) -/
+
+#print axioms SatMLS_average_hard
+#print axioms SatMLS_semantic_not_AvP
+
 end NonAvP

@@ -52,6 +52,9 @@ axiom ZFSet.inter : ZFSet → ZFSet → ZFSet
 axiom ZFSet.diff  : ZFSet → ZFSet → ZFSet
 axiom ZFSet.mem   : ZFSet → ZFSet → Prop
 
+/-- Standard ZF Axiom of Foundation (Regularity): no set is a member of itself. -/
+axiom ZFSet.regularity : ∀ x, ¬ ZFSet.mem x x
+
 /-- Distinct nonempty tags for Step 3 witness environments (Phase 2C). -/
 axiom ZFSet.tag : Nat → ZFSet
 

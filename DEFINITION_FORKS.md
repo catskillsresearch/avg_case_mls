@@ -193,3 +193,41 @@ When the literature leaves a choice implicit, we record it here.
 **Lean fork — combine proof:** [`nodeBound_pair_sum_le`] remains for index `a+b+1`; final [`wireSizeTerm_le_nodeBound`] uses [`wireSizeTerm_rec_bound`] (nodes/maxVar multiplicative bound) → [`sqMass_le_nodeBound`].
 
 **Rationale:** Delivers checkable polynomial-size targets for Phase 4–5 without the false child-mass combine step.
+
+## Verified Axiom Dependencies
+
+Peer-review transparency: the main hardness theorem [`NonAvP.SatMLS_average_hard`] was audited with `#print axioms` in [`NonAvP.lean`](AvgCaseMls/NonAvP.lean) (also echoed in [`Tests.lean`](AvgCaseMls/Tests.lean) via `./run_lean_tests.sh`).
+
+**Project-specific axioms** (structural complexity and reduction scaffold):
+
+| Axiom | Module | Role |
+|-------|--------|------|
+| [`NEXP_neq_EXP`] | [`ComplexityAxioms.lean`] | Collapse hypothesis: NEXP $\neq$ EXP |
+| [`distNP_subseteq_AvP_iff_NEXP_eq_EXP`] | [`ComplexityAxioms.lean`] | Levin equivalence: distNP $\subseteq$ AvP iff NEXP = EXP |
+| [`AvP_pullback`] | [`ComplexityAxioms.lean`] | AvP pulls back along distributional reductions |
+| [`distNP_reduces_to_nbh`] | [`Completeness.lean`] | Universal Levin reduction: every distNP problem $\leq$ NBH |
+| [`nbhToMlsMap`], [`nbhToMlsMap_correct`], [`nbhToMlsMap_lenBound`], [`nbhToMlsMap_domination`] | [`Reduction.lean`] | Option B TM→MLS map (correctness, length, domination) |
+
+**Lean / classical axioms** (standard library, not project-specific):
+
+`propext`, `Classical.choice`, `Quot.sound`
+
+**Set-theoretic semantics** ([`MLS.lean`](AvgCaseMls/MLS.lean)): `ZFSet`, `ZFSet.empty`, `ZFSet.union`, `ZFSet.inter`, `ZFSet.diff`, `ZFSet.mem`, [`ZFSet.regularity`], `ZFSet.tag`, `ZFSet.tag_ne_empty`, `ZFSet.tag_injective`. These axiomatize MLS/EMLS evaluation and Step 3 witness tags; they do **not** appear in the `#print axioms` dependency list of [`SatMLS_average_hard`] because the hardness proof chain does not unfold formula semantics.
+
+**ZF regularity and Step 4:** [`ZFSet.regularity`] (Foundation) rules out self-membership; [`EMLS.step4_self_loop_unsat`] proves `¬ Literal.holds env (Literal.mem x x)`, grounding syntactic Step 4 cycle detection for single-node loops.
+
+**Recorded audit output** (Lean 4, current build):
+
+```
+'NonAvP.SatMLS_average_hard' depends on axioms: [AvP_pullback,
+ NEXP_neq_EXP,
+ distNP_subseteq_AvP_iff_NEXP_eq_EXP,
+ propext,
+ Classical.choice,
+ Completeness.distNP_reduces_to_nbh,
+ Quot.sound,
+ Reduction.nbhToMlsMap,
+ Reduction.nbhToMlsMap_correct,
+ Reduction.nbhToMlsMap_domination,
+ Reduction.nbhToMlsMap_lenBound]
+```

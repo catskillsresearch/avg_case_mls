@@ -329,6 +329,15 @@ Here we translate TR1995-711 §3.2 into Lean 4 using the RS93 rank-sum definitio
 
 All Phase **1** AvCom scaffolding is in [`AvCom.lean`](AvgCaseMls/AvCom.lean). Later phases connect MLS (§6–§8) and hardness (§8).
 
+#### Mapping the Nose diagram to Lean types
+
+Section 2's **Nose** diagram (Figure 1) plots a language $`L`$ by two polynomial bounds:
+
+1. **Worst-case complexity ($`V`$):** in Lean, a function `V : Nat → Nat` with `IsPolynomial V`, used in `IsTRankable V μ` — the worst-case cost of computing $\text{rank}_\mu(x)$ on inputs of length $`|x|`$.
+2. **Average-case complexity ($`T`$):** in Lean, a function `T : Nat → Nat` with `IsPolynomial T`, used in `DistTime T ⟨L, μ⟩` — average running time under the RS93 rank-sum bound for distribution `μ`.
+
+The tractable **nose** boundary $\text{nose}(L) = \{ (T, V) \in (\text{POL}, \text{POL}) : L \in \text{AvDTime}(T, V\text{-rankable}) \}$ is therefore realized directly as pairs of polynomial bounds satisfying `AvDTime T V ⟨L, μ⟩`, i.e. `IsTRankable V μ ∧ DistTime T ⟨L, μ⟩`. NP-average complete targets such as MLS satisfiability have empty or trivial noses under simple POL-rankable distributions unless $\text{NEXP} = \text{EXP}$ — the conditional hardness corollaries in §8.
+
 <!-- include-lean: AvgCaseMls/AvCom.lean -->
 
 ```lean

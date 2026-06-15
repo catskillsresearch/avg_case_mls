@@ -266,6 +266,11 @@ example (h : NEXP_neq_EXP) :
     ∃ μ, IsPolRankable μ ∧ ¬ AvP ⟨SatMLSChecker, μ⟩ :=
   exists_simple_rankable_not_AvP h
 
+#print axioms NonAvP.SatMLS_average_hard
+
+example (env : Env) (x : Nat) : ¬ Literal.holds env (Literal.mem x x) :=
+  step4_self_loop_unsat env x
+
 #eval verifyNBH (NBHInstance.encode trivialInstance) trivialCert
 
 #eval decideMLSSat (Formula.rel (Relation.eq Term.empty Term.empty))

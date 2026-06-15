@@ -70,6 +70,18 @@ noncomputable def Literal.holds (env : Env) : Literal → Prop
   | .neq x y =>
       evalTerm env (Term.var x) ≠ evalTerm env (Term.var y)
 
+/-! ### Step 4 semantic grounding (ZF regularity) -/
+
+/--
+A self-membership literal `x ∈ x` is unsatisfiable under the Axiom of Foundation.
+Grounds syntactic Step 4 cycle detection for single-node loops.
+-/
+theorem step4_self_loop_unsat (env : Env) (x : Nat) :
+    ¬ Literal.holds env (Literal.mem x x) := by
+  intro hmem
+  simp only [Literal.holds, evalTerm] at hmem
+  exact ZFSet.regularity (env x) hmem
+
 theorem literalToFormula_eval (env : Env) (lit : Literal) :
     evalFormula env (literalToFormula lit) ↔ Literal.holds env lit := by
   cases lit <;> simp [Literal.holds, literalToFormula, evalFormula, evalTerm, binOpToTerm]

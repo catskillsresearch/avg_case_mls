@@ -2,6 +2,10 @@
 .lake
 /build/
 /dist/
+/lean-listings/
+/00README.json
+/view.pdf
+scripts/__pycache__/
 
 # LaTeX auxiliary / build files (PDFs are kept)
 *.aux

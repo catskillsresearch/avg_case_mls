@@ -1,4 +1,4 @@
-[![CI](https://github.com/catskillsresearch/avg_case_mls/actions/workflows/build.yml/badge.svg)](https://github.com/catskillsresearch/avg_case_mls/actions/workflows/build.yml)
+[![Lean 4](https://img.shields.io/github/actions/workflow/status/catskillsresearch/hybrid_logic_lean_revisited/build.yml?label=Lean%204)](https://github.com/catskillsresearch/avg_case_mls/actions/workflows/build.yml)
 # avg_case_mls
 
 ## Goals of this paper

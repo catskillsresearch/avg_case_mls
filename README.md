@@ -3,6 +3,8 @@
 
 # avg_case_mls
 
+Paper: [https://arxiv.org/abs/2606.16134](https://arxiv.org/abs/2606.16134)
+
 ## Goals of this paper
 
 Revisit a 1995 paper on average case complexity of multilevel syllogistic (Courant Institute technical report CS-TR #711).

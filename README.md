@@ -1,4 +1,6 @@
 [![Lean 4](https://img.shields.io/github/actions/workflow/status/catskillsresearch/hybrid_logic_lean_revisited/build.yml?label=Lean%204)](https://github.com/catskillsresearch/avg_case_mls/actions/workflows/build.yml)
+[![arXiv](https://img.shields.io/badge/arXiv-2606.19761-b31b1b.svg)](https://arxiv.org/abs/2606.19761)
+
 # avg_case_mls
 
 ## Goals of this paper

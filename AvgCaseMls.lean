@@ -8,4 +8,5 @@ import AvgCaseMls.NBH
 import AvgCaseMls.Reduction
 import AvgCaseMls.Completeness
 import AvgCaseMls.NonAvP
+import AvgCaseMls.Palomar
 import AvgCaseMls.Tests

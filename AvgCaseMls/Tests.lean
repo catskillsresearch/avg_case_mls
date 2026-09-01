@@ -73,7 +73,7 @@ example : IsPolynomial (fun n => n + 1) := IsPolynomial.add_one id IsPolynomial.
 example : IsPolynomial (fun n => 2 * n ^ 2 + 3) := by
   refine ⟨5, 2, fun n => ?_⟩
   calc
-    2 * n ^ 2 + 3 ≤ 5 * n ^ 2 + 5 := by gcongr; omega
+    2 * n ^ 2 + 3 ≤ 5 * n ^ 2 + 5 := by gcongr <;> omega
 
 /-! ### AvCom Phase 1B (§5) -/
 
@@ -82,7 +82,7 @@ example : rank (pointMass [true] 0 (by norm_num) (by norm_num)) [true] = 0 :=
 
 example : rank (uniformOn {[], [true]} (by decide)) [] ≤ 2 := by
   have h := rank.le_support_card (uniformOn {[], [true]} (by decide)) []
-  simpa using h
+  simpa [uniformOn] using h
 
 /-! ### AvCom Phase 1C (§5) -/
 

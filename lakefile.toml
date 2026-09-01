@@ -1,7 +1,7 @@
 name = "avg_case_mls"
 version = "0.1.0"
 keywords = ["math"]
-defaultTargets = ["AvgCaseMls"]
+defaultTargets = ["AvgCaseMls", "Challenge", "Solution"]
 
 [leanOptions]
 pp.unicode.fun = true
@@ -12,7 +12,13 @@ maxSynthPendingDepth = 3
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
-rev = "v4.30.0"
+rev = "v4.33.1"
 
 [[lean_lib]]
 name = "AvgCaseMls"
+
+[[lean_lib]]
+name = "Challenge"
+
+[[lean_lib]]
+name = "Solution"

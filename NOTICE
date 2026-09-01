@@ -1,5 +1,9 @@
-Catskills Research Company Icon package to Lean translation
+Average-Case Complexity of Multilevel Syllogistic in Lean 4
 Copyright 2026 Catskills Research Company
 
 This product includes software developed by Catskills Research Company.
 Licensed under the Apache License, Version 2.0 (the "License").
+
+The mathematical source is Cox, Ericson, and Mishra, "The average case
+complexity of multilevel syllogistic," Courant Institute Technical Report
+CS-TR 711 (1995), preserved as TR1995-711.pdf.

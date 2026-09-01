@@ -1,0 +1,25 @@
+{
+  "challenge_module": "Challenge",
+  "solution_module": "Solution",
+  "theorem_names": [
+    "AvgCasePalomar.step2_rejection",
+    "AvgCasePalomar.sound_fragment_completeness",
+    "AvgCasePalomar.formula_serialization_roundtrip",
+    "AvgCasePalomar.formula_encoding_polynomially_bounded",
+    "AvgCasePalomar.distributional_reduction_transitive",
+    "AvgCasePalomar.average_completeness_transfers_along_reduction"
+  ],
+  "definition_names": [
+    "AvgCasePalomar.Step2Rejection",
+    "AvgCasePalomar.SoundFragmentCompleteness",
+    "AvgCasePalomar.FormulaSerializationRoundtrip",
+    "AvgCasePalomar.FormulaEncodingPolynomiallyBounded",
+    "AvgCasePalomar.DistributionalReductionTransitive",
+    "AvgCasePalomar.AverageCompletenessTransfersAlongReduction"
+  ],
+  "permitted_axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ]
+}

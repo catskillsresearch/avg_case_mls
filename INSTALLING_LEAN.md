@@ -34,7 +34,7 @@ elan --version    # e.g. elan 4.2.2
 which lake        # should print something like ~/.elan/bin/lake
 ```
 
-You do **not** need to install Lean manually. elan reads `lean-toolchain` in this repo and downloads **Lean 4.30.0** the first time you run `lake`.
+You do **not** need to install Lean manually. elan reads `lean-toolchain` in this repo and downloads **Lean 4.33.1** the first time you run `lake`.
 
 ## 2. Clone and enter the project
 
@@ -53,7 +53,7 @@ lake update
 
 What happens:
 
-- Reads `lakefile.toml` → requests Mathlib tag `v4.30.0`  
+- Reads `lakefile.toml` → requests Mathlib tag `v4.33.1`
 - Writes/updates `lake-manifest.json` with exact commit hashes  
 - Clones several GitHub repos under `.lake/packages/` (Mathlib pulls in batteries, aesop, etc.)
 
@@ -79,7 +79,7 @@ Build completed successfully.
 
 ## 5. Check the Lean formalization
 
-This repo extracts Lean 4 code from [`arxiv.md`](arxiv.md) (§§5–6 paired with math; §4 strategy; §§7–8 decision procedures and hardness). Most theorem proofs are still `sorry`; the current tests focus on definitions that compile and a few decidable examples.
+This repo extracts Lean 4 code from [`arxiv.md`](arxiv.md) (§§5–6 paired with math; §4 strategy; §§7–8 decision procedures and hardness). One global decision-completeness proof remains `sorry`, and the headline hardness pipeline uses documented project axioms; the selected Palomar claims and executable examples are fully checked.
 
 ```bash
 chmod +x run_lean_check.sh run_lean_tests.sh
@@ -102,8 +102,8 @@ Expected `#eval` lines include `true`, `false`, `0`, and `3` for the empty-set e
 
 | Path | Purpose |
 |------|---------|
-| `lean-toolchain` | Pins Lean **4.30.0** (read by [elan](#1-install-elan-lean-version-manager)) |
-| `lakefile.toml` | Project config; declares Mathlib **v4.30.0** as a dependency |
+| `lean-toolchain` | Pins Lean **4.33.1** (read by [elan](#1-install-elan-lean-version-manager)) |
+| `lakefile.toml` | Project config; declares Mathlib **v4.33.1** as a dependency |
 | `lake-manifest.json` | Lockfile: exact Git commits for Mathlib and its dependencies |
 | `AvgCaseMls/` | MLS embedding, decision-procedure skeleton, AvCom definitions |
 | `AvgCaseMls.lean` | Root module that imports the library |
@@ -152,7 +152,7 @@ Mathlib needs several GB. Free space or use a machine with more storage; there i
 Close other apps; Mathlib compilation is RAM-heavy. Retry `lake build` (Lake resumes incrementally).
 
 **Wrong Lean version**  
-From the repo root, run `elan toolchain install leanprover/lean4:v4.30.0` then `lake build`. The file `lean-toolchain` should contain `leanprover/lean4:v4.30.0`.
+From the repo root, run `elan toolchain install leanprover/lean4:v4.33.1` then `lake build`. The file `lean-toolchain` should contain `leanprover/lean4:v4.33.1`.
 
 **`.lake/` showed up in `git status`**  
 It should be ignored. If git still tracks it, you may have added it before `.gitignore`; run `git rm -r --cached .lake` once (do not delete the folder on disk).

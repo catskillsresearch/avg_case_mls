@@ -515,8 +515,10 @@ theorem verifyNBH_true_iff (x cert : Bitstring) :
       | none => False
       | some (inst, rest) =>
         rest = [] ∧ len cert ≤ nbhCertBound (len x) ∧ verifyRun inst cert = true := by
-  simp [verifyNBH, decide_eq_true_iff]
-  split <;> simp [decide_eq_true_iff, and_assoc]
+  unfold verifyNBH
+  split
+  · simp
+  · exact decide_eq_true_iff
 
 def NBHChecker : Set Bitstring :=
   { s | ∃ cert, verifyNBH s cert = true }

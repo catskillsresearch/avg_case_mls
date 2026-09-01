@@ -1,0 +1,38 @@
+{
+  "title": "Average-Case Complexity of Multilevel Syllogistic in Lean 4",
+  "upload_type": "software",
+  "access_right": "open",
+  "language": "eng",
+  "version": "0.1.0",
+  "description": "Lean 4.33.1 formalization revisiting Cox, Ericson, and Mishra's TR1995-711. The Palomar surface validates fully checked adapted decision-fragment, encoding, and reduction-composition results, while documenting rather than certifying headline claims that retain project axioms or an open proof.",
+  "creators": [
+    {
+      "name": "Ericson, Lars Warren",
+      "affiliation": "Catskills Research Company",
+      "orcid": "0000-0001-8299-9361"
+    }
+  ],
+  "keywords": [
+    "Lean 4",
+    "mathlib",
+    "average-case complexity",
+    "multilevel syllogistic",
+    "distributional complexity",
+    "formal verification"
+  ],
+  "license": "Apache-2.0",
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/catskillsresearch/avg_case_mls",
+      "relation": "isSupplementTo",
+      "scheme": "url",
+      "resource_type": "software"
+    },
+    {
+      "identifier": "2606.16134",
+      "relation": "isSupplementTo",
+      "scheme": "arxiv",
+      "resource_type": "publication-preprint"
+    }
+  ]
+}

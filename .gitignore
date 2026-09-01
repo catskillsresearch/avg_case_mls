@@ -1,11 +1,16 @@
 .vscode
 .lake
+.cache/palomar-editorial/
+.venv-editorial/
+vendor/palomar-policy.sync-backup/
 /build/
 /dist/
 /lean-listings/
 /00README.json
 /view.pdf
 scripts/__pycache__/
+__pycache__/
+*.pyc
 
 # LaTeX auxiliary / build files (PDFs are kept)
 *.aux

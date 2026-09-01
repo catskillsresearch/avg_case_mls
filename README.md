@@ -1,4 +1,4 @@
-[![Lean 4](https://img.shields.io/github/actions/workflow/status/catskillsresearch/hybrid_logic_lean_revisited/build.yml?label=Lean%204)](https://github.com/catskillsresearch/avg_case_mls/actions/workflows/build.yml)
+[![Lean 4](https://img.shields.io/github/actions/workflow/status/catskillsresearch/avg_case_mls/build.yml?label=Lean%204)](https://github.com/catskillsresearch/avg_case_mls/actions/workflows/build.yml)
 [![arXiv](https://img.shields.io/badge/arXiv-2606.16134-b31b1b.svg)](https://arxiv.org/abs/2606.16134)
 
 # avg_case_mls
@@ -47,7 +47,37 @@ chmod +x run_lean_check.sh run_lean_tests.sh
 ./run_lean_tests.sh     # print #eval output from Tests.lean
 ```
 
-Most theorem proofs are still `sorry`; tests cover the MLS embedding, FOS80 conjunct fragments, and AvCom helpers.
+The project targets Lean/mathlib 4.33.1. One proof remains `sorry`
+(`MLS.decideMLSSat_complete`), and the headline NP-average-completeness and
+hardness pipeline still uses explicitly documented project axioms. Tests cover
+the MLS embedding, FOS80 conjunct fragments, and AvCom helpers.
+
+## Palomar validation
+
+`Challenge.lean` selects only report-related claims and examples that are
+proved without project-specific axioms. `Solution.lean` exposes their checked
+implementations from `AvgCaseMls/Palomar.lean`. The selected surface covers
+Step 2 rejection, completeness of the documented restricted decision fragment,
+formula serialization and polynomial encoding bounds, abstract reduction
+composition, and an adapted completeness-transfer lemma. The examples in
+`AvgCaseMls/Tests.lean` are repository smoke tests rather than examples from
+TR1995-711, so they are not selected.
+
+The report's full NP-average-completeness and non-AvP conclusions are not
+presented as completed Palomar results. See `REPORT_CLAIM_AUDIT.md`,
+`DEFINITION_FORKS.md`, and `THEOREMS.md`.
+
+The local mechanical preflight passes. The full editorial audit rejects the
+current surface as below Palomar's research-interest threshold because no
+substantive numbered result from TR1995-711 is yet proved without project
+axioms. The generated reports remain under `.cache/palomar-editorial/`.
+
+Run:
+
+```bash
+bash scripts/palomar_preflight.sh --mechanical-only
+bash scripts/palomar_preflight.sh
+```
 
 **Proof program:** See [`arxiv.md`](arxiv.md) §1 (charter) and §9 (results report card, updated as work progresses).
 

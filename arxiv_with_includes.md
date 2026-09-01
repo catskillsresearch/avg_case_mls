@@ -187,7 +187,7 @@ Our approach mirrors [icon2lean](https://github.com/catskillsresearch/icon2lean)
 1. **Definitions first** — encode $`\text{rank}`$, $`\text{Av}(T)`$, $`\text{DistTime}(T)`$, $`\text{AvP}`$, and $`\text{distNP}`$ alongside the AvCom definitions in §5.
 2. **Deep embedding of MLS/EMLS** — inductive syntax + semantic evaluation in §6.
 3. **Decision procedure skeleton** — a computable `decideMLS` with stated soundness/completeness for **satisfiability**, plus a future **step-counting** function to relate the model-graph algorithm to $`\text{Av}(T)`$ (§7).
-4. **Hardness statements** — structural theorems such as `SatMLS_average_hard` with explicit `sorry` placeholders until reductions from TR1995-711 are formalized (§8).
+4. **Hardness statements** — structural theorems such as `SatMLS_average_hard` whose exact named project-axiom dependencies remain visible until the reductions from TR1995-711 are constructively formalized (§8).
 
 ### Design Choices for Executable vs. Proof Layer
 | Concept | Lean representation | Rationale |
@@ -3461,8 +3461,10 @@ theorem verifyNBH_true_iff (x cert : Bitstring) :
       | none => False
       | some (inst, rest) =>
         rest = [] ∧ len cert ≤ nbhCertBound (len x) ∧ verifyRun inst cert = true := by
-  simp [verifyNBH, decide_eq_true_iff]
-  split <;> simp [decide_eq_true_iff, and_assoc]
+  unfold verifyNBH
+  split
+  · simp
+  · exact decide_eq_true_iff
 
 def NBHChecker : Set Bitstring :=
   { s | ∃ cert, verifyNBH s cert = true }
@@ -3959,7 +3961,10 @@ theorem simpleSatμ_prob_satTarget :
 theorem exists_simple_rankable_checker_not_AvP (h : NEXP_neq_EXP) :
     ∃ μ, IsPolRankable μ ∧ ¬ AvP ⟨SatMLSChecker, μ⟩ :=
   ⟨simpleSatμ, simpleSatμ_polRankable, fun hAvP =>
-    satMLSProb_not_AvP h (by simpa [satMLSProb] using hAvP)⟩
+    satMLSProb_not_AvP h (by
+      change AvP { L := SatMLSChecker, μ := μ₁ }
+      change AvP { L := SatMLSChecker, μ := simpleSatμ } at hAvP
+      exact hAvP)⟩
 
 /-! ### Phase 5B — MLS average-case hardness corollaries -/
 
@@ -4010,17 +4015,22 @@ end NonAvP
 | **1D** | `AvP`, `InDistNP`, `DistributionalReduction`, `IsNPAverageComplete`; forks in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md) | Proofs check |
 | **2A** | MLS syntax + axiomatic semantics (§6) | Proofs check |
 | **2B** | `Literal`, `literalToFormula`, `conjunctToFormula`, `Literal.holds` (§6) | Proofs check |
-| **2C** | `decideMLSSat`, FOS80 Steps 2–4; sound + partial completeness on sound fragment (§7) | Proofs check (`decideMLSSat_complete` `sorry`) |
+| **2C** | `decideMLSSat`, FOS80 Steps 2–4; sound + partial completeness on sound fragment (§7) | Proofs check for the restricted fragment; global completeness remains open |
 | **2D** | `serializeFormula`, `SatMLS`, `stepsMLS` (§8) | Proofs check |
 | **3A** | `SatMLSChecker_in_NP`, `decodeFormula?_serializeFormula`; checker vs semantic `SatMLS` fork (§8) | Proofs check |
 | **3B** | `encodingBound`, `formulaSize_le_encodingBound`, `encodingBound_poly` (§8) | Proofs check |
 | **4A** | `NBHChecker_in_NP`, `μ₀_polRankable`, `nbhProb_in_DistNP`, codec round-trip (§8) | Proofs check |
-| **4B** | `nbhToSatMLS_red`, `reduce_domination`, `reduce_correct` (§8) | Proofs check (modulo `nbhToMlsMap_*` axioms) |
-| **4C** | `satMLSProb_NPAverageComplete`, `IsNPAverageComplete.of_reductor`, `DistributionalReduction.trans` (§8) | Proofs check (modulo `distNP_reduces_to_nbh` axiom) |
-| **5A** | `not_AvP_of_NPAverageComplete`, `NEXP_eq_EXP_of_AvP_complete`, `nbhProb_not_AvP` (§8) | Proofs check (modulo collapse axioms) |
-| **5B** | `SatMLS_average_hard`, `SatMLS_semantic_not_AvP`, `exists_simple_rankable_not_AvP` (§8) | Proofs check |
+| **4B** | `nbhToSatMLS_red`, `reduce_domination`, `reduce_correct` (§8) | Open constructive obligations represented by `nbhToMlsMap_*` axioms |
+| **4C** | `satMLSProb_NPAverageComplete`, `IsNPAverageComplete.of_reductor`, `DistributionalReduction.trans` (§8) | Composition is proved; universal NBH reduction remains an axiom |
+| **5A** | `not_AvP_of_NPAverageComplete`, `NEXP_eq_EXP_of_AvP_complete`, `nbhProb_not_AvP` (§8) | Conditional derivations check; collapse and pullback results remain axioms |
+| **5B** | `SatMLS_average_hard`, `SatMLS_semantic_not_AvP`, `exists_simple_rankable_not_AvP` (§8) | Conditional on the named Phase 4–5 axioms |
 
-*Last updated: Phases **1A–1D**, **2A–2D**, **3A**, **3B**, **4A–4C**, **5A–5B** graded **Proofs check** where noted (modulo named axioms in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md)).*
+The Palomar package therefore selects only the axiom-free adapted claims
+exposed in [AvgCaseMls/Palomar.lean](#avgcasemls-palomar-lean): contradiction rejection, restricted
+decision completeness, codec and encoding bounds, abstract reduction
+composition, and completeness transfer. Repository smoke tests are not treated
+as examples from TR1995-711. The package does not
+submit Phases 4B–5B as completed proofs. See `REPORT_CLAIM_AUDIT.md`.
 
 ---
 

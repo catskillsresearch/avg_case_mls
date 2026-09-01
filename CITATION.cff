@@ -1,0 +1,34 @@
+cff-version: 1.2.0
+title: "Average-Case Complexity of Multilevel Syllogistic in Lean 4"
+message: "If you use this formalization, cite the software, the 2026 paper, and TR1995-711."
+type: software
+authors:
+  - family-names: Ericson
+    given-names: Lars Warren
+    affiliation: Catskills Research Company
+    orcid: "https://orcid.org/0000-0001-8299-9361"
+abstract: >-
+  A Lean 4.33.1 development revisiting Cox, Ericson, and Mishra's 1995
+  technical report on average-case complexity of multilevel syllogistic.
+  Palomar records the fully checked adapted decision-fragment, encoding, and
+  reduction-composition results while explicitly
+  excluding headline claims that still depend on project axioms or an open
+  proof.
+keywords:
+  - Lean 4
+  - average-case complexity
+  - multilevel syllogistic
+  - distributional complexity
+  - formal verification
+repository-code: "https://github.com/catskillsresearch/avg_case_mls"
+license: Apache-2.0
+version: 0.1.0
+date-released: 2026-09-01
+preferred-citation:
+  type: article
+  title: "Revisiting average case complexity of multilevel syllogistic"
+  authors:
+    - family-names: Ericson
+      given-names: Lars Warren
+  year: 2026
+  url: "https://arxiv.org/abs/2606.16134"

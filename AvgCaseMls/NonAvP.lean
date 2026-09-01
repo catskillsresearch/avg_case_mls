@@ -61,7 +61,10 @@ theorem simpleSatμ_prob_satTarget :
 theorem exists_simple_rankable_checker_not_AvP (h : NEXP_neq_EXP) :
     ∃ μ, IsPolRankable μ ∧ ¬ AvP ⟨SatMLSChecker, μ⟩ :=
   ⟨simpleSatμ, simpleSatμ_polRankable, fun hAvP =>
-    satMLSProb_not_AvP h (by simpa [satMLSProb] using hAvP)⟩
+    satMLSProb_not_AvP h (by
+      change AvP { L := SatMLSChecker, μ := μ₁ }
+      change AvP { L := SatMLSChecker, μ := simpleSatμ } at hAvP
+      exact hAvP)⟩
 
 /-! ### Phase 5B — MLS average-case hardness corollaries -/
 

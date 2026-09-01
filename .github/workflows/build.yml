@@ -24,6 +24,5 @@ jobs:
         run: |
           lake exe cache get || true
 
-      - name: Build project
-        run: |
-          lake build
+      - name: Run mechanical Palomar preflight
+        run: bash scripts/palomar_preflight.sh --mechanical-only

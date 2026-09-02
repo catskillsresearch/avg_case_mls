@@ -27,7 +27,7 @@ cores of Theorems 5.1--5.3.
 | Theorem 4.4, p. 14 | `AvgCasePalomar.paper_theorem_4_4` | Explicit injective/invertible/honest finite-support transport with exact rank preservation, plus a separate `InNP L₂` hypothesis because no machine-time model derives target NP membership |
 | Example 4.1, pp. 8–9 | `AvgCasePalomar.paper_example_4_1` | Full shell p-series calculation and normalized big-O constant |
 | Theorem 5.1, p. 15 | `AvgCasePalomar.paper_theorem_5_1_reduction_core` | Constructive SAT-to-MLS substitution: correctness, injectivity, exact linear AST size |
-| Theorem 5.2, pp. 16–17 | `AvgCasePalomar.paper_theorem_5_2_reduction_core` | Constructive SAT-to-EMLS gadgets: correctness, syntactic inversion, linear conjunct size |
+| Theorem 5.2, pp. 16–17 | `AvgCasePalomar.paper_theorem_5_2_reduction_core` | Constructive SAT-to-EMLS semantic gadgets: correctness and exact linear conjunct count; no uncharged provenance encoding |
 | Theorem 5.3, p. 18 | `AvgCasePalomar.paper_theorem_5_3_reduction_core` | Constructive SAT-to-0/1-ILP reduction: correctness, injectivity, exact linear constraint size |
 
 The reduction-core selections prove the constructive content used by the

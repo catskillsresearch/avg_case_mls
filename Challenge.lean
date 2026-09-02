@@ -370,12 +370,8 @@ def complementCore (φ : SAT.CNF) : Conjunct :=
 def semanticCore (φ : SAT.CNF) : Conjunct :=
   .eqEmpty emptyVar :: (complementCore φ ++ clausesCoreFrom 0 φ)
 
-def provenanceTag (φ : SAT.CNF) : Literal :=
-  let n := Encodable.encode φ
-  .eqOp n n n .union
-
-def toEMLS (φ : SAT.CNF) : Conjunct :=
-  provenanceTag φ :: semanticCore φ
+def literalCount (φ : SAT.CNF) : Nat :=
+  (φ.map List.length).sum
 
 end EMLSReduction
 
@@ -480,10 +476,10 @@ theorem paper_theorem_5_1_reduction_core :
 theorem paper_theorem_5_2_reduction_core :
     (∀ φ : SAT.CNF,
         SAT.Satisfiable φ ↔
-          EMLSReduction.EMLSSatisfiable (EMLSReduction.toEMLS φ)) ∧
-    Function.Injective EMLSReduction.toEMLS ∧
+          EMLSReduction.EMLSSatisfiable (EMLSReduction.semanticCore φ)) ∧
     ∀ φ : SAT.CNF,
-      (EMLSReduction.toEMLS φ).length ≤ 3 * SAT.size φ := by
+      (EMLSReduction.semanticCore φ).length =
+        1 + 3 * EMLSReduction.literalCount φ + φ.length := by
   sorry
 
 theorem paper_theorem_5_3_reduction_core :

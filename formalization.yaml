@@ -166,8 +166,10 @@ known_gaps:
     polynomially rankable distribution; the legacy hardness chain is retained
     only as an explicit conditional interface and is not selected.
   - >-
-    EMLS and FPILP average-completeness claims are not complete; the concrete
-    FPILP reduction core is selected separately from its complexity transfer.
+    EMLS and FPILP average-completeness claims are not complete. The selected
+    EMLS core proves semantic correctness and exact linear conjunct count but
+    not size-accounted injectivity/inversion; the concrete FPILP reduction
+    core is selected separately from its complexity transfer.
   - >-
     Example 4.1's full probability-shell calculation is formalized. Tests.lean
     otherwise contains repository smoke tests.

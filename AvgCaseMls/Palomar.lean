@@ -52,12 +52,11 @@ theorem paper_theorem_5_1_reduction_core :
 theorem paper_theorem_5_2_reduction_core :
   (∀ φ : SAT.CNF,
       SAT.Satisfiable φ ↔
-        EMLSReduction.EMLSSatisfiable (EMLSReduction.toEMLS φ)) ∧
-  Function.Injective EMLSReduction.toEMLS ∧
+        EMLSReduction.EMLSSatisfiable (EMLSReduction.semanticCore φ)) ∧
   ∀ φ : SAT.CNF,
-    (EMLSReduction.toEMLS φ).length ≤ 3 * SAT.size φ :=
-  ⟨EMLSReduction.toEMLS_satisfiable_iff, EMLSReduction.toEMLS_injective,
-    EMLSReduction.toEMLS_length_le⟩
+    (EMLSReduction.semanticCore φ).length =
+      1 + 3 * EMLSReduction.literalCount φ + φ.length :=
+  ⟨EMLSReduction.satisfiable_iff, EMLSReduction.semanticCore_length⟩
 
 theorem paper_theorem_5_3_reduction_core :
   (∀ {n : Nat} (φ : TR1995.FPILPSource.CNF n),

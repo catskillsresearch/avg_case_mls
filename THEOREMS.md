@@ -16,8 +16,9 @@ are collected in `AvgCaseMls/Palomar.lean`.
   substitution preserves satisfiability, is injective, and has exact linear
   AST growth.
 - `AvgCasePalomar.paper_theorem_5_2_reduction_core` — the constructive
-  SAT-to-EMLS gadget reduction preserves satisfiability, is syntactically
-  invertible, and has a linear conjunct bound.
+  SAT-to-EMLS semantic gadget reduction preserves satisfiability and has an
+  exact linear conjunct count. The selected statement does not claim
+  injectivity from an uncharged provenance tag.
 - `AvgCasePalomar.paper_theorem_5_3_reduction_core` — the SAT-to-0/1-ILP
   construction preserves satisfiability, is injective, and has exact linear
   constraint growth.

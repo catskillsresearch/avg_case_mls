@@ -71,8 +71,11 @@ with numbered Theorems 4.1 and 4.4 (the latter under the documented
 finite-support specialization and an explicit independent `InNP L₂`
 hypothesis) and the full shell calculation of Example 4.1. It also
 covers the constructive reduction cores of Theorems 5.1–5.3: SAT-to-MLS,
-SAT-to-EMLS, and SAT-to-0/1-ILP, including semantic correctness, injectivity,
-and linear size bounds. These six coherent paper-numbered/core declarations
+SAT-to-EMLS, and SAT-to-0/1-ILP. All three include semantic correctness and
+linear size results; the MLS and 0/1-ILP constructions also include
+injectivity. The EMLS selection deliberately omits the still-open
+size-accounted injectivity/inversion obligation. These six coherent
+paper-numbered/core declarations
 are stated directly in `Challenge.lean`; every underlying notion is given a
 concrete Mathlib-only definition and only theorem proofs are protocol holes.
 The examples in

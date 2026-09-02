@@ -5,12 +5,16 @@ project:
   name: "Average-Case Complexity of Multilevel Syllogistic in Lean 4"
   description: >-
     A Lean 4.33.1 development revisiting Cox, Ericson, and Mishra's 1995
-    technical report TR1995-711. The Palomar surface validates six report-
-    related decision-fragment, encoding, and reduction-composition statements
-    that are fully checked. It deliberately does not claim a completed
+    technical report TR1995-711. The Palomar surface validates six
+    paper-numbered/core statements that are fully checked, including
+    paper-aligned
+    Theorem 4.1, a finite-support Theorem 4.4, the full shell calculation of
+    Example 4.1, and concrete reduction cores from Theorems 5.1–5.3.
+    It deliberately does not claim a completed
     proof of the report's NP-average-completeness corollary: the present
-    headline construction still uses named reduction and complexity axioms,
-    and global FOS80 decision completeness retains one open proof.
+    legacy construction requires explicit compiler, universal-reduction, and
+    collapse-theory arguments, while the current partial FOS80 implementation
+    is demonstrably not globally complete.
   authors:
     - "Lars Warren Ericson"
   license: "Apache-2.0"
@@ -26,51 +30,50 @@ classification:
 
 status:
   scope: >-
-    Six compared theorem wrappers validate report-related adapted claims.
-    They cover rejection of Step 2
-    contradictions, completeness of the explicitly restricted sound fragment,
-    serialization round trips, polynomial encoding size, transitivity of
-    distributional reductions, and transfer of NP-average completeness along a
-    reduction. The wrappers depend only on
-    propext, Quot.sound, and Classical.choice. The repository as a whole has
-    one remaining sorry in global decision completeness and several explicitly
-    documented project axioms supporting the unfinished headline hardness
-    pipeline; none is in the dependency set of a compared theorem.
-  sorry_count: 1
+    Six directly stated compared theorems validate the paper-numbered/core
+    results: Theorems 4.1 and 4.4 (the latter in the documented finite-support
+    specialization with an explicit target-language `InNP` hypothesis), the
+    full shell calculation of Example 4.1, and the constructive reduction
+    cores of Theorems 5.1--5.3. Challenge.lean gives concrete Mathlib-only
+    definitions for every notion in these statements; only its six theorem
+    proofs are protocol holes. The implementation library has no sorry
+    statements and no project-specific axioms. Unfinished constructions are
+    represented by explicit structure arguments.
+  sorry_count: 0
   sorry_in_definitions: 0
   axioms: ["propext", "Quot.sound", "Classical.choice"]
   main_results:
-    - declaration: "AvgCasePalomar.step2_rejection"
+    - declaration: "AvgCasePalomar.paper_theorem_4_1"
       file: "AvgCaseMls/Palomar.lean"
       sorry_count: 0
-      axioms: ["propext", "Quot.sound"]
+      axioms: ["propext", "Quot.sound", "Classical.choice"]
       comparator_config: "comparator.json"
-      literature_dependencies: ["Cox–Ericson–Mishra 1995", "Ferro–Omodeo–Schwartz 1980"]
-    - declaration: "AvgCasePalomar.sound_fragment_completeness"
+      literature_dependencies: ["Cox–Ericson–Mishra 1995", "Reischuk–Schindelhauer 1993"]
+    - declaration: "AvgCasePalomar.paper_theorem_4_4"
       file: "AvgCaseMls/Palomar.lean"
       sorry_count: 0
-      axioms: ["propext", "Quot.sound"]
+      axioms: ["propext", "Quot.sound", "Classical.choice"]
       comparator_config: "comparator.json"
-      literature_dependencies: ["Cox–Ericson–Mishra 1995", "Ferro–Omodeo–Schwartz 1980"]
-    - declaration: "AvgCasePalomar.formula_serialization_roundtrip"
+      literature_dependencies: ["Cox–Ericson–Mishra 1995", "Reischuk–Schindelhauer 1993"]
+    - declaration: "AvgCasePalomar.paper_example_4_1"
+      file: "AvgCaseMls/Palomar.lean"
+      sorry_count: 0
+      axioms: ["propext", "Quot.sound", "Classical.choice"]
+      comparator_config: "comparator.json"
+      literature_dependencies: ["Cox–Ericson–Mishra 1995", "Reischuk–Schindelhauer 1993"]
+    - declaration: "AvgCasePalomar.paper_theorem_5_1_reduction_core"
+      file: "AvgCaseMls/Palomar.lean"
+      sorry_count: 0
+      axioms: ["propext", "Quot.sound", "Classical.choice"]
+      comparator_config: "comparator.json"
+      literature_dependencies: ["Cox–Ericson–Mishra 1995", "Cantone–Omodeo–Policriti 1990"]
+    - declaration: "AvgCasePalomar.paper_theorem_5_2_reduction_core"
       file: "AvgCaseMls/Palomar.lean"
       sorry_count: 0
       axioms: ["propext", "Quot.sound", "Classical.choice"]
       comparator_config: "comparator.json"
       literature_dependencies: ["Cox–Ericson–Mishra 1995"]
-    - declaration: "AvgCasePalomar.formula_encoding_polynomially_bounded"
-      file: "AvgCaseMls/Palomar.lean"
-      sorry_count: 0
-      axioms: ["propext", "Quot.sound", "Classical.choice"]
-      comparator_config: "comparator.json"
-      literature_dependencies: ["Cox–Ericson–Mishra 1995"]
-    - declaration: "AvgCasePalomar.distributional_reduction_transitive"
-      file: "AvgCaseMls/Palomar.lean"
-      sorry_count: 0
-      axioms: ["propext", "Quot.sound", "Classical.choice"]
-      comparator_config: "comparator.json"
-      literature_dependencies: ["Levin 1986", "Reischuk–Schindelhauer 1993"]
-    - declaration: "AvgCasePalomar.average_completeness_transfers_along_reduction"
+    - declaration: "AvgCasePalomar.paper_theorem_5_3_reduction_core"
       file: "AvgCaseMls/Palomar.lean"
       sorry_count: 0
       axioms: ["propext", "Quot.sound", "Classical.choice"]
@@ -83,8 +86,9 @@ fidelity:
     and reduction machinery. The Lean development uses finite-support
     distributions, lenBot at the empty string, an explicit prefix encoding,
     a restricted membership-free decision fragment, and abstract composition
-    lemmas. Lean rank uses non-strict probability comparison rather than the
-    report's strict comparison, and DistTime is not linked to a decider.
+    lemmas. Both Lean and the report use non-strict probability comparison for
+    rank; Lean additionally returns rank zero off finite support. DistTime is
+    not linked to a decider.
     These forks are documented in DEFINITION_FORKS.md. The selected Palomar
     claims validate those precise Lean statements, not the unfinished
     numbered average-completeness theorems.
@@ -93,14 +97,14 @@ sources:
   - title: "The average case complexity of multilevel syllogistic"
     authors: ["Jim Cox", "Lars Ericson", "Bud Mishra"]
     type: "report"
-    id: "TR1995-711.pdf"
+    id: "sources/TR1995-711.pdf"
     location: "Courant Institute Technical Report CS-TR 711, 1995"
     relationship: formalizes
     author_endorsement: participated
   - title: "Precise average case complexity"
     authors: ["Rüdiger Reischuk", "Christian Schindelhauer"]
     type: "article"
-    location: "STOC 1993"
+    location: "STACS 1993, LNCS 665, pp. 650–664"
     relationship: background
   - title: "Average case complete problems"
     authors: ["Leonid Levin"]
@@ -111,6 +115,18 @@ sources:
     authors: ["Alfredo Ferro", "Eugenio G. Omodeo", "Jacob T. Schwartz"]
     type: "article"
     location: "Communications on Pure and Applied Mathematics, 1980"
+    relationship: background
+  - title: "MLSS Decision Procedure"
+    authors: ["Lukas Stevens"]
+    type: "article"
+    id: "https://isa-afp.org/entries/MLSS_Decision_Proc.html"
+    location: "Archive of Formal Proofs, 2023"
+    relationship: background
+  - title: "Towards a Verified Tableau Prover for a Quantifier-Free Fragment of Set Theory"
+    authors: ["Lukas Stevens"]
+    type: "article"
+    id: "https://doi.org/10.1007/978-3-031-38499-8_28"
+    location: "Automated Deduction – CADE 29, LNAI 14132, pp. 491–508, 2023"
     relationship: background
   - title: "Revisiting average case complexity of multilevel syllogistic"
     authors: ["Lars Warren Ericson"]
@@ -140,25 +156,27 @@ review:
 
 known_gaps:
   - >-
-    AvgCaseMls/DecideMLS.lean retains one sorry for global FOS80 completeness.
+    The current partial MLS decision function is not globally complete; a
+    checked disjunction counterexample replaces the former placeholder.
   - >-
-    The NP-average-completeness and non-AvP pipeline relies on named project
-    axioms listed in DEFINITION_FORKS.md and is excluded from Comparator.
+    Full NP-average completeness still requires constructing the explicit
+    LevinNBHData/NBHToMLSData interfaces or completing the paper's SAT route.
   - >-
     The present DistTime/AvP abstraction admits AvP.zero for every
-    polynomially rankable distribution, conflicting with the separately
-    axiomatized hardness chain; no theorem from that chain is selected.
+    polynomially rankable distribution; the legacy hardness chain is retained
+    only as an explicit conditional interface and is not selected.
   - >-
-    EMLS and FP/LP average-completeness claims from TR1995-711 are not selected
-    as completed Lean results.
+    EMLS and FPILP average-completeness claims are not complete; the concrete
+    FPILP reduction core is selected separately from its complexity transfer.
   - >-
-    None of the report's worked examples is currently formalized. Tests.lean
-    contains repository smoke tests, not TR1995-711 examples.
+    Example 4.1's full probability-shell calculation is formalized. Tests.lean
+    otherwise contains repository smoke tests.
 
 limitations:
   - >-
-    Challenge.lean contains deliberate holes for Comparator; selected proofs
-    are supplied by AvgCaseMls/Palomar.lean.
+    Challenge.lean contains deliberate holes only in the six selected theorem
+    proofs; all statement definitions are concrete. Proofs are supplied by
+    AvgCaseMls/Palomar.lean.
   - >-
     The selected statements include explicit implementation forks and do not
     certify every theorem asserted in TR1995-711.
@@ -166,27 +184,27 @@ limitations:
 alignment:
   namespace: "AvgCasePalomar"
   statements:
-    - source: "TR1995-711 §2.1, p. 5: early contradiction rejection in the model-graph procedure"
-      lean: "step2_rejection"
+    - source: "TR1995-711 Theorem 4.1, p. 12"
+      lean: "paper_theorem_4_1"
       module: "AvgCaseMls.Palomar"
       status: proved
-    - source: "Adaptation of TR1995-711 §2.1, p. 5: completeness only on the Lean restricted fragment"
-      lean: "sound_fragment_completeness"
+    - source: "Finite-support specialization of TR1995-711 Theorem 4.4, p. 14, with explicit target InNP hypothesis"
+      lean: "paper_theorem_4_4"
       module: "AvgCaseMls.Palomar"
       status: proved
-    - source: "Encoding infrastructure related to TR1995-711 §5, pp. 15–18"
-      lean: "formula_serialization_roundtrip"
+    - source: "TR1995-711 Example 4.1, pp. 8–9: full length-shell calculation"
+      lean: "paper_example_4_1"
       module: "AvgCaseMls.Palomar"
       status: proved
-    - source: "Adapted polynomial encoding bound related to TR1995-711 §5, pp. 15–18"
-      lean: "formula_encoding_polynomially_bounded"
+    - source: "TR1995-711 Theorem 5.1, p. 15: constructive SAT-to-MLS reduction core"
+      lean: "paper_theorem_5_1_reduction_core"
       module: "AvgCaseMls.Palomar"
       status: proved
-    - source: "Adaptation of TR1995-711 §4.2, pp. 11–12: composition of distributional reductions"
-      lean: "distributional_reduction_transitive"
+    - source: "TR1995-711 Theorem 5.2, pp. 16–17: constructive SAT-to-EMLS reduction core"
+      lean: "paper_theorem_5_2_reduction_core"
       module: "AvgCaseMls.Palomar"
       status: proved
-    - source: "Analogue of TR1995-711 Theorem 4.4, p. 14, for the weaker Lean reduction definition"
-      lean: "average_completeness_transfers_along_reduction"
+    - source: "TR1995-711 Theorem 5.3, p. 18: constructive SAT-to-FPILP reduction core"
+      lean: "paper_theorem_5_3_reduction_core"
       module: "AvgCaseMls.Palomar"
       status: proved

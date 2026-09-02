@@ -359,18 +359,39 @@ theorem decideMLS_complete_sound_fragment (f : Formula) (hfrag : InDecideSoundFo
     decideMLS f = true :=
   decideMLSSat_complete_sound_fragment f hfrag
 
-/-! ### Global completeness — not proved (Step 1 / full Step 4 open) -/
+/-! ### Global completeness counterexample
+
+The current function is intentionally a partial FOS80 implementation.  In
+particular, `formulaToConjunct?` does not normalize propositional connectives.
+The following checked example prevents an accidental global-completeness claim
+about this implementation.
+-/
+
+def globalCompletenessCounterexample : Formula :=
+  Formula.or
+    (Formula.rel (Relation.eq Term.empty Term.empty))
+    (Formula.rel (Relation.neq Term.empty Term.empty))
+
+theorem globalCompletenessCounterexample_sat :
+    ∃ env, evalFormula env globalCompletenessCounterexample := by
+  refine ⟨fun _ => ZFSet.empty, ?_⟩
+  exact Or.inl rfl
+
+theorem globalCompletenessCounterexample_rejected :
+    decideMLSSat globalCompletenessCounterexample = false :=
+  rfl
 
 /--
-Full FOS80 completeness: requires Step 1 substitution and complete Step 4 model search.
-See [`decideMLSSat_complete_sound_fragment`] for the verified membership-free sound fragment.
+Global completeness is false for the current partial implementation.  A full
+FOS80 procedure must first add propositional normalization, Step 1
+substitution, and the complete Step 4 model search.
 -/
-theorem decideMLSSat_complete (f : Formula) (_h : ∃ env, evalFormula env f) :
-    decideMLSSat f = true := by
-  sorry
-
-theorem decideMLS_complete (f : Formula) (h : ∃ env, evalFormula env f) :
-    decideMLS f = true :=
-  decideMLSSat_complete f h
+theorem not_decideMLSSat_complete :
+    ¬ (∀ f : Formula, (∃ env, evalFormula env f) → decideMLSSat f = true) := by
+  intro h
+  have accepted :=
+    h globalCompletenessCounterexample globalCompletenessCounterexample_sat
+  rw [globalCompletenessCounterexample_rejected] at accepted
+  contradiction
 
 end MLS

@@ -236,7 +236,9 @@ example : μ₀.prob (NBHInstance.encode trivialInstance) = 1 := μ₀_mass_on_t
 
 open Reduction
 
-example : DistributionalReduction nbhProb satMLSProb := nbhToSatMLS_red
+example (compiler : NBHToMLSData) :
+    DistributionalReduction nbhProb satMLSProb :=
+  nbhToSatMLS_red compiler
 
 example :
     NBHInstance.encode trivialInstance ∈ NBHChecker ↔
@@ -250,7 +252,9 @@ example : reduceNBHToSatMLSStep (NBHInstance.encode trivialInstance) = satTarget
 
 open Completeness
 
-example : IsNPAverageComplete satMLSProb := satMLSProb_NPAverageComplete
+example (levin : LevinNBHData) (compiler : NBHToMLSData) :
+    IsNPAverageComplete satMLSProb :=
+  satMLSProb_NPAverageComplete levin compiler
 
 example : InDistNP satMLSProb := satMLSProb_in_DistNP
 
@@ -260,11 +264,15 @@ open NonAvP
 
 example : IsPolRankable simpleSatμ := simpleSatμ_polRankable
 
-example (h : NEXP_neq_EXP) : ¬ AvP satMLSProb := SatMLS_average_hard h
+example (theory : AverageCaseCollapseTheory) (levin : LevinNBHData)
+    (compiler : NBHToMLSData) (h : theory.NEXP_neq_EXP) :
+    ¬ AvP satMLSProb :=
+  SatMLS_average_hard theory levin compiler h
 
-example (h : NEXP_neq_EXP) :
+example (theory : AverageCaseCollapseTheory) (levin : LevinNBHData)
+    (compiler : NBHToMLSData) (h : theory.NEXP_neq_EXP) :
     ∃ μ, IsPolRankable μ ∧ ¬ AvP ⟨SatMLSChecker, μ⟩ :=
-  exists_simple_rankable_not_AvP h
+  exists_simple_rankable_not_AvP theory levin compiler h
 
 #print axioms NonAvP.SatMLS_average_hard
 

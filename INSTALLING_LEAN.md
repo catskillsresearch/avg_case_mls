@@ -79,7 +79,11 @@ Build completed successfully.
 
 ## 5. Check the Lean formalization
 
-This repo extracts Lean 4 code from [`arxiv.md`](arxiv.md) (§§5–6 paired with math; §4 strategy; §§7–8 decision procedures and hardness). One global decision-completeness proof remains `sorry`, and the headline hardness pipeline uses documented project axioms; the selected Palomar claims and executable examples are fully checked.
+This repo extracts Lean 4 code from [`arxiv.md`](arxiv.md) (§§5–6 paired with
+math; §4 strategy; §§7–8 decision procedures and hardness). The implementation
+library has no `sorry` and no project-specific axioms. The current partial
+decision procedure has a checked global-completeness counterexample, and
+unfinished legacy completeness constructions are explicit parameters.
 
 ```bash
 chmod +x run_lean_check.sh run_lean_tests.sh

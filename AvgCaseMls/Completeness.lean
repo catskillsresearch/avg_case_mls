@@ -9,31 +9,32 @@ import AvgCaseMls.Reduction
 /-!
 Phase **4C:** NP-average completeness of MLS satisfiability (TR1995-711 Corollary 5.1).
 
-Literature: every distNP problem reduces to bounded halting (NBH); Phase **4B** reduces NBH
-into [`satMLSProb`]. Universal reduction into NBH and reduction transitivity remain scaffold
-gaps — see [`DEFINITION_FORKS.md`](../DEFINITION_FORKS.md).
+Literature: every distNP problem reduces to bounded halting (NBH); Phase **4B**
+reduces NBH into [`satMLSProb`]. The two unfinished constructions are explicit
+arguments below, not project axioms.
 -/
 
 namespace Completeness
 
 open Reduction AvCom NBH
 
-/--
-Levin universal reduction: every distNP problem reduces to bounded halting (NBH).
+/-- Explicit package for the unfinished Levin universal NBH reduction. -/
+structure LevinNBHData where
+  reduces : ∀ source : DistributionalProblem, InDistNP source →
+    DistributionalReduction source nbhProb
 
-Literature: TR1995-711 / Levin; full constructive proof deferred.
--/
-axiom distNP_reduces_to_nbh (source : DistributionalProblem) (h : InDistNP source) :
-  DistributionalReduction source nbhProb
-
-theorem nbhProb_NPAverageComplete : IsNPAverageComplete nbhProb :=
-  IsNPAverageComplete.intro nbhProb_in_DistNP distNP_reduces_to_nbh
+theorem nbhProb_NPAverageComplete (levin : LevinNBHData) :
+    IsNPAverageComplete nbhProb :=
+  IsNPAverageComplete.intro nbhProb_in_DistNP levin.reduces
 
 /--
 Corollary 5.1 (adapted): [`satMLSProb`] is NP-average complete, via NBH completeness and
 [`nbhToSatMLS_red`].
 -/
-theorem satMLSProb_NPAverageComplete : IsNPAverageComplete satMLSProb :=
-  IsNPAverageComplete.of_reductor satMLSProb_in_DistNP nbhProb_NPAverageComplete nbhToSatMLS_red
+theorem satMLSProb_NPAverageComplete
+    (levin : LevinNBHData) (compiler : NBHToMLSData) :
+    IsNPAverageComplete satMLSProb :=
+  IsNPAverageComplete.of_reductor satMLSProb_in_DistNP
+    (nbhProb_NPAverageComplete levin) (nbhToSatMLS_red compiler)
 
 end Completeness

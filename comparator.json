@@ -2,21 +2,14 @@
   "challenge_module": "Challenge",
   "solution_module": "Solution",
   "theorem_names": [
-    "AvgCasePalomar.step2_rejection",
-    "AvgCasePalomar.sound_fragment_completeness",
-    "AvgCasePalomar.formula_serialization_roundtrip",
-    "AvgCasePalomar.formula_encoding_polynomially_bounded",
-    "AvgCasePalomar.distributional_reduction_transitive",
-    "AvgCasePalomar.average_completeness_transfers_along_reduction"
+    "AvgCasePalomar.paper_theorem_4_1",
+    "AvgCasePalomar.paper_theorem_4_4",
+    "AvgCasePalomar.paper_example_4_1",
+    "AvgCasePalomar.paper_theorem_5_1_reduction_core",
+    "AvgCasePalomar.paper_theorem_5_2_reduction_core",
+    "AvgCasePalomar.paper_theorem_5_3_reduction_core"
   ],
-  "definition_names": [
-    "AvgCasePalomar.Step2Rejection",
-    "AvgCasePalomar.SoundFragmentCompleteness",
-    "AvgCasePalomar.FormulaSerializationRoundtrip",
-    "AvgCasePalomar.FormulaEncodingPolynomiallyBounded",
-    "AvgCasePalomar.DistributionalReductionTransitive",
-    "AvgCasePalomar.AverageCompletenessTransfersAlongReduction"
-  ],
+  "definition_names": [],
   "permitted_axioms": [
     "propext",
     "Quot.sound",

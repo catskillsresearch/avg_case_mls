@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Lars Warren Ericson, Catskills Research Company
 -/
 
+import Mathlib.SetTheory.ZFC.Basic
+
 /-!
 Deep embedding of Multilevel Syllogistic (MLS) syntax and set-theoretic semantics.
 
@@ -42,27 +44,70 @@ inductive Formula : Type
   | iff : Formula → Formula → Formula
   deriving DecidableEq, Repr
 
-/-! ### Axiomatic semantics -/
+/-! ### ZFC semantics
 
-axiom ZFSet : Type
+MLS is interpreted in Mathlib's concrete `ZFSet` model.  Earlier versions of
+this project declared the carrier, operations, foundation, and tags as project
+axioms.  Using the library model makes those dependencies ordinary theorems.
+-/
 
-axiom ZFSet.empty : ZFSet
-axiom ZFSet.union : ZFSet → ZFSet → ZFSet
-axiom ZFSet.inter : ZFSet → ZFSet → ZFSet
-axiom ZFSet.diff  : ZFSet → ZFSet → ZFSet
-axiom ZFSet.mem   : ZFSet → ZFSet → Prop
+abbrev ZFSet := _root_.ZFSet.{0}
 
-/-- Standard ZF Axiom of Foundation (Regularity): no set is a member of itself. -/
-axiom ZFSet.regularity : ∀ x, ¬ ZFSet.mem x x
+namespace ZFSet
 
-/-- Distinct nonempty tags for Step 3 witness environments (Phase 2C). -/
-axiom ZFSet.tag : Nat → ZFSet
+def empty : ZFSet := ∅
+def union (x y : ZFSet) : ZFSet := x ∪ y
+def inter (x y : ZFSet) : ZFSet := x ∩ y
+def diff (x y : ZFSet) : ZFSet := x \ y
+def mem (x y : ZFSet) : Prop := x ∈ y
 
-axiom ZFSet.tag_ne_empty (n : Nat) : ZFSet.tag n ≠ ZFSet.empty
+/-- Foundation in Mathlib's ZFC model. -/
+theorem regularity (x : ZFSet) : ¬ mem x x :=
+  _root_.ZFSet.mem_irrefl x
 
-axiom ZFSet.tag_injective : Function.Injective ZFSet.tag
+/-- Iterated-singleton towers used as pairwise distinct nonempty witnesses. -/
+def tower : Nat → ZFSet
+  | 0 => ∅
+  | n + 1 => {tower n}
 
-def Env : Type := Nat → ZFSet
+def tag (n : Nat) : ZFSet := tower (n + 1)
+
+theorem tower_succ_ne_empty (n : Nat) : tower (n + 1) ≠ empty := by
+  intro h
+  have hmem : tower n ∈ tower (n + 1) := by simp [tower]
+  rw [h] at hmem
+  exact (_root_.ZFSet.notMem_empty (tower n)) hmem
+
+theorem tag_ne_empty (n : Nat) : tag n ≠ empty :=
+  tower_succ_ne_empty n
+
+theorem tower_eq {m n : Nat} (h : tower m = tower n) : m = n := by
+  induction m generalizing n with
+  | zero =>
+      cases n with
+      | zero => rfl
+      | succ n =>
+          exact False.elim (tower_succ_ne_empty n h.symm)
+  | succ m ih =>
+      cases n with
+      | zero =>
+          exact False.elim (tower_succ_ne_empty m h)
+      | succ n =>
+          have hmn : tower m = tower n := by
+            simpa [tower] using h
+          exact congrArg Nat.succ (ih hmn)
+
+theorem tower_injective : Function.Injective tower :=
+  fun _ _ => tower_eq
+
+theorem tag_injective : Function.Injective tag := by
+  intro m n h
+  have : m + 1 = n + 1 := tower_eq h
+  omega
+
+end ZFSet
+
+def Env : Type 1 := Nat → ZFSet
 
 noncomputable def evalTerm (env : Env) : Term → ZFSet
   | Term.var n       => env n

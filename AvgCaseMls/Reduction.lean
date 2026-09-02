@@ -11,32 +11,13 @@ import AvgCaseMls.EMLS
 /-!
 Phase **4B:** distributional reduction from NBH (Phase **4A**) into MLS satisfiability.
 
-Literature: TR1995-711 §3.2 reduction with domination. The general TM→MLS translation for
-arbitrary MLS formulas in paper scope is axiomatized as [`nbhToMlsMap`]; see
-[`DEFINITION_FORKS.md`](../DEFINITION_FORKS.md).
+Literature: TR1995-711 §3.2 reduction with domination. The legacy NBH route is
+kept as an explicit interface; callers must supply the compiler and its proofs.
 -/
 
 namespace Reduction
 
 open MLS NBH AvCom EMLS
-
-/-!
-**Lean fork (general case):** [`nbhToMlsMap`] stands in for the full TR1995-711 compiler from
-NBH instances to serialized MLS formulas (any expression in the paper's MLS fragment). The
-step-function [`reduceNBHToSatMLSStep`] remains as an explicit domination scaffold on μ₀.
--/
-
-axiom nbhToMlsMap : Bitstring → Bitstring
-
-axiom nbhToMlsMap_correct :
-  ∀ x, x ∈ NBHChecker ↔ nbhToMlsMap x ∈ SatMLSChecker
-
-axiom nbhToMlsMap_lenBound :
-  ∃ k0 k1 : Nat, ∀ x, lenBot (nbhToMlsMap x) ≤ k0 * (lenBot x) ^ k1
-
-axiom nbhToMlsMap_domination :
-  ∃ c0 c1 : Nat, 0 < c0 ∧ 0 < c1 ∧
-    ∀ x, rank μ₁ (nbhToMlsMap x) ≤ c0 * (lenBot x) ^ c1 * rank μ₀ x
 
 /-!
 **Physical cost model (Cook–Levin style, TR1995-711 §3.2).**
@@ -47,8 +28,8 @@ constructed MLS formula has bit-length bounded by `O(|Q| · t · (n + t))`: each
 encodings, and the formula size is linear in the certificate length.
 
 This growth is **quadratic in the instance description** (`lenBot x` is polynomial in
-`|Q|`, `n`, and `t`), which supports [`nbhToMlsMap_lenBound`] and the polynomial
-length/domination constraints in [`DistributionalReduction`].
+`|Q|`, `n`, and `t`). The corresponding proof remains an obligation of
+`NBHToMLSData`, rather than a global axiom.
 -/
 
 def satTargetFormula : Formula :=
@@ -106,6 +87,19 @@ noncomputable def satMLSProb : DistributionalProblem :=
 theorem satMLSProb_in_DistNP : InDistNP satMLSProb :=
   InDistNP.intro SatMLSChecker_in_NP μ₁_polRankable
 
+/--
+Explicit legacy NBH-to-MLS compiler package.  Constructing this value is the
+unproved Cook–Levin/FOS80 obligation; making it an argument prevents downstream
+theorems from silently depending on project axioms.
+-/
+structure NBHToMLSData where
+  map : Bitstring → Bitstring
+  correct : ∀ x, x ∈ NBHChecker ↔ map x ∈ SatMLSChecker
+  lenBound : ∃ k0 k1 : Nat, ∀ x, lenBot (map x) ≤ k0 * lenBot x ^ k1
+  domination :
+    ∃ c0 c1 : Nat, 0 < c0 ∧ 0 < c1 ∧
+      ∀ x, rank μ₁ (map x) ≤ c0 * lenBot x ^ c1 * rank μ₀ x
+
 /-! ### Reduction map -/
 
 /--
@@ -115,9 +109,9 @@ def reduceNBHToSatMLSStep (x : Bitstring) : Bitstring :=
   if x ∈ μ₀Support then satTargetEnc else unsatTargetEnc
 
 /--
-Distributional reduction map used in [`nbhToSatMLS_red`]: axiomatized general TM→MLS translation.
+Distributional reduction map supplied by an explicit compiler package.
 -/
-noncomputable def reduceNBHToSatMLS : Bitstring → Bitstring := nbhToMlsMap
+def reduceNBHToSatMLS (data : NBHToMLSData) : Bitstring → Bitstring := data.map
 
 namespace reduceNBHToSatMLSStep
 
@@ -223,16 +217,15 @@ theorem reduce_correct_on_μ₀Support (x : Bitstring) (hx : x ∈ μ₀Support)
   · intro _
     exact trivialInstance_in_NBHChecker
 
-theorem reduce_correct (x : Bitstring) :
-    x ∈ NBHChecker ↔ reduceNBHToSatMLS x ∈ SatMLSChecker :=
-  nbhToMlsMap_correct x
+theorem reduce_correct (data : NBHToMLSData) (x : Bitstring) :
+    x ∈ NBHChecker ↔ reduceNBHToSatMLS data x ∈ SatMLSChecker :=
+  data.correct x
 
 /-! ### Distributional reduction -/
 
-theorem nbhToSatMLS_red : DistributionalReduction nbhProb satMLSProb := by
-  refine ⟨reduceNBHToSatMLS, reduce_correct, ?_, ?_⟩
-  · exact nbhToMlsMap_lenBound
-  · exact nbhToMlsMap_domination
+theorem nbhToSatMLS_red (data : NBHToMLSData) :
+    DistributionalReduction nbhProb satMLSProb := by
+  exact ⟨reduceNBHToSatMLS data, reduce_correct data, data.lenBound, data.domination⟩
 
 theorem nbhToSatMLS_red_on_μ₀ (x : Bitstring) (hx : x ∈ μ₀Support) :
     x ∈ NBHChecker ↔ reduceNBHToSatMLSStep x ∈ SatMLSChecker :=

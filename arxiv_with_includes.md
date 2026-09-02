@@ -55,7 +55,7 @@ Context and Lean infrastructure appear in **§§2–4**; Phase 1 (AvCom) is **§
 
 | Subphase | Goal | Lean / doc |
 |----------|------|------------|
-| **2A** | MLS syntax + axiomatic semantics | §6 — `Term`, `Relation`, `Formula`, `evalTerm`, `evalFormula` |
+| **2A** | MLS syntax + ZFC semantics | §6 — `Term`, `Relation`, `Formula`, `evalTerm`, `evalFormula` |
 | **2B** | EMLS literals, `literalToFormula`, `conjunctToFormula` | §6 |
 | **2C** | FOS80 decision procedure for **satisfiability** | §7 |
 | **2D** | Problem encoding and step count | `serializeFormula`, `SatMLS`, `stepsMLS` (remove axioms in §8) |
@@ -86,7 +86,7 @@ Context and Lean infrastructure appear in **§§2–4**; Phase 1 (AvCom) is **§
 | Subphase | Goal |
 |----------|------|
 | **5A** | Conditional non-AvP from completeness + simple rankable $`\mu`$ |
-| **5B** | `SatMLS_average_hard` without `sorry`; axioms minimized |
+| **5B** | `SatMLS_average_hard` with all external principles explicit |
 
 ### Methodology
 
@@ -187,7 +187,9 @@ Our approach mirrors [icon2lean](https://github.com/catskillsresearch/icon2lean)
 1. **Definitions first** — encode $`\text{rank}`$, $`\text{Av}(T)`$, $`\text{DistTime}(T)`$, $`\text{AvP}`$, and $`\text{distNP}`$ alongside the AvCom definitions in §5.
 2. **Deep embedding of MLS/EMLS** — inductive syntax + semantic evaluation in §6.
 3. **Decision procedure skeleton** — a computable `decideMLS` with stated soundness/completeness for **satisfiability**, plus a future **step-counting** function to relate the model-graph algorithm to $`\text{Av}(T)`$ (§7).
-4. **Hardness statements** — structural theorems such as `SatMLS_average_hard` whose exact named project-axiom dependencies remain visible until the reductions from TR1995-711 are constructively formalized (§8).
+4. **Hardness statements** — structural theorems such as
+   `SatMLS_average_hard` take the unfinished universal reduction, compiler,
+   and collapse principles as explicit arguments (§8).
 
 ### Design Choices for Executable vs. Proof Layer
 | Concept | Lean representation | Rationale |
@@ -203,7 +205,12 @@ Our approach mirrors [icon2lean](https://github.com/catskillsresearch/icon2lean)
 
 ## 5. Average-Case Complexity (AvCom): Theory, Classes, and Lean Encoding
 
-The formal definitions in this section follow TR1995-711 §3.2 ([`TR1995-711.pdf`](TR1995-711.pdf)). In the mid-1990s, structural average-case complexity was a young, highly mathematical field. Each mathematical definition below is paired with its Lean counterpart in [AvgCaseMls/AvCom.lean](#avgcasemls-avcom-lean) where it exists today. 
+The formal definitions in this section follow TR1995-711 §3.2
+([`sources/TR1995-711.pdf`](sources/TR1995-711.pdf); draft transcription
+[`sources/TR1995-711_vision.md`](sources/TR1995-711_vision.md)). In the
+mid-1990s, structural average-case complexity was a young, highly mathematical
+field. Each mathematical definition below is paired with its Lean counterpart
+in [AvgCaseMls/AvCom.lean](#avgcasemls-avcom-lean) where it exists today.
 
 ### Why Naive Averaging Fails
 Prior to Leonid Levin’s 1986 breakthrough [Lev86], researchers measured average running time naively:
@@ -239,7 +246,11 @@ The subsections below collect the definitions as used in the report, with Lean e
 ### Inputs, Distributions, and Rank
 Fix a finite alphabet $`\Sigma`$ (in practice $`\Sigma = \{0,1\}`$). An **input** is a string $`x \in \Sigma^*`$, with **length** $`|x|`$ (in Lean we use `Bitstring := List Bool` and `len s := s.length`).
 
-A **probability distribution** on $`\Sigma^*`$ is a function $`\mu : \Sigma^* \to [0,1]`$ such that $`\sum_x \mu(x) \leq 1`$ and $`\mu(x) \geq 0`$ for all $`x`$. In the Lean sketch we axiomatize this with finite `Finset` sums rather than infinite series, which is adequate for the rank-based definitions that follow.
+A **probability distribution** on $`\Sigma^*`$ is a function
+$`\mu : \Sigma^* \to [0,1]`$ such that $`\sum_x \mu(x) \leq 1`$ and
+$`\mu(x) \geq 0`$ for all $`x`$. The main `AvCom` model uses explicit finite
+support and checked `Finset` sums. Example 4.1 separately uses an infinite
+all-bitstring shell series.
 
 A **distributional problem** is a pair $`(L, \mu)`$ where $`L \subseteq \Sigma^*`$ is a decision problem (language) and $`\mu`$ is a distribution on its instances.
 
@@ -884,7 +895,12 @@ v_i = \emptyset, \quad v_i = v_j \cup v_k, \quad v_i = v_j \setminus v_k, \quad 
 
 **Scope.** [AvgCaseMls/MLS.lean](#avgcasemls-mls-lean) (Phase **2A**) and [AvgCaseMls/EMLS.lean](#avgcasemls-emls-lean) (Phase **2B**) compile with no `sorry`. Phase **2C** (decision procedure, §7) and **2D** (serialization and step counting, §8) are separate obligations.
 
-Set variables are identified with natural-number indices (`Nat → ZFSet` environments), matching the report's $`v_i`$ notation. MLS formulas talk about membership chains $`v_i \in v_j \in v_k \in \cdots`$. We use a custom axiomatized `ZFSet` sort so the development is self-contained and `evalTerm`/`evalFormula` are explicitly `noncomputable` (axioms are not compiled). A Mathlib-backed refactor would replace `axiom ZFSet` with imports from `Mathlib.Data.ZFC.Basic`.
+Set variables are identified with natural-number indices (`Nat → ZFSet`
+environments), matching the report's $`v_i`$ notation. MLS formulas talk about
+membership chains $`v_i \in v_j \in v_k \in \cdots`$. The semantics now use
+Mathlib's concrete ZFC model (`Mathlib.SetTheory.ZFC.Basic`); set operations,
+Foundation, and the iterated-singleton witness tags are definitions or checked
+theorems rather than project axioms.
 
 The listing below matches [AvgCaseMls/MLS.lean](#avgcasemls-mls-lean).
 
@@ -896,6 +912,8 @@ Copyright (c) 2026 Catskills Research Company. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Lars Warren Ericson, Catskills Research Company
 -/
+
+import Mathlib.SetTheory.ZFC.Basic
 
 /-!
 Deep embedding of Multilevel Syllogistic (MLS) syntax and set-theoretic semantics.
@@ -935,27 +953,70 @@ inductive Formula : Type
   | iff : Formula → Formula → Formula
   deriving DecidableEq, Repr
 
-/-! ### Axiomatic semantics -/
+/-! ### ZFC semantics
 
-axiom ZFSet : Type
+MLS is interpreted in Mathlib's concrete `ZFSet` model.  Earlier versions of
+this project declared the carrier, operations, foundation, and tags as project
+axioms.  Using the library model makes those dependencies ordinary theorems.
+-/
 
-axiom ZFSet.empty : ZFSet
-axiom ZFSet.union : ZFSet → ZFSet → ZFSet
-axiom ZFSet.inter : ZFSet → ZFSet → ZFSet
-axiom ZFSet.diff  : ZFSet → ZFSet → ZFSet
-axiom ZFSet.mem   : ZFSet → ZFSet → Prop
+abbrev ZFSet := _root_.ZFSet.{0}
 
-/-- Standard ZF Axiom of Foundation (Regularity): no set is a member of itself. -/
-axiom ZFSet.regularity : ∀ x, ¬ ZFSet.mem x x
+namespace ZFSet
 
-/-- Distinct nonempty tags for Step 3 witness environments (Phase 2C). -/
-axiom ZFSet.tag : Nat → ZFSet
+def empty : ZFSet := ∅
+def union (x y : ZFSet) : ZFSet := x ∪ y
+def inter (x y : ZFSet) : ZFSet := x ∩ y
+def diff (x y : ZFSet) : ZFSet := x \ y
+def mem (x y : ZFSet) : Prop := x ∈ y
 
-axiom ZFSet.tag_ne_empty (n : Nat) : ZFSet.tag n ≠ ZFSet.empty
+/-- Foundation in Mathlib's ZFC model. -/
+theorem regularity (x : ZFSet) : ¬ mem x x :=
+  _root_.ZFSet.mem_irrefl x
 
-axiom ZFSet.tag_injective : Function.Injective ZFSet.tag
+/-- Iterated-singleton towers used as pairwise distinct nonempty witnesses. -/
+def tower : Nat → ZFSet
+  | 0 => ∅
+  | n + 1 => {tower n}
 
-def Env : Type := Nat → ZFSet
+def tag (n : Nat) : ZFSet := tower (n + 1)
+
+theorem tower_succ_ne_empty (n : Nat) : tower (n + 1) ≠ empty := by
+  intro h
+  have hmem : tower n ∈ tower (n + 1) := by simp [tower]
+  rw [h] at hmem
+  exact (_root_.ZFSet.notMem_empty (tower n)) hmem
+
+theorem tag_ne_empty (n : Nat) : tag n ≠ empty :=
+  tower_succ_ne_empty n
+
+theorem tower_eq {m n : Nat} (h : tower m = tower n) : m = n := by
+  induction m generalizing n with
+  | zero =>
+      cases n with
+      | zero => rfl
+      | succ n =>
+          exact False.elim (tower_succ_ne_empty n h.symm)
+  | succ m ih =>
+      cases n with
+      | zero =>
+          exact False.elim (tower_succ_ne_empty m h)
+      | succ n =>
+          have hmn : tower m = tower n := by
+            simpa [tower] using h
+          exact congrArg Nat.succ (ih hmn)
+
+theorem tower_injective : Function.Injective tower :=
+  fun _ _ => tower_eq
+
+theorem tag_injective : Function.Injective tag := by
+  intro m n h
+  have : m + 1 = n + 1 := tower_eq h
+  omega
+
+end ZFSet
+
+def Env : Type 1 := Nat → ZFSet
 
 noncomputable def evalTerm (env : Env) : Term → ZFSet
   | Term.var n       => env n
@@ -1356,6 +1417,19 @@ Let $`q^*`$ be the sub-conjunction of $(*)$ literals, $`V_{\in}`$ the variables 
 
 [FOS80] §4 extends the language with singletons, cardinality, and arithmetic; we do **not** encode that extension yet.
 
+### Related Isabelle formalization
+
+Stevens's Isabelle/HOL development [Ste23a, Ste23b] verifies a terminating,
+executable, sound, and complete tableau procedure for **MLSS**, the
+multilevel-syllogistic fragment with singleton terms, over hereditarily finite
+sets. MLSS is richer than the MLS syntax used here because it includes the
+singleton constructor. Its verified Cantone–Zarba tableau procedure is also
+different from this repository's partial implementation of the older
+Ferro–Omodeo–Schwartz model-graph procedure. The Isabelle development therefore
+provides the relevant complete proof-assistant baseline; the contribution here
+is instead the paper-aligned average-case framework and the checked
+SAT-to-MLS/FPILP reduction cores.
+
 ### Lean modules
 
 | File | Role |
@@ -1734,19 +1808,40 @@ theorem decideMLS_complete_sound_fragment (f : Formula) (hfrag : InDecideSoundFo
     decideMLS f = true :=
   decideMLSSat_complete_sound_fragment f hfrag
 
-/-! ### Global completeness — not proved (Step 1 / full Step 4 open) -/
+/-! ### Global completeness counterexample
+
+The current function is intentionally a partial FOS80 implementation.  In
+particular, `formulaToConjunct?` does not normalize propositional connectives.
+The following checked example prevents an accidental global-completeness claim
+about this implementation.
+-/
+
+def globalCompletenessCounterexample : Formula :=
+  Formula.or
+    (Formula.rel (Relation.eq Term.empty Term.empty))
+    (Formula.rel (Relation.neq Term.empty Term.empty))
+
+theorem globalCompletenessCounterexample_sat :
+    ∃ env, evalFormula env globalCompletenessCounterexample := by
+  refine ⟨fun _ => ZFSet.empty, ?_⟩
+  exact Or.inl rfl
+
+theorem globalCompletenessCounterexample_rejected :
+    decideMLSSat globalCompletenessCounterexample = false :=
+  rfl
 
 /--
-Full FOS80 completeness: requires Step 1 substitution and complete Step 4 model search.
-See [`decideMLSSat_complete_sound_fragment`] for the verified membership-free sound fragment.
+Global completeness is false for the current partial implementation.  A full
+FOS80 procedure must first add propositional normalization, Step 1
+substitution, and the complete Step 4 model search.
 -/
-theorem decideMLSSat_complete (f : Formula) (_h : ∃ env, evalFormula env f) :
-    decideMLSSat f = true := by
-  sorry
-
-theorem decideMLS_complete (f : Formula) (h : ∃ env, evalFormula env f) :
-    decideMLS f = true :=
-  decideMLSSat_complete f h
+theorem not_decideMLSSat_complete :
+    ¬ (∀ f : Formula, (∃ env, evalFormula env f) → decideMLSSat f = true) := by
+  intro h
+  have accepted :=
+    h globalCompletenessCounterexample globalCompletenessCounterexample_sat
+  rw [globalCompletenessCounterexample_rejected] at accepted
+  contradiction
 
 end MLS
 ```
@@ -3541,32 +3636,13 @@ import AvgCaseMls.EMLS
 /-!
 Phase **4B:** distributional reduction from NBH (Phase **4A**) into MLS satisfiability.
 
-Literature: TR1995-711 §3.2 reduction with domination. The general TM→MLS translation for
-arbitrary MLS formulas in paper scope is axiomatized as [`nbhToMlsMap`]; see
-[`DEFINITION_FORKS.md`](../DEFINITION_FORKS.md).
+Literature: TR1995-711 §3.2 reduction with domination. The legacy NBH route is
+kept as an explicit interface; callers must supply the compiler and its proofs.
 -/
 
 namespace Reduction
 
 open MLS NBH AvCom EMLS
-
-/-!
-**Lean fork (general case):** [`nbhToMlsMap`] stands in for the full TR1995-711 compiler from
-NBH instances to serialized MLS formulas (any expression in the paper's MLS fragment). The
-step-function [`reduceNBHToSatMLSStep`] remains as an explicit domination scaffold on μ₀.
--/
-
-axiom nbhToMlsMap : Bitstring → Bitstring
-
-axiom nbhToMlsMap_correct :
-  ∀ x, x ∈ NBHChecker ↔ nbhToMlsMap x ∈ SatMLSChecker
-
-axiom nbhToMlsMap_lenBound :
-  ∃ k0 k1 : Nat, ∀ x, lenBot (nbhToMlsMap x) ≤ k0 * (lenBot x) ^ k1
-
-axiom nbhToMlsMap_domination :
-  ∃ c0 c1 : Nat, 0 < c0 ∧ 0 < c1 ∧
-    ∀ x, rank μ₁ (nbhToMlsMap x) ≤ c0 * (lenBot x) ^ c1 * rank μ₀ x
 
 /-!
 **Physical cost model (Cook–Levin style, TR1995-711 §3.2).**
@@ -3577,8 +3653,8 @@ constructed MLS formula has bit-length bounded by `O(|Q| · t · (n + t))`: each
 encodings, and the formula size is linear in the certificate length.
 
 This growth is **quadratic in the instance description** (`lenBot x` is polynomial in
-`|Q|`, `n`, and `t`), which supports [`nbhToMlsMap_lenBound`] and the polynomial
-length/domination constraints in [`DistributionalReduction`].
+`|Q|`, `n`, and `t`). The corresponding proof remains an obligation of
+`NBHToMLSData`, rather than a global axiom.
 -/
 
 def satTargetFormula : Formula :=
@@ -3636,6 +3712,19 @@ noncomputable def satMLSProb : DistributionalProblem :=
 theorem satMLSProb_in_DistNP : InDistNP satMLSProb :=
   InDistNP.intro SatMLSChecker_in_NP μ₁_polRankable
 
+/--
+Explicit legacy NBH-to-MLS compiler package.  Constructing this value is the
+unproved Cook–Levin/FOS80 obligation; making it an argument prevents downstream
+theorems from silently depending on project axioms.
+-/
+structure NBHToMLSData where
+  map : Bitstring → Bitstring
+  correct : ∀ x, x ∈ NBHChecker ↔ map x ∈ SatMLSChecker
+  lenBound : ∃ k0 k1 : Nat, ∀ x, lenBot (map x) ≤ k0 * lenBot x ^ k1
+  domination :
+    ∃ c0 c1 : Nat, 0 < c0 ∧ 0 < c1 ∧
+      ∀ x, rank μ₁ (map x) ≤ c0 * lenBot x ^ c1 * rank μ₀ x
+
 /-! ### Reduction map -/
 
 /--
@@ -3645,9 +3734,9 @@ def reduceNBHToSatMLSStep (x : Bitstring) : Bitstring :=
   if x ∈ μ₀Support then satTargetEnc else unsatTargetEnc
 
 /--
-Distributional reduction map used in [`nbhToSatMLS_red`]: axiomatized general TM→MLS translation.
+Distributional reduction map supplied by an explicit compiler package.
 -/
-noncomputable def reduceNBHToSatMLS : Bitstring → Bitstring := nbhToMlsMap
+def reduceNBHToSatMLS (data : NBHToMLSData) : Bitstring → Bitstring := data.map
 
 namespace reduceNBHToSatMLSStep
 
@@ -3753,16 +3842,15 @@ theorem reduce_correct_on_μ₀Support (x : Bitstring) (hx : x ∈ μ₀Support)
   · intro _
     exact trivialInstance_in_NBHChecker
 
-theorem reduce_correct (x : Bitstring) :
-    x ∈ NBHChecker ↔ reduceNBHToSatMLS x ∈ SatMLSChecker :=
-  nbhToMlsMap_correct x
+theorem reduce_correct (data : NBHToMLSData) (x : Bitstring) :
+    x ∈ NBHChecker ↔ reduceNBHToSatMLS data x ∈ SatMLSChecker :=
+  data.correct x
 
 /-! ### Distributional reduction -/
 
-theorem nbhToSatMLS_red : DistributionalReduction nbhProb satMLSProb := by
-  refine ⟨reduceNBHToSatMLS, reduce_correct, ?_, ?_⟩
-  · exact nbhToMlsMap_lenBound
-  · exact nbhToMlsMap_domination
+theorem nbhToSatMLS_red (data : NBHToMLSData) :
+    DistributionalReduction nbhProb satMLSProb := by
+  exact ⟨reduceNBHToSatMLS data, reduce_correct data, data.lenBound, data.domination⟩
 
 theorem nbhToSatMLS_red_on_μ₀ (x : Bitstring) (hx : x ∈ μ₀Support) :
     x ∈ NBHChecker ↔ reduceNBHToSatMLSStep x ∈ SatMLSChecker :=
@@ -3786,32 +3874,33 @@ import AvgCaseMls.Reduction
 /-!
 Phase **4C:** NP-average completeness of MLS satisfiability (TR1995-711 Corollary 5.1).
 
-Literature: every distNP problem reduces to bounded halting (NBH); Phase **4B** reduces NBH
-into [`satMLSProb`]. Universal reduction into NBH and reduction transitivity remain scaffold
-gaps — see [`DEFINITION_FORKS.md`](../DEFINITION_FORKS.md).
+Literature: every distNP problem reduces to bounded halting (NBH); Phase **4B**
+reduces NBH into [`satMLSProb`]. The two unfinished constructions are explicit
+arguments below, not project axioms.
 -/
 
 namespace Completeness
 
 open Reduction AvCom NBH
 
-/--
-Levin universal reduction: every distNP problem reduces to bounded halting (NBH).
+/-- Explicit package for the unfinished Levin universal NBH reduction. -/
+structure LevinNBHData where
+  reduces : ∀ source : DistributionalProblem, InDistNP source →
+    DistributionalReduction source nbhProb
 
-Literature: TR1995-711 / Levin; full constructive proof deferred.
--/
-axiom distNP_reduces_to_nbh (source : DistributionalProblem) (h : InDistNP source) :
-  DistributionalReduction source nbhProb
-
-theorem nbhProb_NPAverageComplete : IsNPAverageComplete nbhProb :=
-  IsNPAverageComplete.intro nbhProb_in_DistNP distNP_reduces_to_nbh
+theorem nbhProb_NPAverageComplete (levin : LevinNBHData) :
+    IsNPAverageComplete nbhProb :=
+  IsNPAverageComplete.intro nbhProb_in_DistNP levin.reduces
 
 /--
 Corollary 5.1 (adapted): [`satMLSProb`] is NP-average complete, via NBH completeness and
 [`nbhToSatMLS_red`].
 -/
-theorem satMLSProb_NPAverageComplete : IsNPAverageComplete satMLSProb :=
-  IsNPAverageComplete.of_reductor satMLSProb_in_DistNP nbhProb_NPAverageComplete nbhToSatMLS_red
+theorem satMLSProb_NPAverageComplete
+    (levin : LevinNBHData) (compiler : NBHToMLSData) :
+    IsNPAverageComplete satMLSProb :=
+  IsNPAverageComplete.of_reductor satMLSProb_in_DistNP
+    (nbhProb_NPAverageComplete levin) (nbhToSatMLS_red compiler)
 
 end Completeness
 ```
@@ -3838,35 +3927,32 @@ import AvgCaseMls.AvCom
 open AvCom
 
 /-!
-Minimal complexity collapse hypothesis for conditional average-case hardness (Phase **5**).
+Explicit complexity-collapse interface for conditional average-case hardness.
 
-Literature: TR1995-711 Corollary 5.1 consequence — NP-average complete targets are not in AvP
-unless $\\text{NEXP} = \\text{EXP}$. Mathlib does not yet host this implication; we axiomatize
-only the collapse hypothesis, not the full proof.
+Mathlib does not yet define the required complexity classes. Instead of global
+project axioms, downstream conditional theorems take this interface as an
+explicit argument.
 -/
-
-/-- Nondeterministic exponential time is strictly larger than deterministic exponential time. -/
-axiom NEXP_neq_EXP : Prop
-
-def NEXP_eq_EXP : Prop := ¬ NEXP_neq_EXP
 
 /--
-Levin / TR1995-711 collapse equivalence: distNP is average-case tractable iff NEXP = EXP.
-
-Literature: decades of structural complexity; full proof is out of scope for this project.
+The exact external principles used by the legacy conditional-hardness chain.
+Supplying this structure is an explicit proof obligation.
 -/
-axiom distNP_subseteq_AvP_iff_NEXP_eq_EXP :
+structure AverageCaseCollapseTheory where
+  NEXP_eq_EXP : Prop
+  distNP_subseteq_AvP_iff_NEXP_eq_EXP :
   (∀ p, InDistNP p → AvP p) ↔ NEXP_eq_EXP
-
-/--
-AvP pulls back along distributional reductions from a complete distNP target.
-
-Literature: compose a poly-time decider for the target with the reduction map; deferred until
-[`DistTime`] is linked to concrete deciders.
--/
-axiom AvP_pullback {source target : DistributionalProblem}
+  AvP_pullback {source target : DistributionalProblem}
     (hAvP : AvP target) (hRed : DistributionalReduction source target) :
     AvP source
+
+namespace AverageCaseCollapseTheory
+
+/-- The explicit separation assumption relative to a supplied class model. -/
+def NEXP_neq_EXP (theory : AverageCaseCollapseTheory) : Prop :=
+  ¬ theory.NEXP_eq_EXP
+
+end AverageCaseCollapseTheory
 ```
 
 
@@ -3919,35 +4005,45 @@ namespace NonAvP
 
 open Completeness Reduction AvCom NBH MLS
 
-theorem AvP_of_distNP_of_complete_target {target : DistributionalProblem}
+theorem AvP_of_distNP_of_complete_target (theory : AverageCaseCollapseTheory)
+    {target : DistributionalProblem}
     (hComplete : IsNPAverageComplete target) (hAvP : AvP target) :
     ∀ source, InDistNP source → AvP source := by
   intro source hdist
-  exact AvP_pullback hAvP (hComplete.2 source hdist)
+  exact theory.AvP_pullback hAvP (hComplete.2 source hdist)
 
-theorem all_distNP_in_AvP_of_complete_target {target : DistributionalProblem}
+theorem all_distNP_in_AvP_of_complete_target (theory : AverageCaseCollapseTheory)
+    {target : DistributionalProblem}
     (hComplete : IsNPAverageComplete target) (hAvP : AvP target) :
     ∀ p, InDistNP p → AvP p :=
-  AvP_of_distNP_of_complete_target hComplete hAvP
+  AvP_of_distNP_of_complete_target theory hComplete hAvP
 
-theorem NEXP_eq_EXP_of_AvP_complete {target : DistributionalProblem}
+theorem NEXP_eq_EXP_of_AvP_complete (theory : AverageCaseCollapseTheory)
+    {target : DistributionalProblem}
     (hComplete : IsNPAverageComplete target) (hAvP : AvP target) :
-    NEXP_eq_EXP :=
-  (distNP_subseteq_AvP_iff_NEXP_eq_EXP).mp (all_distNP_in_AvP_of_complete_target hComplete hAvP)
+    theory.NEXP_eq_EXP :=
+  theory.distNP_subseteq_AvP_iff_NEXP_eq_EXP.mp
+    (all_distNP_in_AvP_of_complete_target theory hComplete hAvP)
 
-theorem not_AvP_of_NPAverageComplete {target : DistributionalProblem}
-    (hComplete : IsNPAverageComplete target) (h : NEXP_neq_EXP) :
+theorem not_AvP_of_NPAverageComplete (theory : AverageCaseCollapseTheory)
+    {target : DistributionalProblem}
+    (hComplete : IsNPAverageComplete target) (h : theory.NEXP_neq_EXP) :
     ¬ AvP target :=
-  fun hAvP => (NEXP_eq_EXP_of_AvP_complete hComplete hAvP) h
+  fun hAvP => h (NEXP_eq_EXP_of_AvP_complete theory hComplete hAvP)
 
-theorem nbhProb_not_AvP (h : NEXP_neq_EXP) : ¬ AvP nbhProb :=
-  not_AvP_of_NPAverageComplete nbhProb_NPAverageComplete h
+theorem nbhProb_not_AvP (theory : AverageCaseCollapseTheory)
+    (levin : LevinNBHData) (h : theory.NEXP_neq_EXP) : ¬ AvP nbhProb :=
+  not_AvP_of_NPAverageComplete theory (nbhProb_NPAverageComplete levin) h
 
-theorem satMLSProb_not_AvP (h : NEXP_neq_EXP) : ¬ AvP satMLSProb :=
-  not_AvP_of_NPAverageComplete satMLSProb_NPAverageComplete h
+theorem satMLSProb_not_AvP (theory : AverageCaseCollapseTheory)
+    (levin : LevinNBHData) (compiler : NBHToMLSData)
+    (h : theory.NEXP_neq_EXP) : ¬ AvP satMLSProb :=
+  not_AvP_of_NPAverageComplete theory
+    (satMLSProb_NPAverageComplete levin compiler) h
 
-theorem nbhProb_not_AvP_via_complete (h : NEXP_neq_EXP) : ¬ AvP nbhProb :=
-  not_AvP_of_NPAverageComplete nbhProb_NPAverageComplete h
+theorem nbhProb_not_AvP_via_complete (theory : AverageCaseCollapseTheory)
+    (levin : LevinNBHData) (h : theory.NEXP_neq_EXP) : ¬ AvP nbhProb :=
+  not_AvP_of_NPAverageComplete theory (nbhProb_NPAverageComplete levin) h
 
 /-- Simple POL-rankable distribution from Phase **4B** (uniform on [`satTargetEnc`]). -/
 noncomputable def simpleSatμ : Distribution := μ₁
@@ -3958,10 +4054,12 @@ theorem simpleSatμ_prob_satTarget :
     simpleSatμ.prob satTargetEnc = 1 := by
   simp [simpleSatμ, μ₁, uniformOn, uniformProb, μ₁Support]
 
-theorem exists_simple_rankable_checker_not_AvP (h : NEXP_neq_EXP) :
+theorem exists_simple_rankable_checker_not_AvP
+    (theory : AverageCaseCollapseTheory) (levin : LevinNBHData)
+    (compiler : NBHToMLSData) (h : theory.NEXP_neq_EXP) :
     ∃ μ, IsPolRankable μ ∧ ¬ AvP ⟨SatMLSChecker, μ⟩ :=
   ⟨simpleSatμ, simpleSatμ_polRankable, fun hAvP =>
-    satMLSProb_not_AvP h (by
+    satMLSProb_not_AvP theory levin compiler h (by
       change AvP { L := SatMLSChecker, μ := μ₁ }
       change AvP { L := SatMLSChecker, μ := simpleSatμ } at hAvP
       exact hAvP)⟩
@@ -3972,25 +4070,33 @@ theorem exists_simple_rankable_checker_not_AvP (h : NEXP_neq_EXP) :
 Corollary 5.1 consequence (checker + Phase **4B** distribution): [`satMLSProb`] is not in AvP
 assuming NEXP $`\neq`$ EXP.
 -/
-theorem SatMLS_average_hard (h : NEXP_neq_EXP) : ¬ AvP satMLSProb :=
-  satMLSProb_not_AvP h
+theorem SatMLS_average_hard
+    (theory : AverageCaseCollapseTheory) (levin : LevinNBHData)
+    (compiler : NBHToMLSData) (h : theory.NEXP_neq_EXP) :
+    ¬ AvP satMLSProb :=
+  satMLSProb_not_AvP theory levin compiler h
 
 /--
 Existential form: a simple POL-rankable distribution on MLS checker encodings is not AvP-tractable.
 -/
-theorem exists_simple_rankable_not_AvP (h : NEXP_neq_EXP) :
+theorem exists_simple_rankable_not_AvP
+    (theory : AverageCaseCollapseTheory) (levin : LevinNBHData)
+    (compiler : NBHToMLSData) (h : theory.NEXP_neq_EXP) :
     ∃ μ, IsPolRankable μ ∧ ¬ AvP ⟨SatMLSChecker, μ⟩ :=
-  exists_simple_rankable_checker_not_AvP h
+  exists_simple_rankable_checker_not_AvP theory levin compiler h
 
 /--
 Semantic [`SatMLS`] on the same simple distribution — [`AvP`] depends only on [`simpleSatμ`]
 (see [`AvP.same_μ`]), so checker hardness transfers directly.
 -/
-theorem SatMLS_semantic_not_AvP (h : NEXP_neq_EXP) : ¬ AvP ⟨SatMLS, simpleSatμ⟩ := by
+theorem SatMLS_semantic_not_AvP
+    (theory : AverageCaseCollapseTheory) (levin : LevinNBHData)
+    (compiler : NBHToMLSData) (h : theory.NEXP_neq_EXP) :
+    ¬ AvP ⟨SatMLS, simpleSatμ⟩ := by
   intro hAvP
   have hchecker : AvP satMLSProb := by
     simpa [satMLSProb, simpleSatμ] using (AvP.same_μ (L := SatMLS) (L' := SatMLSChecker)).mp hAvP
-  exact SatMLS_average_hard h hchecker
+  exact SatMLS_average_hard theory levin compiler h hchecker
 
 /-! ### Axiom audit (peer-review transparency) -/
 
@@ -4013,23 +4119,23 @@ end NonAvP
 | **1B** | `rank`, `T_inv` without `sorry`; finite-support rank + partial `T_inv` in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md) | Proofs check |
 | **1C** | `IsAvTime`, `rankLe`, `DistTime`, `AvDTime`, `IsTRankable`; forks in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md) | Proofs check |
 | **1D** | `AvP`, `InDistNP`, `DistributionalReduction`, `IsNPAverageComplete`; forks in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md) | Proofs check |
-| **2A** | MLS syntax + axiomatic semantics (§6) | Proofs check |
+| **2A** | MLS syntax + Mathlib ZFC semantics (§6) | Proofs check |
 | **2B** | `Literal`, `literalToFormula`, `conjunctToFormula`, `Literal.holds` (§6) | Proofs check |
-| **2C** | `decideMLSSat`, FOS80 Steps 2–4; sound + partial completeness on sound fragment (§7) | Proofs check for the restricted fragment; global completeness remains open |
+| **2C** | `decideMLSSat`, FOS80 Steps 2–4; sound + partial completeness on sound fragment (§7) | Restricted proofs check; a checked counterexample refutes global completeness of the current partial function |
 | **2D** | `serializeFormula`, `SatMLS`, `stepsMLS` (§8) | Proofs check |
 | **3A** | `SatMLSChecker_in_NP`, `decodeFormula?_serializeFormula`; checker vs semantic `SatMLS` fork (§8) | Proofs check |
 | **3B** | `encodingBound`, `formulaSize_le_encodingBound`, `encodingBound_poly` (§8) | Proofs check |
 | **4A** | `NBHChecker_in_NP`, `μ₀_polRankable`, `nbhProb_in_DistNP`, codec round-trip (§8) | Proofs check |
-| **4B** | `nbhToSatMLS_red`, `reduce_domination`, `reduce_correct` (§8) | Open constructive obligations represented by `nbhToMlsMap_*` axioms |
-| **4C** | `satMLSProb_NPAverageComplete`, `IsNPAverageComplete.of_reductor`, `DistributionalReduction.trans` (§8) | Composition is proved; universal NBH reduction remains an axiom |
-| **5A** | `not_AvP_of_NPAverageComplete`, `NEXP_eq_EXP_of_AvP_complete`, `nbhProb_not_AvP` (§8) | Conditional derivations check; collapse and pullback results remain axioms |
-| **5B** | `SatMLS_average_hard`, `SatMLS_semantic_not_AvP`, `exists_simple_rankable_not_AvP` (§8) | Conditional on the named Phase 4–5 axioms |
+| **4B** | `nbhToSatMLS_red`, `reduce_domination`, `reduce_correct` (§8) | Open compiler obligations are explicit `NBHToMLSData` arguments |
+| **4C** | `satMLSProb_NPAverageComplete`, `IsNPAverageComplete.of_reductor`, `DistributionalReduction.trans` (§8) | Composition is proved; universal NBH reduction is explicit `LevinNBHData` |
+| **5A** | `not_AvP_of_NPAverageComplete`, `NEXP_eq_EXP_of_AvP_complete`, `nbhProb_not_AvP` (§8) | Conditional derivations take `AverageCaseCollapseTheory` explicitly |
+| **5B** | `SatMLS_average_hard`, `SatMLS_semantic_not_AvP`, `exists_simple_rankable_not_AvP` (§8) | Conditional on explicit Phase 4–5 interfaces; no project axioms |
 
-The Palomar package therefore selects only the axiom-free adapted claims
-exposed in [AvgCaseMls/Palomar.lean](#avgcasemls-palomar-lean): contradiction rejection, restricted
-decision completeness, codec and encoding bounds, abstract reduction
-composition, and completeness transfer. Repository smoke tests are not treated
-as examples from TR1995-711. The package does not
+The Palomar package selects the axiom-free Theorem 4.1, finite-support
+Theorem 4.4 with explicit target NP membership, full Example 4.1 shell
+calculation, concrete SAT reduction cores for Theorems 5.1–5.3, and supporting
+decision/encoding/reduction lemmas. Repository smoke tests are not treated as
+examples from TR1995-711. The package does not
 submit Phases 4B–5B as completed proofs. See `REPORT_CLAIM_AUDIT.md`.
 
 ---
@@ -4056,9 +4162,17 @@ We gratefully acknowledge assistance from the following tools:
 
 **Cursor** ([Cur25]): agent-assisted editing in the Cursor IDE, including models routed through Cursor’s **Auto** agent mode (which may invoke Composer-family and other backend models depending on task). These agents helped draft and refactor Lean 4 modules, suggest proof and refactoring strategies, debug `lake` / type-class errors, maintain `./run_lean_check.sh` and smoke tests, and build the portable `arxiv_with_includes.md` pipeline. Generated Lean was treated as provisional until it compiled under CI and matched our forks in `DEFINITION_FORKS.md`.
 
-**Google Gemini 3.5 Flash** ([Gem25]): independent technical briefs on Phases **4** and **5** (NBH codec invertibility, distributional-reduction transitivity, reduction correctness, and complexity-collapse axiomatization). Those briefs informed subsequent human-directed revisions; we did not adopt every recommendation verbatim (for example, we kept full `NBHChecker` scope via an axiomatized general TM→MLS map rather than restricting to a singleton language).
+**Google Gemini 3.5 Flash** ([Gem25]): independent technical briefs on Phases
+**4** and **5** (NBH codec invertibility, distributional-reduction
+transitivity, reduction correctness, and complexity-collapse interfaces).
+Those briefs informed subsequent human-directed revisions. Unfinished
+universal reductions and collapse principles are now explicit structure
+arguments, not project axioms.
 
-All definitions, axiom choices, remaining `sorry` obligations, and final prose were reviewed and owned by the human authors. Intellectual property in the Lean codebase and this note rests with the authors under the project’s stated license.
+All definitions, explicit external interfaces, remaining implementation gaps,
+and final prose were reviewed and owned by the human authors. Intellectual
+property in the Lean codebase and this note rests with the authors under the
+project’s stated license.
 
 ---
 
@@ -4078,6 +4192,8 @@ All definitions, axiom choices, remaining `sorry` obligations, and final prose w
 *   **[Lev86]** Levin, L. (1986). Average case complete problems. *SIAM Journal on Computing*.
 *   **[Reg05]** Regev, O. (2005). On lattices, learning with errors, and cryptography. *STOC*.
 *   **[RS93]** Reischuk, R., & Schindelhauer, C. (1993). Precise average case complexity. *STOC*.
+*   **[Ste23a]** Stevens, L. (2023). MLSS Decision Procedure. *Archive of Formal Proofs*. https://isa-afp.org/entries/MLSS_Decision_Proc.html
+*   **[Ste23b]** Stevens, L. (2023). Towards a Verified Tableau Prover for a Quantifier-Free Fragment of Set Theory. In Pientka, B., & Tinelli, C. (eds.), *Automated Deduction – CADE 29*, LNAI 14132, 491–508. https://doi.org/10.1007/978-3-031-38499-8_28
 *   **[SY92]** Schnorr, C. P., & Yoshida, T. (1992). Average-case complexity of NP-complete problems. *STOC*.
 *   **[Sny90a]** Snyder, W. K. (1990). The SETL2 programming language. *NYU Technical Report*.
 *   **[ST01]** Spielman, D. A., & Teng, S. H. (2001). Smoothed analysis of algorithms. *STOC*.

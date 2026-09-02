@@ -55,7 +55,7 @@ Context and Lean infrastructure appear in **§§2–4**; Phase 1 (AvCom) is **§
 
 | Subphase | Goal | Lean / doc |
 |----------|------|------------|
-| **2A** | MLS syntax + axiomatic semantics | §6 — `Term`, `Relation`, `Formula`, `evalTerm`, `evalFormula` |
+| **2A** | MLS syntax + ZFC semantics | §6 — `Term`, `Relation`, `Formula`, `evalTerm`, `evalFormula` |
 | **2B** | EMLS literals, `literalToFormula`, `conjunctToFormula` | §6 |
 | **2C** | FOS80 decision procedure for **satisfiability** | §7 |
 | **2D** | Problem encoding and step count | `serializeFormula`, `SatMLS`, `stepsMLS` (remove axioms in §8) |
@@ -86,7 +86,7 @@ Context and Lean infrastructure appear in **§§2–4**; Phase 1 (AvCom) is **§
 | Subphase | Goal |
 |----------|------|
 | **5A** | Conditional non-AvP from completeness + simple rankable $`\mu`$ |
-| **5B** | `SatMLS_average_hard` without `sorry`; axioms minimized |
+| **5B** | `SatMLS_average_hard` with all external principles explicit |
 
 ### Methodology
 
@@ -187,7 +187,9 @@ Our approach mirrors [icon2lean](https://github.com/catskillsresearch/icon2lean)
 1. **Definitions first** — encode $`\text{rank}`$, $`\text{Av}(T)`$, $`\text{DistTime}(T)`$, $`\text{AvP}`$, and $`\text{distNP}`$ alongside the AvCom definitions in §5.
 2. **Deep embedding of MLS/EMLS** — inductive syntax + semantic evaluation in §6.
 3. **Decision procedure skeleton** — a computable `decideMLS` with stated soundness/completeness for **satisfiability**, plus a future **step-counting** function to relate the model-graph algorithm to $`\text{Av}(T)`$ (§7).
-4. **Hardness statements** — structural theorems such as `SatMLS_average_hard` whose exact named project-axiom dependencies remain visible until the reductions from TR1995-711 are constructively formalized (§8).
+4. **Hardness statements** — structural theorems such as
+   `SatMLS_average_hard` take the unfinished universal reduction, compiler,
+   and collapse principles as explicit arguments (§8).
 
 ### Design Choices for Executable vs. Proof Layer
 | Concept | Lean representation | Rationale |
@@ -203,7 +205,12 @@ Our approach mirrors [icon2lean](https://github.com/catskillsresearch/icon2lean)
 
 ## 5. Average-Case Complexity (AvCom): Theory, Classes, and Lean Encoding
 
-The formal definitions in this section follow TR1995-711 §3.2 ([`TR1995-711.pdf`](TR1995-711.pdf)). In the mid-1990s, structural average-case complexity was a young, highly mathematical field. Each mathematical definition below is paired with its Lean counterpart in [`AvgCaseMls/AvCom.lean`](AvgCaseMls/AvCom.lean) where it exists today. 
+The formal definitions in this section follow TR1995-711 §3.2
+([`sources/TR1995-711.pdf`](sources/TR1995-711.pdf); draft transcription
+[`sources/TR1995-711_vision.md`](sources/TR1995-711_vision.md)). In the
+mid-1990s, structural average-case complexity was a young, highly mathematical
+field. Each mathematical definition below is paired with its Lean counterpart
+in [`AvgCaseMls/AvCom.lean`](AvgCaseMls/AvCom.lean) where it exists today.
 
 ### Why Naive Averaging Fails
 Prior to Leonid Levin’s 1986 breakthrough [Lev86], researchers measured average running time naively:
@@ -239,7 +246,11 @@ The subsections below collect the definitions as used in the report, with Lean e
 ### Inputs, Distributions, and Rank
 Fix a finite alphabet $`\Sigma`$ (in practice $`\Sigma = \{0,1\}`$). An **input** is a string $`x \in \Sigma^*`$, with **length** $`|x|`$ (in Lean we use `Bitstring := List Bool` and `len s := s.length`).
 
-A **probability distribution** on $`\Sigma^*`$ is a function $`\mu : \Sigma^* \to [0,1]`$ such that $`\sum_x \mu(x) \leq 1`$ and $`\mu(x) \geq 0`$ for all $`x`$. In the Lean sketch we axiomatize this with finite `Finset` sums rather than infinite series, which is adequate for the rank-based definitions that follow.
+A **probability distribution** on $`\Sigma^*`$ is a function
+$`\mu : \Sigma^* \to [0,1]`$ such that $`\sum_x \mu(x) \leq 1`$ and
+$`\mu(x) \geq 0`$ for all $`x`$. The main `AvCom` model uses explicit finite
+support and checked `Finset` sums. Example 4.1 separately uses an infinite
+all-bitstring shell series.
 
 A **distributional problem** is a pair $`(L, \mu)`$ where $`L \subseteq \Sigma^*`$ is a decision problem (language) and $`\mu`$ is a distribution on its instances.
 
@@ -368,7 +379,12 @@ v_i = \emptyset, \quad v_i = v_j \cup v_k, \quad v_i = v_j \setminus v_k, \quad 
 
 **Scope.** [`AvgCaseMls/MLS.lean`](AvgCaseMls/MLS.lean) (Phase **2A**) and [`AvgCaseMls/EMLS.lean`](AvgCaseMls/EMLS.lean) (Phase **2B**) compile with no `sorry`. Phase **2C** (decision procedure, §7) and **2D** (serialization and step counting, §8) are separate obligations.
 
-Set variables are identified with natural-number indices (`Nat → ZFSet` environments), matching the report's $`v_i`$ notation. MLS formulas talk about membership chains $`v_i \in v_j \in v_k \in \cdots`$. We use a custom axiomatized `ZFSet` sort so the development is self-contained and `evalTerm`/`evalFormula` are explicitly `noncomputable` (axioms are not compiled). A Mathlib-backed refactor would replace `axiom ZFSet` with imports from `Mathlib.Data.ZFC.Basic`.
+Set variables are identified with natural-number indices (`Nat → ZFSet`
+environments), matching the report's $`v_i`$ notation. MLS formulas talk about
+membership chains $`v_i \in v_j \in v_k \in \cdots`$. The semantics now use
+Mathlib's concrete ZFC model (`Mathlib.SetTheory.ZFC.Basic`); set operations,
+Foundation, and the iterated-singleton witness tags are definitions or checked
+theorems rather than project axioms.
 
 The listing below matches [`AvgCaseMls/MLS.lean`](AvgCaseMls/MLS.lean).
 
@@ -415,6 +431,19 @@ Let $`q^*`$ be the sub-conjunction of $(*)$ literals, $`V_{\in}`$ the variables 
 4. **Step 4:** Search for a **singleton model** (every variable interpreted as a subset of $`\{\emptyset\}`$) by assigning an ordering $`x < y`$ when $`M(x) \in M(y)`$; detect cycles (e.g. $`x \in y \land y \in z \land z \in x`$) as unsatisfiable. In the worst case TR1995-711 cites $`2^{4n^3}`$ candidate models for $`n`$ variables.
 
 [FOS80] §4 extends the language with singletons, cardinality, and arithmetic; we do **not** encode that extension yet.
+
+### Related Isabelle formalization
+
+Stevens's Isabelle/HOL development [Ste23a, Ste23b] verifies a terminating,
+executable, sound, and complete tableau procedure for **MLSS**, the
+multilevel-syllogistic fragment with singleton terms, over hereditarily finite
+sets. MLSS is richer than the MLS syntax used here because it includes the
+singleton constructor. Its verified Cantone–Zarba tableau procedure is also
+different from this repository's partial implementation of the older
+Ferro–Omodeo–Schwartz model-graph procedure. The Isabelle development therefore
+provides the relevant complete proof-assistant baseline; the contribution here
+is instead the paper-aligned average-case framework and the checked
+SAT-to-MLS/FPILP reduction cores.
 
 ### Lean modules
 
@@ -480,23 +509,23 @@ We represent this structurally in Lean 4:
 | **1B** | `rank`, `T_inv` without `sorry`; finite-support rank + partial `T_inv` in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md) | Proofs check |
 | **1C** | `IsAvTime`, `rankLe`, `DistTime`, `AvDTime`, `IsTRankable`; forks in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md) | Proofs check |
 | **1D** | `AvP`, `InDistNP`, `DistributionalReduction`, `IsNPAverageComplete`; forks in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md) | Proofs check |
-| **2A** | MLS syntax + axiomatic semantics (§6) | Proofs check |
+| **2A** | MLS syntax + Mathlib ZFC semantics (§6) | Proofs check |
 | **2B** | `Literal`, `literalToFormula`, `conjunctToFormula`, `Literal.holds` (§6) | Proofs check |
-| **2C** | `decideMLSSat`, FOS80 Steps 2–4; sound + partial completeness on sound fragment (§7) | Proofs check for the restricted fragment; global completeness remains open |
+| **2C** | `decideMLSSat`, FOS80 Steps 2–4; sound + partial completeness on sound fragment (§7) | Restricted proofs check; a checked counterexample refutes global completeness of the current partial function |
 | **2D** | `serializeFormula`, `SatMLS`, `stepsMLS` (§8) | Proofs check |
 | **3A** | `SatMLSChecker_in_NP`, `decodeFormula?_serializeFormula`; checker vs semantic `SatMLS` fork (§8) | Proofs check |
 | **3B** | `encodingBound`, `formulaSize_le_encodingBound`, `encodingBound_poly` (§8) | Proofs check |
 | **4A** | `NBHChecker_in_NP`, `μ₀_polRankable`, `nbhProb_in_DistNP`, codec round-trip (§8) | Proofs check |
-| **4B** | `nbhToSatMLS_red`, `reduce_domination`, `reduce_correct` (§8) | Open constructive obligations represented by `nbhToMlsMap_*` axioms |
-| **4C** | `satMLSProb_NPAverageComplete`, `IsNPAverageComplete.of_reductor`, `DistributionalReduction.trans` (§8) | Composition is proved; universal NBH reduction remains an axiom |
-| **5A** | `not_AvP_of_NPAverageComplete`, `NEXP_eq_EXP_of_AvP_complete`, `nbhProb_not_AvP` (§8) | Conditional derivations check; collapse and pullback results remain axioms |
-| **5B** | `SatMLS_average_hard`, `SatMLS_semantic_not_AvP`, `exists_simple_rankable_not_AvP` (§8) | Conditional on the named Phase 4–5 axioms |
+| **4B** | `nbhToSatMLS_red`, `reduce_domination`, `reduce_correct` (§8) | Open compiler obligations are explicit `NBHToMLSData` arguments |
+| **4C** | `satMLSProb_NPAverageComplete`, `IsNPAverageComplete.of_reductor`, `DistributionalReduction.trans` (§8) | Composition is proved; universal NBH reduction is explicit `LevinNBHData` |
+| **5A** | `not_AvP_of_NPAverageComplete`, `NEXP_eq_EXP_of_AvP_complete`, `nbhProb_not_AvP` (§8) | Conditional derivations take `AverageCaseCollapseTheory` explicitly |
+| **5B** | `SatMLS_average_hard`, `SatMLS_semantic_not_AvP`, `exists_simple_rankable_not_AvP` (§8) | Conditional on explicit Phase 4–5 interfaces; no project axioms |
 
-The Palomar package therefore selects only the axiom-free adapted claims
-exposed in `AvgCaseMls/Palomar.lean`: contradiction rejection, restricted
-decision completeness, codec and encoding bounds, abstract reduction
-composition, and completeness transfer. Repository smoke tests are not treated
-as examples from TR1995-711. The package does not
+The Palomar package selects the axiom-free Theorem 4.1, finite-support
+Theorem 4.4 with explicit target NP membership, full Example 4.1 shell
+calculation, concrete SAT reduction cores for Theorems 5.1–5.3, and supporting
+decision/encoding/reduction lemmas. Repository smoke tests are not treated as
+examples from TR1995-711. The package does not
 submit Phases 4B–5B as completed proofs. See `REPORT_CLAIM_AUDIT.md`.
 
 ---
@@ -523,9 +552,17 @@ We gratefully acknowledge assistance from the following tools:
 
 **Cursor** ([Cur25]): agent-assisted editing in the Cursor IDE, including models routed through Cursor’s **Auto** agent mode (which may invoke Composer-family and other backend models depending on task). These agents helped draft and refactor Lean 4 modules, suggest proof and refactoring strategies, debug `lake` / type-class errors, maintain `./run_lean_check.sh` and smoke tests, and build the portable `arxiv_with_includes.md` pipeline. Generated Lean was treated as provisional until it compiled under CI and matched our forks in `DEFINITION_FORKS.md`.
 
-**Google Gemini 3.5 Flash** ([Gem25]): independent technical briefs on Phases **4** and **5** (NBH codec invertibility, distributional-reduction transitivity, reduction correctness, and complexity-collapse axiomatization). Those briefs informed subsequent human-directed revisions; we did not adopt every recommendation verbatim (for example, we kept full `NBHChecker` scope via an axiomatized general TM→MLS map rather than restricting to a singleton language).
+**Google Gemini 3.5 Flash** ([Gem25]): independent technical briefs on Phases
+**4** and **5** (NBH codec invertibility, distributional-reduction
+transitivity, reduction correctness, and complexity-collapse interfaces).
+Those briefs informed subsequent human-directed revisions. Unfinished
+universal reductions and collapse principles are now explicit structure
+arguments, not project axioms.
 
-All definitions, axiom choices, remaining `sorry` obligations, and final prose were reviewed and owned by the human authors. Intellectual property in the Lean codebase and this note rests with the authors under the project’s stated license.
+All definitions, explicit external interfaces, remaining implementation gaps,
+and final prose were reviewed and owned by the human authors. Intellectual
+property in the Lean codebase and this note rests with the authors under the
+project’s stated license.
 
 ---
 
@@ -545,6 +582,8 @@ All definitions, axiom choices, remaining `sorry` obligations, and final prose w
 *   **[Lev86]** Levin, L. (1986). Average case complete problems. *SIAM Journal on Computing*.
 *   **[Reg05]** Regev, O. (2005). On lattices, learning with errors, and cryptography. *STOC*.
 *   **[RS93]** Reischuk, R., & Schindelhauer, C. (1993). Precise average case complexity. *STOC*.
+*   **[Ste23a]** Stevens, L. (2023). MLSS Decision Procedure. *Archive of Formal Proofs*. https://isa-afp.org/entries/MLSS_Decision_Proc.html
+*   **[Ste23b]** Stevens, L. (2023). Towards a Verified Tableau Prover for a Quantifier-Free Fragment of Set Theory. In Pientka, B., & Tinelli, C. (eds.), *Automated Deduction – CADE 29*, LNAI 14132, 491–508. https://doi.org/10.1007/978-3-031-38499-8_28
 *   **[SY92]** Schnorr, C. P., & Yoshida, T. (1992). Average-case complexity of NP-complete problems. *STOC*.
 *   **[Sny90a]** Snyder, W. K. (1990). The SETL2 programming language. *NYU Technical Report*.
 *   **[ST01]** Spielman, D. A., & Teng, S. H. (2001). Smoothed analysis of algorithms. *STOC*.

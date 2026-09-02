@@ -1,4 +1,8 @@
 import AvgCaseMls.MLS
+import AvgCaseMls.SAT
+import AvgCaseMls.MLSInReduction
+import AvgCaseMls.EMLSReduction
+import AvgCaseMls.FPILP
 import AvgCaseMls.EMLS
 import AvgCaseMls.DecideMLS
 import AvgCaseMls.Serialization
@@ -9,4 +13,7 @@ import AvgCaseMls.Reduction
 import AvgCaseMls.Completeness
 import AvgCaseMls.NonAvP
 import AvgCaseMls.Palomar
+import AvgCaseMls.TR1995
+import AvgCaseMls.Example41
+import AvgCaseMls.HonestReduction
 import AvgCaseMls.Tests

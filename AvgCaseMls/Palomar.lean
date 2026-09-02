@@ -4,62 +4,72 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Lars Warren Ericson, Catskills Research Company
 -/
 
-import AvgCaseMls.Serialization
-import AvgCaseMls.Reduction
+import AvgCaseMls.TR1995
+import AvgCaseMls.Example41
+import AvgCaseMls.HonestReduction
+import AvgCaseMls.MLSInReduction
+import AvgCaseMls.EMLSReduction
+import AvgCaseMls.FPILP
 
 /-!
-Palomar-facing wrappers for report-related adapted claims that are proved
-without the project's open completeness/reduction axioms.
+Palomar-facing proofs of the six directly stated paper-numbered/core claims,
+without the project's open completeness/reduction assumptions.
 -/
 
 namespace AvgCasePalomar
 
 open AvCom MLS EMLS
 
-def Step2Rejection : Prop :=
-  ∀ c : Conjunct, hasStep2Contradiction c = true → decideConjunct c = false
+theorem paper_theorem_4_1 :
+  ∀ {L : Set Bitstring} {ρ : Distribution},
+    IsNPAverageComplete ⟨L, ρ⟩ → TR1995.IsNPAverageCompleteLanguage L :=
+  fun h => TR1995.theorem_4_1 h
 
-theorem step2_rejection : Step2Rejection :=
-  decideConjunct_unsat_step2
+theorem paper_theorem_4_4 :
+  ∀ {L₁ L₂ : Set Bitstring},
+    HonestReduction.FaithfulReduction L₁ L₂ →
+    TR1995.IsNPAverageCompleteLanguage L₁ →
+    InNP L₂ →
+    TR1995.IsNPAverageCompleteLanguage L₂ :=
+  HonestReduction.npAverageCompleteLanguage_of_faithfulReduction
 
-def SoundFragmentCompleteness : Prop :=
-  ∀ f : Formula, InDecideSoundFormula f → decideMLSSat f = true
+theorem paper_example_4_1 :
+  ∀ {ε : ℝ}, 0 < ε →
+    ∃ C : ℝ, 0 < C ∧
+      Summable (Example41.levinShellSeries ε) ∧
+      (∑' n : Nat, Example41.levinShellSeries ε n / C) ≤ 1 :=
+  fun hε => Example41.normalized_levin_bound hε
 
-theorem sound_fragment_completeness : SoundFragmentCompleteness :=
-  decideMLSSat_complete_sound_fragment
+theorem paper_theorem_5_1_reduction_core :
+  (∀ φ : SAT.CNF,
+      SAT.Satisfiable φ ↔ MLSInReduction.MLSSatisfiable (MLSInReduction.toMLS φ)) ∧
+  Function.Injective MLSInReduction.toMLS ∧
+  ∀ φ : SAT.CNF,
+    formulaNodes (MLSInReduction.toMLS φ) + 1 = 5 * SAT.size φ :=
+  ⟨MLSInReduction.satisfiable_iff, MLSInReduction.toMLS_injective,
+    MLSInReduction.formulaNodes_toMLS⟩
 
-def FormulaSerializationRoundtrip : Prop :=
-  ∀ f : Formula, decodeFormula? (serializeFormula f) = some (f, [])
+theorem paper_theorem_5_2_reduction_core :
+  (∀ φ : SAT.CNF,
+      SAT.Satisfiable φ ↔
+        EMLSReduction.EMLSSatisfiable (EMLSReduction.toEMLS φ)) ∧
+  Function.Injective EMLSReduction.toEMLS ∧
+  ∀ φ : SAT.CNF,
+    (EMLSReduction.toEMLS φ).length ≤ 3 * SAT.size φ :=
+  ⟨EMLSReduction.toEMLS_satisfiable_iff, EMLSReduction.toEMLS_injective,
+    EMLSReduction.toEMLS_length_le⟩
 
-theorem formula_serialization_roundtrip : FormulaSerializationRoundtrip :=
-  decodeFormula?_serializeFormula
-
-def FormulaEncodingPolynomiallyBounded : Prop :=
-  IsPolynomial encodingBound ∧
-    ∀ f : Formula, formulaSize f ≤ encodingBound (formulaAstMass f)
-
-theorem formula_encoding_polynomially_bounded : FormulaEncodingPolynomiallyBounded :=
-  ⟨encodingBound_poly, formulaSize_le_encodingBound⟩
-
-def DistributionalReductionTransitive : Prop :=
-  ∀ {p₁ p₂ p₃ : DistributionalProblem},
-    DistributionalReduction p₁ p₂ →
-    DistributionalReduction p₂ p₃ →
-    DistributionalReduction p₁ p₃
-
-theorem distributional_reduction_transitive : DistributionalReductionTransitive :=
-  fun h₁₂ h₂₃ => h₁₂.trans h₂₃
-
-def AverageCompletenessTransfersAlongReduction : Prop :=
-  ∀ (source target : DistributionalProblem),
-    InDistNP target →
-    IsNPAverageComplete source →
-    DistributionalReduction source target →
-    IsNPAverageComplete target
-
-theorem average_completeness_transfers_along_reduction :
-    AverageCompletenessTransfersAlongReduction :=
-  fun mid target hTarget hMid hRed =>
-    IsNPAverageComplete.of_reductor hTarget hMid hRed
+theorem paper_theorem_5_3_reduction_core :
+  (∀ {n : Nat} (φ : TR1995.FPILPSource.CNF n),
+      φ.Satisfiable ↔
+        (TR1995.FPILPSource.satToFPILP φ).Feasible) ∧
+  (∀ {n : Nat},
+      Function.Injective (@TR1995.FPILPSource.satToFPILP n)) ∧
+  ∀ {n : Nat} (φ : TR1995.FPILPSource.CNF n),
+    (TR1995.FPILPSource.satToFPILP φ).constraints.length =
+      2 * n + φ.length :=
+  ⟨fun φ => (TR1995.FPILPSource.satToFPILP_feasible_iff φ).symm,
+    @TR1995.FPILPSource.satToFPILP_injective,
+    TR1995.FPILPSource.satToFPILP_constraint_count⟩
 
 end AvgCasePalomar

@@ -9,32 +9,29 @@ import AvgCaseMls.AvCom
 open AvCom
 
 /-!
-Minimal complexity collapse hypothesis for conditional average-case hardness (Phase **5**).
+Explicit complexity-collapse interface for conditional average-case hardness.
 
-Literature: TR1995-711 Corollary 5.1 consequence — NP-average complete targets are not in AvP
-unless $\\text{NEXP} = \\text{EXP}$. Mathlib does not yet host this implication; we axiomatize
-only the collapse hypothesis, not the full proof.
+Mathlib does not yet define the required complexity classes. Instead of global
+project axioms, downstream conditional theorems take this interface as an
+explicit argument.
 -/
-
-/-- Nondeterministic exponential time is strictly larger than deterministic exponential time. -/
-axiom NEXP_neq_EXP : Prop
-
-def NEXP_eq_EXP : Prop := ¬ NEXP_neq_EXP
 
 /--
-Levin / TR1995-711 collapse equivalence: distNP is average-case tractable iff NEXP = EXP.
-
-Literature: decades of structural complexity; full proof is out of scope for this project.
+The exact external principles used by the legacy conditional-hardness chain.
+Supplying this structure is an explicit proof obligation.
 -/
-axiom distNP_subseteq_AvP_iff_NEXP_eq_EXP :
+structure AverageCaseCollapseTheory where
+  NEXP_eq_EXP : Prop
+  distNP_subseteq_AvP_iff_NEXP_eq_EXP :
   (∀ p, InDistNP p → AvP p) ↔ NEXP_eq_EXP
-
-/--
-AvP pulls back along distributional reductions from a complete distNP target.
-
-Literature: compose a poly-time decider for the target with the reduction map; deferred until
-[`DistTime`] is linked to concrete deciders.
--/
-axiom AvP_pullback {source target : DistributionalProblem}
+  AvP_pullback {source target : DistributionalProblem}
     (hAvP : AvP target) (hRed : DistributionalReduction source target) :
     AvP source
+
+namespace AverageCaseCollapseTheory
+
+/-- The explicit separation assumption relative to a supplied class model. -/
+def NEXP_neq_EXP (theory : AverageCaseCollapseTheory) : Prop :=
+  ¬ theory.NEXP_eq_EXP
+
+end AverageCaseCollapseTheory

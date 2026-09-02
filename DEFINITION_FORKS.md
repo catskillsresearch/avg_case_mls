@@ -58,14 +58,6 @@ When the literature leaves a choice implicit, we record it here.
 
 **Rationale:** Separates the numeric rank bound (needed for domination/reductions) from executable rank oracles.
 
-## `InNP` stub (Phase 1D)
-
-**Literature:** $\\text{distNP} = \\{(L, \\mu) : L \\in \\text{NP},\\ \\mu \\in \\text{POL-rankable}\\}$.
-
-**Lean fork:** `InNP _L := True` until a Mathlib bitstring $\\text{NP}$ layer exists; `InDistNP` still enforces `IsPolRankable`.
-
-**Rationale:** Keeps distNP-shaped definitions checkable now without axiomatizing Turing machines.
-
 ## Domination uses `lenBot` (Phase 1D)
 
 **Literature:** $p_2(f(x)) \\le c_0 |x|^{c_1} p_1(x)$ with $|x| = \\text{len}(x)$.
@@ -96,7 +88,14 @@ When the literature leaves a choice implicit, we record it here.
 - **Soundness:** [`decideMLSSat_sound`] / [`decideConjunct_sound`] on [`InDecideSoundFragment`] / [`InDecideSoundFormula`] (no membership or `eqOp` literals; Step 3 obstruction false).
 - **Partial completeness:** [`decideMLSSat_complete_sound_fragment`] / [`decideConjunct_complete_sound_fragment`] — on that same fragment, [`decideMLSSat`] / [`decideConjunct`] always return `true`.
 
-**Left as future work (global completeness):** [`decideMLSSat_complete`] remains `sorry`. Full FOS80 completeness requires Step 1 (variable substitution under equivalence classes of set equations $q^*$) and a complete Step 4 model search (e.g. evaluating the $2^{4n^3}$ singleton models for transitive membership cycles).
+**Global completeness status:** the former `decideMLSSat_complete` placeholder
+has been removed. [`not_decideMLSSat_complete`] proves that the current
+function is not globally complete: it rejects a satisfiable disjunction before
+the conjunct checks. Full FOS80 completeness requires a different completed
+implementation with propositional normalization, Step 1 (variable
+substitution under equivalence classes of set equations $q^*$), and a complete
+Step 4 model search (e.g. evaluating the $2^{4n^3}$ singleton models for
+transitive membership cycles).
 
 **Lean fork — `relationToLiteral?`:** Maps only FOS80 §3 patterns (`var`/`empty`/`∪`/`∩`/`\\` on variables). [`relationToLiteral?_eval`] is fully proved (structural case split on non-flat `Relation.eq` branches).
 
@@ -112,7 +111,7 @@ When the literature leaves a choice implicit, we record it here.
 
 **Lean fork — step budget:** [`stepsMLS`] = `wireSizeFormula f` + [`stepsConjunct`] when [`formulaToConjunct?`] succeeds; conjunct budget is $O(n^2)$ in literal count (Step 2 pairs). No link to `IsAvTime` yet (Phase 5 / future work).
 
-**Rationale:** Removes the §8 `serializeFormula` axiom; [`NEXP_neq_EXP`] lives in [`ComplexityAxioms.lean`](AvgCaseMls/ComplexityAxioms.lean) for Phase **5**.
+**Rationale:** The encoding and its size theorem are fully constructive.
 
 ## NP membership proxy (Phase 3A)
 
@@ -148,15 +147,19 @@ When the literature leaves a choice implicit, we record it here.
 
 **Literature:** TR1995-711 §3.2 distributional reduction with domination into target language/distribution.
 
-**Lean fork — general map (Option B):** [`nbhToMlsMap`] axiomatizes the full TR1995-711 TM→MLS translation for **arbitrary MLS formulas** in paper scope (not the singleton-language restriction). [`reduceNBHToSatMLS`] := [`nbhToMlsMap`]; [`reduce_correct`] follows from [`nbhToMlsMap_correct`].
+**Lean fork — legacy general map:** [`NBHToMLSData`] is an explicit argument
+containing the full compiler map, correctness, length, and domination
+obligations. No global compiler axiom remains.
 
 **Lean fork — scaffold map:** [`reduceNBHToSatMLSStep`] is the old step-function on [`μ₀Support`] / off-support unsat encoding; retained for [`reduce_domination`] and [`nbhToSatMLS_red_on_μ₀`] tests only.
 
 **Lean fork — target problem [`satMLSProb`]:** language [`SatMLSChecker`], distribution [`μ₁`] uniform on `{satTargetEnc}`.
 
-**Proved:** [`reduce_domination`], [`reduce_correct`], [`nbhToSatMLS_red`] (modulo [`nbhToMlsMap_*`] axioms).
+**Proved:** [`reduce_domination`] for the singleton scaffold and
+[`nbhToSatMLS_red`] from an explicit [`NBHToMLSData`] argument.
 
-**Rationale:** Keeps distributional correctness aligned with full [`NBHChecker`] while honestly deferring the constructive TM→MLS compiler.
+**Rationale:** Keeps distributional correctness aligned with full
+[`NBHChecker`] while exposing the deferred constructive compiler.
 
 ## NP-average completeness (Phase 4C)
 
@@ -164,11 +167,15 @@ When the literature leaves a choice implicit, we record it here.
 
 **Lean fork — pipeline:** [`IsNPAverageComplete.of_reductor`] composes a complete intermediate problem with a distributional reduction; [`satMLSProb_NPAverageComplete`] applies this to [`nbhProb_NPAverageComplete`] and [`nbhToSatMLS_red`].
 
-**Lean fork — Levin universal reduction:** [`distNP_reduces_to_nbh`] axiom (every distNP problem reduces to [`nbhProb`]); [`nbhProb_NPAverageComplete`] follows.
+**Lean fork — Levin universal reduction:** [`LevinNBHData`] explicitly carries
+the reduction from every distNP problem to [`nbhProb`].
 
-**Proved:** [`DistributionalReduction.trans`], [`IsNPAverageComplete.of_reductor`], [`satMLSProb_NPAverageComplete`] (modulo [`distNP_reduces_to_nbh`] and [`nbhToMlsMap_*`] axioms).
+**Proved:** [`DistributionalReduction.trans`],
+[`IsNPAverageComplete.of_reductor`], and [`satMLSProb_NPAverageComplete`] from
+explicit `LevinNBHData` and `NBHToMLSData` arguments.
 
-**Rationale:** Compositional completeness logic is closed; universal NBH reduction remains the named external obligation.
+**Rationale:** Compositional completeness logic is closed; the universal NBH
+reduction remains an explicit external obligation.
 
 ## Conditional non-AvP (Phase 5)
 
@@ -178,7 +185,11 @@ When the literature leaves a choice implicit, we record it here.
 
 **Lean fork — target problem:** [`SatMLS_average_hard`] and [`exists_simple_rankable_not_AvP`] use [`satMLSProb`] / [`SatMLSChecker`] with [`simpleSatμ`] (= [`μ₁`]).
 
-**Proved:** [`AvP_of_distNP_of_complete_target`], [`NEXP_eq_EXP_of_AvP_complete`], [`not_AvP_of_NPAverageComplete`], [`SatMLS_average_hard`], [`SatMLS_semantic_not_AvP`], [`exists_simple_rankable_not_AvP`], [`nbhProb_not_AvP`] (modulo axioms above).
+**Proved conditionally:** [`AvP_of_distNP_of_complete_target`],
+[`NEXP_eq_EXP_of_AvP_complete`], [`not_AvP_of_NPAverageComplete`],
+[`SatMLS_average_hard`], [`SatMLS_semantic_not_AvP`],
+[`exists_simple_rankable_not_AvP`], and [`nbhProb_not_AvP`] take explicit
+`AverageCaseCollapseTheory`, `LevinNBHData`, and/or `NBHToMLSData` arguments.
 
 **Lean fork — semantic AvP:** [`SatMLS_semantic_not_AvP`] uses [`AvP.same_μ`] — average-time depends only on the distribution, so checker hardness on [`simpleSatμ`] transfers to semantic [`SatMLS`].
 
@@ -198,36 +209,30 @@ When the literature leaves a choice implicit, we record it here.
 
 Peer-review transparency: the main hardness theorem [`NonAvP.SatMLS_average_hard`] was audited with `#print axioms` in [`NonAvP.lean`](AvgCaseMls/NonAvP.lean) (also echoed in [`Tests.lean`](AvgCaseMls/Tests.lean) via `./run_lean_tests.sh`).
 
-**Project-specific axioms** (structural complexity and reduction scaffold):
+**Project-specific axioms:** none.
 
-| Axiom | Module | Role |
-|-------|--------|------|
-| [`NEXP_neq_EXP`] | [`ComplexityAxioms.lean`] | Collapse hypothesis: NEXP $\neq$ EXP |
-| [`distNP_subseteq_AvP_iff_NEXP_eq_EXP`] | [`ComplexityAxioms.lean`] | Levin equivalence: distNP $\subseteq$ AvP iff NEXP = EXP |
-| [`AvP_pullback`] | [`ComplexityAxioms.lean`] | AvP pulls back along distributional reductions |
-| [`distNP_reduces_to_nbh`] | [`Completeness.lean`] | Universal Levin reduction: every distNP problem $\leq$ NBH |
-| [`nbhToMlsMap`], [`nbhToMlsMap_correct`], [`nbhToMlsMap_lenBound`], [`nbhToMlsMap_domination`] | [`Reduction.lean`] | Option B TM→MLS map (correctness, length, domination) |
+Unfinished legacy constructions are represented by explicit arguments:
+
+| Interface | Module | Obligation |
+|---|---|---|
+| `AverageCaseCollapseTheory` | [`ComplexityAxioms.lean`] | Collapse theorem and AvP pullback |
+| `LevinNBHData` | [`Completeness.lean`] | Universal reduction from every distNP problem to NBH |
+| `NBHToMLSData` | [`Reduction.lean`] | NBH→MLS compiler correctness, length, and domination |
 
 **Lean / classical axioms** (standard library, not project-specific):
 
 `propext`, `Classical.choice`, `Quot.sound`
 
-**Set-theoretic semantics** ([`MLS.lean`](AvgCaseMls/MLS.lean)): `ZFSet`, `ZFSet.empty`, `ZFSet.union`, `ZFSet.inter`, `ZFSet.diff`, `ZFSet.mem`, [`ZFSet.regularity`], `ZFSet.tag`, `ZFSet.tag_ne_empty`, `ZFSet.tag_injective`. These axiomatize MLS/EMLS evaluation and Step 3 witness tags; they do **not** appear in the `#print axioms` dependency list of [`SatMLS_average_hard`] because the hardness proof chain does not unfold formula semantics.
+**Set-theoretic semantics** ([`MLS.lean`](AvgCaseMls/MLS.lean)) now uses
+Mathlib's concrete ZFC model. `ZFSet.empty`, union, intersection, difference,
+membership, Foundation, and the iterated-singleton witness tags are definitions
+or theorems rather than project axioms.
 
 **ZF regularity and Step 4:** [`ZFSet.regularity`] (Foundation) rules out self-membership; [`EMLS.step4_self_loop_unsat`] proves `¬ Literal.holds env (Literal.mem x x)`, grounding syntactic Step 4 cycle detection for single-node loops.
 
 **Recorded audit output** (Lean 4, current build):
 
 ```
-'NonAvP.SatMLS_average_hard' depends on axioms: [AvP_pullback,
- NEXP_neq_EXP,
- distNP_subseteq_AvP_iff_NEXP_eq_EXP,
- propext,
- Classical.choice,
- Completeness.distNP_reduces_to_nbh,
- Quot.sound,
- Reduction.nbhToMlsMap,
- Reduction.nbhToMlsMap_correct,
- Reduction.nbhToMlsMap_domination,
- Reduction.nbhToMlsMap_lenBound]
+'NonAvP.SatMLS_average_hard' depends on axioms:
+[propext, Classical.choice, Quot.sound]
 ```

@@ -2,6 +2,7 @@
 .lake
 .cache/palomar-editorial/
 .venv-editorial/
+.venv-ocr
 vendor/palomar-policy.sync-backup/
 /build/
 /dist/
@@ -11,6 +12,8 @@ vendor/palomar-policy.sync-backup/
 scripts/__pycache__/
 __pycache__/
 *.pyc
+sources/pages/
+sources/ocr_*.log
 
 # LaTeX auxiliary / build files (PDFs are kept)
 *.aux

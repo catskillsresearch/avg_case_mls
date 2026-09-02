@@ -29,7 +29,7 @@ encodings, and the formula size is linear in the certificate length.
 
 This growth is **quadratic in the instance description** (`lenBot x` is polynomial in
 `|Q|`, `n`, and `t`). The corresponding proof remains an obligation of
-`NBHToMLSData`, rather than a global axiom.
+`NBHToMLSData`, rather than a global postulate.
 -/
 
 def satTargetFormula : Formula :=

@@ -17,3 +17,5 @@ import AvgCaseMls.TR1995
 import AvgCaseMls.Example41
 import AvgCaseMls.HonestReduction
 import AvgCaseMls.Tests
+import AvgCaseMls.Foundation
+import AvgCaseMls.Section3

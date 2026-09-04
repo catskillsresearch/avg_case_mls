@@ -22,3 +22,11 @@ name = "Challenge"
 
 [[lean_lib]]
 name = "Solution"
+
+# Runnable versions of every proof displayed in arxiv.md.  Each gist restates
+# the theorem under discussion and re-proves it, importing its dependencies
+# from AvgCaseMls, so a reader can compare the English and the Lean directly.
+# Checked by scripts/check_gists.sh; kept out of defaultTargets so the Palomar
+# build surface is unaffected.
+[[lean_lib]]
+name = "Gists"

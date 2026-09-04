@@ -79,12 +79,12 @@ theorem inDistNP_zeroDistribution (S : Set Bitstring) :
 
 /-! ## Set-theoretic characterization -/
 
-private theorem exists_not_mem_of_ne_univ {L : Set Bitstring}
+theorem exists_not_mem_of_ne_univ {L : Set Bitstring}
     (h : L ≠ Set.univ) : ∃ b, b ∉ L := by
   by_contra hc
   exact h (Set.eq_univ_of_forall fun x => not_not.mp fun hx => hc ⟨x, hx⟩)
 
-private theorem ne_univ_of_exists_not_mem {L : Set Bitstring}
+theorem ne_univ_of_exists_not_mem {L : Set Bitstring}
     (h : ∃ b, b ∉ L) : L ≠ Set.univ := by
   obtain ⟨b, hb⟩ := h
   intro hL

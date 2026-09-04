@@ -26,3 +26,4 @@ import AvgCaseMls.Section4
 import AvgCaseMls.EncodingCollapse
 import AvgCaseMls.DominationCollapse
 import AvgCaseMls.HardnessCollapse
+import AvgCaseMls.Repair

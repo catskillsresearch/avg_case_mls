@@ -9,7 +9,6 @@ vendor/palomar-policy.sync-backup/
 /dist/
 /lean-listings/
 /00README.json
-/view.pdf
 scripts/__pycache__/
 __pycache__/
 *.pyc

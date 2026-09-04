@@ -2,6 +2,7 @@
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
+\usepackage{newunicodechar}
 \usepackage[margin=1in]{geometry}
 \usepackage{amsmath}
 \usepackage{amssymb}
@@ -14,9 +15,11 @@
 \usepackage{graphicx}
 \usepackage{longtable}
 \usepackage{calc}
-\usepackage{newunicodechar}
 \usepackage{listings}
 \usepackage[colorlinks=true,linkcolor=blue!40!black,citecolor=blue!40!black,urlcolor=blue!40!black]{hyperref}
+\usepackage{xurl}
+\emergencystretch=2em
+\sloppy
 
 \newcommand{\Z}{\mathbb{Z}}
 \newcommand{\Q}{\mathbb{Q}}
@@ -157,9 +160,11 @@ The combinatorial chain (Lemmas 1--5, projection, resolution completeness) is fu
 \hypertarget{exposition-resolutionlowerbound-lean}{%
 \subsection{Exposition/ResolutionLowerBound.lean}\label{exposition-resolutionlowerbound-lean}}
 
+\noindent\textbf{Exposition/ResolutionLowerBound.lean}
+
 \vspace{0.75\baselineskip}
 \noindent\textcolor{green!40!black}{\textbf{Lean 4 Certificate}}\par\vspace{0.25\baselineskip}
-\lstinputlisting[style=leanbox]{lean-listings/Lean module 1}
+\lstinputlisting[style=leanbox]{lean-listings/Exposition-ResolutionLowerBound.lean}
 \vspace{0.75\baselineskip}
 
 \hypertarget{theorem-2-average-resolution-complexity-tr1995-theorem-3.2}{%
@@ -186,16 +191,18 @@ Let the \textbf{standard law} assign mass \texttt{(6/π²)\ ·\ \textbar{}x\text
 
 with inverse time scale \texttt{T⁻¹(t)\ =\ t\^{}(1/(1+ε))} satisfy \texttt{∑\_n\ shell\_n\ \textless{}\ ∞}. After normalization by \texttt{C\ =\ max(∑\_n\ shell\_n,\ 1)}, the Levin average-time condition holds for any decider running in at most \texttt{\textbar{}x\textbar{}²} steps.
 
-\textbf{Proof.} On the shell of length \texttt{n}, the \texttt{2\^{}(-n)} factor cancels and the summand is \texttt{(6/π²)\ ·\ n\^{}(-3\ +\ 2/(1+ε))}. The exponent \texttt{-3\ +\ 2/(1+ε)} is strictly below \texttt{-1} when \texttt{ε\ \textgreater{}\ 0}, because \texttt{2/(1+ε)\ \textless{}\ 2}. Comparison with the p-series \texttt{∑\ n\^{}s} for \texttt{s\ \textless{}\ -1} (Mathlib's \texttt{Real.summable\_nat\_rpow}) gives convergence.
+\textbf{Proof.} On the shell of length \texttt{n}, the \texttt{2\^{}(-n)} factor cancels and the summand is \texttt{(6/π²)\ ·\ n\^{}(-3\ +\ 2/(1+ε))}. The exponent \texttt{-3\ +\ 2/(1+ε)} is strictly below \texttt{-1} when \texttt{ε\ \textgreater{}\ 0}, because \texttt{2/(1+ε)\ \textless{}\ 2}. Comparison with the p-series for exponent \texttt{s\ \textless{}\ -1} gives convergence (Mathlib lemma \texttt{Real.summable\_nat\_rpow}).
 
 Convergence does \textbf{not} imply the Levin bound \texttt{≤\ 1}; that requires dividing by \texttt{C}. The standard law itself sums to \texttt{1} via \texttt{∑\ n⁻²\ =\ π²/6}. ∎
 
 \hypertarget{exposition-example41-lean}{%
 \subsection{Exposition/Example41.lean}\label{exposition-example41-lean}}
 
+\noindent\textbf{Exposition/Example41.lean}
+
 \vspace{0.75\baselineskip}
 \noindent\textcolor{green!40!black}{\textbf{Lean 4 Certificate}}\par\vspace{0.25\baselineskip}
-\lstinputlisting[style=leanbox]{lean-listings/Lean module 2}
+\lstinputlisting[style=leanbox]{lean-listings/Exposition-Example41.lean}
 \vspace{0.75\baselineskip}
 
 \hypertarget{theorem-4-honest-invertible-reductions-preserve-completeness-tr1995-theorem-4.4}{%
@@ -214,9 +221,11 @@ Package this as an injective distributional reduction into \texttt{(L₂,\ r.tra
 \hypertarget{exposition-theorem44strong-lean}{%
 \subsection{Exposition/Theorem44Strong.lean}\label{exposition-theorem44strong-lean}}
 
+\noindent\textbf{Exposition/Theorem44Strong.lean}
+
 \vspace{0.75\baselineskip}
 \noindent\textcolor{green!40!black}{\textbf{Lean 4 Certificate}}\par\vspace{0.25\baselineskip}
-\lstinputlisting[style=leanbox]{lean-listings/Lean module 3}
+\lstinputlisting[style=leanbox]{lean-listings/Exposition-Theorem44Strong.lean}
 \vspace{0.75\baselineskip}
 
 \hypertarget{theorems-57-sat-reductions-tr1995-theorems-5.15.3}{%
@@ -233,9 +242,11 @@ All three reductions are stated uniformly: \textbf{correctness} (satisfiability 
 \hypertarget{exposition-reductions-lean}{%
 \subsection{Exposition/Reductions.lean}\label{exposition-reductions-lean}}
 
+\noindent\textbf{Exposition/Reductions.lean}
+
 \vspace{0.75\baselineskip}
 \noindent\textcolor{green!40!black}{\textbf{Lean 4 Certificate}}\par\vspace{0.25\baselineskip}
-\lstinputlisting[style=leanbox]{lean-listings/Lean module 4}
+\lstinputlisting[style=leanbox]{lean-listings/Exposition-Reductions.lean}
 \vspace{0.75\baselineskip}
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
@@ -253,9 +264,11 @@ Both the untimed \texttt{AvCom.Distribution} and the timed \texttt{Foundation.Su
 \hypertarget{exposition-degeneratelaws-lean}{%
 \subsection{Exposition/DegenerateLaws.lean}\label{exposition-degeneratelaws-lean}}
 
+\noindent\textbf{Exposition/DegenerateLaws.lean}
+
 \vspace{0.75\baselineskip}
 \noindent\textcolor{green!40!black}{\textbf{Lean 4 Certificate}}\par\vspace{0.25\baselineskip}
-\lstinputlisting[style=leanbox]{lean-listings/Lean module 5}
+\lstinputlisting[style=leanbox]{lean-listings/Exposition-DegenerateLaws.lean}
 \vspace{0.75\baselineskip}
 
 \hypertarget{collapse-i-membership-is-free-theorem-8}{%
@@ -268,9 +281,11 @@ Both the untimed \texttt{AvCom.Distribution} and the timed \texttt{Foundation.Su
 \hypertarget{exposition-innptrivial-lean}{%
 \subsection{Exposition/InNPTrivial.lean}\label{exposition-innptrivial-lean}}
 
+\noindent\textbf{Exposition/InNPTrivial.lean}
+
 \vspace{0.75\baselineskip}
 \noindent\textcolor{green!40!black}{\textbf{Lean 4 Certificate}}\par\vspace{0.25\baselineskip}
-\lstinputlisting[style=leanbox]{lean-listings/Lean module 6}
+\lstinputlisting[style=leanbox]{lean-listings/Exposition-InNPTrivial.lean}
 \vspace{0.75\baselineskip}
 
 \textbf{Theorem 9 (Characterization of untimed completeness; no TR1995 counterpart).} \texttt{TR1995.IsNPAverageCompleteLanguage\ L} if and only if \texttt{L\ ≠\ ∅} and \texttt{L\ ≠\ Bitstring}.
@@ -280,9 +295,11 @@ Both the untimed \texttt{AvCom.Distribution} and the timed \texttt{Foundation.Su
 \hypertarget{exposition-completenesscharacterization-lean}{%
 \subsection{Exposition/CompletenessCharacterization.lean}\label{exposition-completenesscharacterization-lean}}
 
+\noindent\textbf{Exposition/CompletenessCharacterization.lean}
+
 \vspace{0.75\baselineskip}
 \noindent\textcolor{green!40!black}{\textbf{Lean 4 Certificate}}\par\vspace{0.25\baselineskip}
-\lstinputlisting[style=leanbox]{lean-listings/Lean module 7}
+\lstinputlisting[style=leanbox]{lean-listings/Exposition-CompletenessCharacterization.lean}
 \vspace{0.75\baselineskip}
 
 \textbf{Corollary (TR1995 Theorem 4.4 is empty in this layer).} Completeness transfers along any map satisfying the correctness biconditional alone. The injectivity, invertibility, range recognition, forward length, and honesty fields --- the hypotheses the report's Theorem 4.4 is about --- are never used.
@@ -290,9 +307,11 @@ Both the untimed \texttt{AvCom.Distribution} and the timed \texttt{Foundation.Su
 \hypertarget{exposition-theorem44vacuous-lean}{%
 \subsection{Exposition/Theorem44Vacuous.lean}\label{exposition-theorem44vacuous-lean}}
 
+\noindent\textbf{Exposition/Theorem44Vacuous.lean}
+
 \vspace{0.75\baselineskip}
 \noindent\textcolor{green!40!black}{\textbf{Lean 4 Certificate}}\par\vspace{0.25\baselineskip}
-\lstinputlisting[style=leanbox]{lean-listings/Lean module 8}
+\lstinputlisting[style=leanbox]{lean-listings/Exposition-Theorem44Vacuous.lean}
 \vspace{0.75\baselineskip}
 
 TR1995 Theorem 4.1 (completeness of a distributional problem implies completeness of its language) is a quantifier shift, not a complexity result; we demote it to a remark in §6.
@@ -300,7 +319,7 @@ TR1995 Theorem 4.1 (completeness of a distributional problem implies completenes
 \hypertarget{collapse-ii-domination-is-free-theorem-10}{%
 \subsection{3.3 Collapse II: domination is free (Theorem 10)}\label{collapse-ii-domination-is-free-theorem-10}}
 
-Moving to the timed layer repairs the verifier and reduction-map gaps: \texttt{Foundation.InNP} requires a \texttt{Program} deciding within a polynomial bound, and \texttt{InjectiveDistributionalReduction} requires a \texttt{Program} computing the map. But the domination condition still carries no content.
+Moving to the timed layer repairs the verifier and reduction-map gaps: \texttt{Foundation.InNP} requires a \texttt{Program} deciding within a polynomial bound; injective distributional reductions require a \texttt{Program} for the map. But the domination condition still carries no content.
 
 \textbf{Theorem 10.} In the timed layer, language-level NP-average completeness is equivalent to \texttt{InNP\ L} together with injective polynomial-time hardness from every distributional-NP source --- with no use of rank domination.
 
@@ -309,9 +328,11 @@ Moving to the timed layer repairs the verifier and reduction-map gaps: \texttt{F
 \hypertarget{exposition-dominationfree-lean}{%
 \subsection{Exposition/DominationFree.lean}\label{exposition-dominationfree-lean}}
 
+\noindent\textbf{Exposition/DominationFree.lean}
+
 \vspace{0.75\baselineskip}
 \noindent\textcolor{green!40!black}{\textbf{Lean 4 Certificate}}\par\vspace{0.25\baselineskip}
-\lstinputlisting[style=leanbox]{lean-listings/Lean module 9}
+\lstinputlisting[style=leanbox]{lean-listings/Exposition-DominationFree.lean}
 \vspace{0.75\baselineskip}
 
 \hypertarget{collapse-iii-average-tractability-and-conditional-hardness-theorem-11}{%
@@ -324,12 +345,14 @@ Moving to the timed layer repairs the verifier and reduction-map gaps: \texttt{F
 \hypertarget{exposition-avpvacuous-lean}{%
 \subsection{Exposition/AvPVacuous.lean}\label{exposition-avpvacuous-lean}}
 
+\noindent\textbf{Exposition/AvPVacuous.lean}
+
 \vspace{0.75\baselineskip}
 \noindent\textcolor{green!40!black}{\textbf{Lean 4 Certificate}}\par\vspace{0.25\baselineskip}
-\lstinputlisting[style=leanbox]{lean-listings/Lean module 10}
+\lstinputlisting[style=leanbox]{lean-listings/Exposition-AvPVacuous.lean}
 \vspace{0.75\baselineskip}
 
-\textbf{Corollary.} Every distributional-NP problem is in \texttt{AvP}, unconditionally. Any \texttt{AverageCaseCollapseTheory} package --- whose characterizing field is \texttt{(∀\ p,\ InDistNP\ p\ →\ AvP\ p)\ ↔\ NEXP\ =\ EXP} --- therefore proves its own \texttt{NEXP\ =\ EXP}. No such package satisfies \texttt{NEXP\ ≠\ EXP}, so every conditional hardness theorem in \protect\hyperlink{avgcasemls-nonavp-lean}{AvgCaseMls/NonAvP.lean} (\texttt{SatMLS\_average\_hard}, \texttt{satMLSProb\_not\_AvP}, and the rest) has an \textbf{unsatisfiable hypothesis}. They are not merely conditional; they are vacuous.
+\textbf{Corollary.} Every distributional-NP problem is in \texttt{AvP}, unconditionally. Any \texttt{AverageCaseCollapseTheory} package therefore proves \texttt{NEXP\ =\ EXP} (its characterizing field is \texttt{(∀\ p,\ InDistNP\ p\ →\ AvP\ p)\ ↔\ NEXP\ =\ EXP}). No such package satisfies \texttt{NEXP\ ≠\ EXP}. Hence every conditional hardness theorem in \texttt{AvgCaseMls/NonAvP.lean} --- including \texttt{SatMLS\_average\_hard} and \texttt{satMLSProb\_not\_AvP} --- has an \textbf{unsatisfiable hypothesis}; they are vacuous, not merely conditional.
 
 \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
 
@@ -348,9 +371,11 @@ Define \texttt{Subprobability.IsProbability\ μ} as \texttt{μ.mass\ =\ 1}. Requ
 \hypertarget{exposition-repair-lean}{%
 \subsection{Exposition/Repair.lean}\label{exposition-repair-lean}}
 
+\noindent\textbf{Exposition/Repair.lean}
+
 \vspace{0.75\baselineskip}
 \noindent\textcolor{green!40!black}{\textbf{Lean 4 Certificate}}\par\vspace{0.25\baselineskip}
-\lstinputlisting[style=leanbox]{lean-listings/Lean module 11}
+\lstinputlisting[style=leanbox]{lean-listings/Exposition-Repair.lean}
 \vspace{0.75\baselineskip}
 
 \hypertarget{repair-2-tie-average-time-to-a-decider}{%
@@ -485,9 +510,9 @@ Section 5 reductions & \textasciitilde3,000 & MLS-in, EMLS, FPILP \\
 \item
   \textbf{{[}CEM95{]}} Cox, J., Ericson, L., \& Mishra, B. (1995). The average case complexity of multilevel syllogistic. \emph{NYU Courant Institute Technical Report TR1995-711}.
 \item
-  \textbf{{[}COPE24{]}} Committee on Publication Ethics (COPE). (2024). Authorship and AI tools: COPE position statement. https://publicationethics.org/guidance/cope-position/authorship-and-ai-tools
+  \textbf{{[}COPE24{]}} Committee on Publication Ethics (COPE). (2024). Authorship and AI tools: COPE position statement. \url{https://publicationethics.org/guidance/cope-position/authorship-and-ai-tools}
 \item
-  \textbf{{[}Cur25{]}} Anysphere, Inc.~Cursor: AI-native code editor and agent environment. https://cursor.com (accessed 2025).
+  \textbf{{[}Cur25{]}} Anysphere, Inc.~Cursor: AI-native code editor and agent environment. \url{https://cursor.com} (accessed 2025).
 \item
   \textbf{{[}deM08{]}} de Moura, L., \& Bjørner, N. (2008). Z3: An efficient SMT solver. \emph{TACAS}.
 \item
@@ -503,9 +528,9 @@ Section 5 reductions & \textasciitilde3,000 & MLS-in, EMLS, FPILP \\
 \item
   \textbf{{[}RS93{]}} Reischuk, R., \& Schindelhauer, C. (1993). Precise average case complexity. \emph{STOC}.
 \item
-  \textbf{{[}Ste23a{]}} Stevens, L. (2023). MLSS Decision Procedure. \emph{Archive of Formal Proofs}. https://isa-afp.org/entries/MLSS\_Decision\_Proc.html
+  \textbf{{[}Ste23a{]}} Stevens, L. (2023). MLSS Decision Procedure. \emph{Archive of Formal Proofs}. \url{https://isa-afp.org/entries/MLSS_Decision_Proc.html}
 \item
-  \textbf{{[}Ste23b{]}} Stevens, L. (2023). Towards a Verified Tableau Prover for a Quantifier-Free Fragment of Set Theory. In Pientka, B., \& Tinelli, C. (eds.), \emph{Automated Deduction -- CADE 29}, LNAI 14132, 491--508. https://doi.org/10.1007/978-3-031-38499-8\_28
+  \textbf{{[}Ste23b{]}} Stevens, L. (2023). Towards a Verified Tableau Prover for a Quantifier-Free Fragment of Set Theory. In Pientka, B., \& Tinelli, C. (eds.), \emph{Automated Deduction -- CADE 29}, LNAI 14132, 491--508. \url{https://doi.org/10.1007/978-3-031-38499-8_28}
 \item
   \textbf{{[}SY92{]}} Schnorr, C. P., \& Yoshida, T. (1992). Average-case complexity of NP-complete problems. \emph{STOC}.
 \item

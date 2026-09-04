@@ -6,7 +6,6 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
 TEX="arxiv_with_includes.tex"
-FIGURE="figures/nose.png"
 LISTINGS_DIR="lean-listings"
 OUT_DIR="dist"
 ZIP="${OUT_DIR}/arxiv_with_includes_submit.zip"
@@ -19,46 +18,55 @@ if [[ ! -f "$TEX" ]]; then
   echo "error: missing $TEX" >&2
   missing=1
 fi
-if [[ ! -f "$FIGURE" ]]; then
-  echo "error: missing $FIGURE" >&2
-  missing=1
-fi
 if [[ ! -d "$LISTINGS_DIR" ]]; then
   echo "error: missing $LISTINGS_DIR" >&2
   missing=1
 fi
-lean_count="$(find "$LISTINGS_DIR" -maxdepth 1 -name '*.lean' 2>/dev/null | wc -l)"
-if [[ "$lean_count" -eq 0 ]]; then
-  echo "error: no .lean files in $LISTINGS_DIR" >&2
+mapfile -t listing_files < <(find "$LISTINGS_DIR" -maxdepth 1 -type f | sort)
+if [[ "${#listing_files[@]}" -eq 0 ]]; then
+  echo "error: no listing files in $LISTINGS_DIR" >&2
   missing=1
 fi
 if [[ "$missing" -ne 0 ]]; then
   exit 1
 fi
 
+echo "==> Verifying pdfLaTeX build (arXiv AutoTeX)"
+(
+  tmpdir="$(mktemp -d)"
+  trap 'rm -rf "$tmpdir"' EXIT
+  cp "$TEX" "$tmpdir/"
+  cp -r "$LISTINGS_DIR" "$tmpdir/"
+  (
+    cd "$tmpdir"
+    pdflatex -interaction=nonstopmode "$TEX" >/dev/null
+    pdflatex -interaction=nonstopmode "$TEX" >/dev/null
+  )
+)
+
 mkdir -p "$OUT_DIR"
 rm -f "$ZIP"
 
-echo "==> Writing 00README.json (mark .lean files as include so arXiv does not drop them)"
+echo "==> Writing 00README.json (mark listing files as include so arXiv does not drop them)"
 python3 - <<'PY'
 import json
 from pathlib import Path
 
 sources = [{"filename": "arxiv_with_includes.tex", "usage": "toplevel"}]
-sources.append({"filename": "figures/nose.png", "usage": "include"})
-for path in sorted(Path("lean-listings").glob("*.lean")):
-    sources.append({"filename": path.as_posix(), "usage": "include"})
+for path in sorted(Path("lean-listings").iterdir()):
+    if path.is_file():
+        sources.append({"filename": path.as_posix(), "usage": "include"})
 readme = {"process": {"compiler": "pdflatex"}, "sources": sources}
 Path("00README.json").write_text(json.dumps(readme, indent=2) + "\n")
 print(f"  {len(sources)} sources")
 PY
 
 echo "==> Packaging"
-zip -r "$ZIP" \
-  00README.json \
-  "$TEX" \
-  "$FIGURE" \
-  "$LISTINGS_DIR"/*.lean
+zip_args=(00README.json "$TEX")
+for f in "${listing_files[@]}"; do
+  zip_args+=("$f")
+done
+zip -r "$ZIP" "${zip_args[@]}"
 
 echo "wrote $ZIP ($(du -h "$ZIP" | cut -f1))"
 echo "Contents:"
@@ -67,4 +75,4 @@ echo
 echo "Upload $ZIP to arXiv (pdfLaTeX; Lean listings are ASCII-sanitized for AutoTeX)."
 echo
 echo "On arXiv Add Files: Delete All before uploading (uploads merge, they do not replace)."
-echo "On arXiv Review Files: if any lean-listings/*.lean are marked for deletion, UNCHECK them."
+echo "On arXiv Review Files: if any lean-listings files are marked for deletion, UNCHECK them."

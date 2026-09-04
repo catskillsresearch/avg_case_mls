@@ -117,11 +117,11 @@ def extract_lean_titles(text: str) -> dict[str, str]:
         prefix = text[:pos].rstrip("\n")
         header_match = None
         for line in reversed(prefix.splitlines()[-4:]):
-            m = re.match(r"^###\s+(AvgCaseMls/[^\s{]+)", line.strip())
+            m = re.match(r"^###\s+((?:AvgCaseMls|Exposition)/[^\s{]+)", line.strip())
             if m:
                 header_match = m.group(1)
                 break
-        titles[f"LEANINCLUDE{idx:03d}"] = header_match or f"Lean module {idx + 1}"
+        titles[f"LEANINCLUDE{idx:03d}"] = header_match or f"module-{idx + 1}.lean"
     return titles
 
 
@@ -140,8 +140,12 @@ def replace_fences(text: str) -> tuple[str, dict[str, str]]:
             lean_idx += 1
             module = lean_titles.get(key, f"module-{lean_idx}.lean")
             safe_name = module.replace("/", "-")
+            if not safe_name.endswith(".lean"):
+                safe_name += ".lean"
             placeholders[key] = lean_block_latex(
-                module if module.startswith("AvgCaseMls/") else None,
+                module
+                if module.startswith(("AvgCaseMls/", "Exposition/"))
+                else None,
                 body,
                 safe_name,
             )
@@ -276,8 +280,9 @@ def main() -> int:
         return 1
 
     if LISTINGS_DIR.exists():
-        for path in LISTINGS_DIR.glob("*.lean"):
-            path.unlink()
+        for path in LISTINGS_DIR.iterdir():
+            if path.is_file():
+                path.unlink()
     LISTINGS_DIR.mkdir(parents=True, exist_ok=True)
 
     raw = SRC.read_text(encoding="utf-8")

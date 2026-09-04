@@ -29,16 +29,25 @@ def lean_ref(rel_path: str) -> str:
     return f"[{rel_path}](#{slug(rel_path)})"
 
 
-def replace_lean_links(text: str) -> str:
+def replace_lean_links(text: str, included: set[str]) -> str:
     def replace_link(match: re.Match[str]) -> str:
         label, rel_path = match.group(1), match.group(2)
         bare = label.strip("`")
+        if rel_path not in included:
+            return match.group(0)
         if bare == rel_path or bare.endswith(".lean") or rel_path.endswith(bare):
             return lean_ref(rel_path)
         return f"`{bare}` ({lean_ref(rel_path)})"
 
     text = LINK_RE.sub(replace_link, text)
-    return INLINE_LEAN_RE.sub(lambda m: lean_ref(m.group(1)), text)
+
+    def replace_inline(match: re.Match[str]) -> str:
+        rel_path = match.group(1)
+        if rel_path in included:
+            return lean_ref(rel_path)
+        return match.group(0)
+
+    return INLINE_LEAN_RE.sub(replace_inline, text)
 
 
 def sanitize_lean_source(text: str) -> str:
@@ -130,7 +139,7 @@ def main() -> int:
 
     body, included = expand_includes(SRC.read_text())
     body = inject_at_first_link(body, included)
-    body = replace_lean_links(body)
+    body = replace_lean_links(body, included)
 
     OUT.write_text(body.rstrip() + "\n")
     print(f"wrote {OUT.relative_to(ROOT)} ({OUT.stat().st_size:,} bytes)")

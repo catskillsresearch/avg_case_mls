@@ -143,7 +143,7 @@ Let the **standard law** assign mass `(6/π²) · |x|⁻² · 2^(-|x|)` to each 
 
 with inverse time scale `T⁻¹(t) = t^(1/(1+ε))` satisfy `∑_n shell_n < ∞`. After normalization by `C = max(∑_n shell_n, 1)`, the Levin average-time condition holds for any decider running in at most `|x|²` steps.
 
-**Proof.** On the shell of length `n`, the `2^(-n)` factor cancels and the summand is `(6/π²) · n^(-3 + 2/(1+ε))`. The exponent `-3 + 2/(1+ε)` is strictly below `-1` when `ε > 0`, because `2/(1+ε) < 2`. Comparison with the p-series `∑ n^s` for `s < -1` (Mathlib's `Real.summable_nat_rpow`) gives convergence.
+**Proof.** On the shell of length `n`, the `2^(-n)` factor cancels and the summand is `(6/π²) · n^(-3 + 2/(1+ε))`. The exponent `-3 + 2/(1+ε)` is strictly below `-1` when `ε > 0`, because `2/(1+ε) < 2`. Comparison with the p-series for exponent `s < -1` gives convergence (Mathlib lemma `Real.summable_nat_rpow`).
 
 Convergence does **not** imply the Levin bound `≤ 1`; that requires dividing by `C`. The standard law itself sums to `1` via `∑ n⁻² = π²/6`. ∎
 
@@ -217,7 +217,7 @@ laws are polynomial-time rankable.  The proof pushes the source law forward
 along the reduction map; rankability of the pushforward is rebuilt from range
 recognition, the polynomial-time inverse, and the honesty bound.
 
-Full proof in [AvgCaseMls/Section4.lean](#avgcasemls-section4-lean).
+Full proof in `AvgCaseMls/Section4.lean`.
 -/
 import AvgCaseMls.Section4
 
@@ -487,7 +487,7 @@ Runnable snippet for arxiv.md, displayed with the first collapse theorem.
 
 Language-level NP-average completeness in the report's untimed vocabulary is
 equivalent to the language being neither empty nor everything.  The full proof
-is in [AvgCaseMls/EncodingCollapse.lean](#avgcasemls-encodingcollapse-lean); it constructs the degenerate law as
+is in `AvgCaseMls/EncodingCollapse.lean`; it constructs the degenerate law as
 target and uses a two-valued reduction map.
 
 Checked against AvgCaseMls.EncodingCollapse.
@@ -560,7 +560,7 @@ TR1995 Theorem 4.1 (completeness of a distributional problem implies completenes
 
 ### 3.3 Collapse II: domination is free (Theorem 10)
 
-Moving to the timed layer repairs the verifier and reduction-map gaps: `Foundation.InNP` requires a `Program` deciding within a polynomial bound, and `InjectiveDistributionalReduction` requires a `Program` computing the map. But the domination condition still carries no content.
+Moving to the timed layer repairs the verifier and reduction-map gaps: `Foundation.InNP` requires a `Program` deciding within a polynomial bound; injective distributional reductions require a `Program` for the map. But the domination condition still carries no content.
 
 **Theorem 10.** In the timed layer, language-level NP-average completeness is equivalent to `InNP L` together with injective polynomial-time hardness from every distributional-NP source — with no use of rank domination.
 
@@ -574,7 +574,7 @@ Runnable snippet for arxiv.md, displayed with the second collapse theorem.
 
 In the timed model, language-level completeness is equivalent to NP membership
 plus injective polynomial-time hardness; the rank domination clause contributes
-nothing.  Full proof in [AvgCaseMls/DominationCollapse.lean](#avgcasemls-dominationcollapse-lean).
+nothing.  Full proof in `AvgCaseMls/DominationCollapse.lean`.
 
 Checked against AvgCaseMls.DominationCollapse.
 -/
@@ -664,7 +664,7 @@ end Exposition.AvPVacuous
 
 
 
-**Corollary.** Every distributional-NP problem is in `AvP`, unconditionally. Any `AverageCaseCollapseTheory` package — whose characterizing field is `(∀ p, InDistNP p → AvP p) ↔ NEXP = EXP` — therefore proves its own `NEXP = EXP`. No such package satisfies `NEXP ≠ EXP`, so every conditional hardness theorem in [AvgCaseMls/NonAvP.lean](#avgcasemls-nonavp-lean) (`SatMLS_average_hard`, `satMLSProb_not_AvP`, and the rest) has an **unsatisfiable hypothesis**. They are not merely conditional; they are vacuous.
+**Corollary.** Every distributional-NP problem is in `AvP`, unconditionally. Any `AverageCaseCollapseTheory` package therefore proves `NEXP = EXP` (its characterizing field is `(∀ p, InDistNP p → AvP p) ↔ NEXP = EXP`). No such package satisfies `NEXP ≠ EXP`. Hence every conditional hardness theorem in `AvgCaseMls/NonAvP.lean` — including `SatMLS_average_hard` and `satMLSProb_not_AvP` — has an **unsatisfiable hypothesis**; they are vacuous, not merely conditional.
 
 ---
 
@@ -796,8 +796,8 @@ The Lean development lives at [github.com/catskillsresearch/avg_case_mls](https:
 *   **[Ajt96]** Ajtai, M. (1996). Generating hard instances of lattice problems. *STOC*.
 *   **[BDCGL89]** Ben-David, S., Chor, B., Goldreich, O., & Luby, M. (1989). On the theory of average case complexity. *STOC*.
 *   **[CEM95]** Cox, J., Ericson, L., & Mishra, B. (1995). The average case complexity of multilevel syllogistic. *NYU Courant Institute Technical Report TR1995-711*.
-*   **[COPE24]** Committee on Publication Ethics (COPE). (2024). Authorship and AI tools: COPE position statement. https://publicationethics.org/guidance/cope-position/authorship-and-ai-tools
-*   **[Cur25]** Anysphere, Inc. Cursor: AI-native code editor and agent environment. https://cursor.com (accessed 2025).
+*   **[COPE24]** Committee on Publication Ethics (COPE). (2024). Authorship and AI tools: COPE position statement. <https://publicationethics.org/guidance/cope-position/authorship-and-ai-tools>
+*   **[Cur25]** Anysphere, Inc. Cursor: AI-native code editor and agent environment. <https://cursor.com> (accessed 2025).
 *   **[deM08]** de Moura, L., & Bjørner, N. (2008). Z3: An efficient SMT solver. *TACAS*.
 *   **[DS77]** Davis, M., & Schwartz, J. T. (1977). Metamathematical extensibility for theorem verifiers. *NYU Technical Report*.
 *   **[FOS80]** Ferro, A., Omodeo, E. G., & Schwartz, J. T. (1980). Decision procedures for elementary sublanguages of set theory. *CPAM*.
@@ -805,8 +805,8 @@ The Lean development lives at [github.com/catskillsresearch/avg_case_mls](https:
 *   **[Gur91]** Gurevich, Y. (1991). Average case completeness. *Journal of Computer and System Sciences*.
 *   **[Lev86]** Levin, L. (1986). Average case complete problems. *SIAM Journal on Computing*.
 *   **[RS93]** Reischuk, R., & Schindelhauer, C. (1993). Precise average case complexity. *STOC*.
-*   **[Ste23a]** Stevens, L. (2023). MLSS Decision Procedure. *Archive of Formal Proofs*. https://isa-afp.org/entries/MLSS_Decision_Proc.html
-*   **[Ste23b]** Stevens, L. (2023). Towards a Verified Tableau Prover for a Quantifier-Free Fragment of Set Theory. In Pientka, B., & Tinelli, C. (eds.), *Automated Deduction – CADE 29*, LNAI 14132, 491–508. https://doi.org/10.1007/978-3-031-38499-8_28
+*   **[Ste23a]** Stevens, L. (2023). MLSS Decision Procedure. *Archive of Formal Proofs*. <https://isa-afp.org/entries/MLSS_Decision_Proc.html>
+*   **[Ste23b]** Stevens, L. (2023). Towards a Verified Tableau Prover for a Quantifier-Free Fragment of Set Theory. In Pientka, B., & Tinelli, C. (eds.), *Automated Deduction – CADE 29*, LNAI 14132, 491–508. <https://doi.org/10.1007/978-3-031-38499-8_28>
 *   **[SY92]** Schnorr, C. P., & Yoshida, T. (1992). Average-case complexity of NP-complete problems. *STOC*.
 *   **[Sny90a]** Snyder, W. K. (1990). The SETL2 programming language. *NYU Technical Report*.
 *   **[ST01]** Spielman, D. A., & Teng, S. H. (2001). Smoothed analysis of algorithms. *STOC*.

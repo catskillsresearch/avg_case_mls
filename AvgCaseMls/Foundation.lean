@@ -11,3 +11,6 @@ import AvgCaseMls.Foundation.Rankability
 import AvgCaseMls.Foundation.AverageTime
 import AvgCaseMls.Foundation.TimedNP
 import AvgCaseMls.Foundation.Reduction
+import AvgCaseMls.Foundation.Serialization
+import AvgCaseMls.Foundation.Universal
+import AvgCaseMls.Foundation.TapeMacros

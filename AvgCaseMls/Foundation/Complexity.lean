@@ -6,13 +6,21 @@ Authors: Lars Warren Ericson, Catskills Research Company
 
 import AvgCaseMls.Foundation.Machine
 import AvgCaseMls.AvCom
+import Mathlib.Tactic
 
 namespace AvgCaseMls.Foundation
 
 def len (x : Bitstring) : Nat := x.length
 
-def IsPolynomial (T : Nat → Nat) : Prop :=
-  ∃ c k : Nat, ∀ n, T n ≤ c * n ^ k + c
+inductive IsPolynomial : (Nat → Nat) → Prop where
+  | bounded {T : Nat → Nat} (c k : Nat)
+      (bound : ∀ n, T n ≤ c * n ^ k + c) : IsPolynomial T
+  | add {f g : Nat → Nat} :
+      IsPolynomial f → IsPolynomial g → IsPolynomial (fun n => f n + g n)
+  | mul {f g : Nat → Nat} :
+      IsPolynomial f → IsPolynomial g → IsPolynomial (fun n => f n * g n)
+  | comp {f g : Nat → Nat} :
+      IsPolynomial f → IsPolynomial g → IsPolynomial (fun n => f (g n))
 
 /--
 Single-exponential time: `T(n) ≤ c * 2^(p(n)) + c` for a polynomial exponent.
@@ -22,35 +30,35 @@ def IsExponential (T : Nat → Nat) : Prop :=
   ∃ p : Nat → Nat, ∃ c : Nat,
     IsPolynomial p ∧ 0 < c ∧ ∀ n, T n ≤ c * 2 ^ p n + c
 
-def HaltsWith (M : Machine) (x : Bitstring) (r : Result) : Prop :=
-  ∃ fuel, eval M fuel x = some r
+def HaltsWith (program : Program) (x : Bitstring) (r : Result) : Prop :=
+  ∃ fuel, program.eval fuel x = some r
 
 /-- Total correctness for a Boolean language, against the executable evaluator. -/
-def Decides (M : Machine) (L : Set Bitstring) : Prop :=
-  ∀ x, ∃ r, HaltsWith M x r ∧ (r.accept = true ↔ x ∈ L)
+def Decides (program : Program) (L : Set Bitstring) : Prop :=
+  ∀ x, ∃ r, HaltsWith program x r ∧ (r.accept = true ↔ x ∈ L)
 
 /-- Uniform fuel bound, including correctness of the observed result. -/
-def DecidesWithin (M : Machine) (L : Set Bitstring) (T : Nat → Nat) : Prop :=
-  ∀ x, ∃ r, eval M (T (len x)) x = some r ∧ (r.accept = true ↔ x ∈ L)
+def DecidesWithin (program : Program) (L : Set Bitstring) (T : Nat → Nat) : Prop :=
+  ∀ x, ∃ r, program.eval (T (len x)) x = some r ∧ (r.accept = true ↔ x ∈ L)
 
 def InP (L : Set Bitstring) : Prop :=
-  ∃ M T, IsPolynomial T ∧ DecidesWithin M L T
+  ∃ program T, IsPolynomial T ∧ DecidesWithin program L T
 
 def InEXP (L : Set Bitstring) : Prop :=
-  ∃ M T, IsExponential T ∧ DecidesWithin M L T
+  ∃ program T, IsExponential T ∧ DecidesWithin program L T
 
-theorem DecidesWithin.decides {M : Machine} {L : Set Bitstring} {T : Nat → Nat}
-    (h : DecidesWithin M L T) : Decides M L := by
+theorem DecidesWithin.decides {program : Program} {L : Set Bitstring} {T : Nat → Nat}
+    (h : DecidesWithin program L T) : Decides program L := by
   intro x
   obtain ⟨r, hr, hcorrect⟩ := h x
   exact ⟨r, ⟨T (len x), hr⟩, hcorrect⟩
 
 namespace IsPolynomial
 
-theorem id : IsPolynomial id := ⟨1, 1, fun n => by simp⟩
+theorem id : IsPolynomial id := .bounded 1 1 (fun n => by simp)
 
 theorem const (d : Nat) : IsPolynomial (fun _ => d) :=
-  ⟨d, 0, fun n => by simp⟩
+  .bounded d 0 (fun n => by simp)
 
 end IsPolynomial
 
@@ -62,10 +70,6 @@ theorem const (d : Nat) : IsExponential (fun _ => d) := by
   omega
 
 end IsExponential
-
-/-- The new and legacy polynomial predicates are definitionally identical. -/
-theorem isPolynomial_legacy_iff (T : Nat → Nat) :
-    IsPolynomial T ↔ AvCom.IsPolynomial T := Iff.rfl
 
 @[simp] theorem len_legacy (x : Bitstring) : len x = AvCom.len x := rfl
 

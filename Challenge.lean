@@ -127,7 +127,7 @@ def Satisfiable (φ : CNF) : Prop :=
   ∃ a, evalCNF a φ
 
 def size (φ : CNF) : Nat :=
-  1 + φ.length + (φ.map List.length).sum
+  1 + φ.length + (φ.map List.length).foldr (· + ·) 0
 
 end SAT
 
@@ -285,12 +285,17 @@ open MLS
 def distinguishedTerm : Term := .var 0
 def setTerm (i : Nat) : Term := .var (Nat.succ i)
 
-def literalToMLS : SAT.Literal → Formula
-  | .pos i => .rel (.mem distinguishedTerm (setTerm i))
-  | .neg i => .rel (.not_mem distinguishedTerm (setTerm i))
+-- Written with `casesOn` rather than pattern matching so that no `match_1`
+-- auxiliary is generated.  Lean reuses such auxiliaries only within a module,
+-- so a pattern match here would bind to a different auxiliary than the
+-- Solution's and Palomar's elaborated-term comparison would reject it.
+def literalToMLS (l : SAT.Literal) : Formula :=
+  l.casesOn (motive := fun _ => Formula)
+    (fun i => .rel (.mem distinguishedTerm (setTerm i)))
+    (fun i => .rel (.not_mem distinguishedTerm (setTerm i)))
 
 def falseFormula : Formula := .rel (.mem distinguishedTerm distinguishedTerm)
-def trueFormula : Formula := .rel (.eq distinguishedTerm distinguishedTerm)
+def trueFormula : Formula := .rel (.not_mem distinguishedTerm distinguishedTerm)
 
 def clauseToMLS : SAT.Clause → Formula
   | [] => falseFormula
@@ -321,44 +326,29 @@ def positiveVar (i : Nat) : Nat := 4 * i + 1
 def negativeVar (i : Nat) : Nat := 4 * i + 2
 def intersectionVar (i : Nat) : Nat := 4 * i + 7
 
-private def literalEquiv : SAT.Literal ≃ Sum Nat Nat where
-  toFun
-    | .pos i => .inl i
-    | .neg i => .inr i
-  invFun
-    | .inl i => .pos i
-    | .inr i => .neg i
-  left_inv l := by cases l <;> rfl
-  right_inv l := by cases l <;> rfl
+def gadgetVar (k j : Nat) : Nat :=
+  4 * (Nat.pair k j + 1)
 
-private local instance : Encodable SAT.Literal :=
-  Encodable.ofEquiv (Sum Nat Nat) literalEquiv
-
-def gadgetVar (k : Nat) (c : SAT.Clause) : Nat :=
-  4 * (Nat.pair k (Encodable.encode c) + 1)
-
-def literalVar : SAT.Literal → Nat
-  | .pos i => positiveVar i
-  | .neg i => negativeVar i
+def literalVar (l : SAT.Literal) : Nat :=
+  l.casesOn (motive := fun _ => Nat) positiveVar negativeVar
 
 def complementGadget (i : Nat) : Conjunct :=
   [.eqOp (intersectionVar i) (positiveVar i) (negativeVar i) .inter,
    .eqEmpty (intersectionVar i)]
 
-def literalComplementGadget : SAT.Literal → Conjunct
-  | .pos i => complementGadget i
-  | .neg i => complementGadget i
+def literalComplementGadget (l : SAT.Literal) : Conjunct :=
+  l.casesOn (motive := fun _ => Conjunct) complementGadget complementGadget
 
-def clauseGadgets (k : Nat) : SAT.Clause → Conjunct
+def clauseGadgets (k j : Nat) : SAT.Clause → Conjunct
   | [] => []
-  | l :: [] => [.eqOp (gadgetVar k [l]) (literalVar l) emptyVar .union]
+  | l :: [] => [.eqOp (gadgetVar k j) (literalVar l) emptyVar .union]
   | l :: rest@(_ :: _) =>
-      .eqOp (gadgetVar k (l :: rest)) (literalVar l) (gadgetVar k rest) .union ::
-        clauseGadgets k rest
+      .eqOp (gadgetVar k j) (literalVar l) (gadgetVar k (j + 1)) .union ::
+        clauseGadgets k (j + 1) rest
 
 def clauseCore (k : Nat) : SAT.Clause → Conjunct
   | [] => [.mem distinguishedVar distinguishedVar]
-  | c@(_ :: _) => clauseGadgets k c ++ [.mem distinguishedVar (gadgetVar k c)]
+  | c@(_ :: _) => clauseGadgets k 0 c ++ [.mem distinguishedVar (gadgetVar k 0)]
 
 def clausesCoreFrom : Nat → SAT.CNF → Conjunct
   | _, [] => []

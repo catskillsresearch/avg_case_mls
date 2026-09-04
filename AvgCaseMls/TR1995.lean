@@ -6,6 +6,7 @@ Authors: Lars Warren Ericson, Catskills Research Company
 
 import Mathlib.Analysis.PSeries
 import AvgCaseMls.AvCom
+import AvgCaseMls.Section3.TR1995
 
 /-!
 # Numbered results from Cox–Ericson–Mishra (1995)
@@ -65,6 +66,21 @@ distribution's normalizing factor `6 / π²`.
 -/
 noncomputable def example41Contribution (ε : ℝ) (n : Nat) : ℝ :=
   (6 / Real.pi ^ 2) * (n : ℝ) ^ example41Exponent ε
+
+/--
+The report's standard mass, with zero assigned to the empty string.
+
+This is declared here, immediately after `example41Exponent` and
+`example41Contribution`, to mirror `Challenge.lean`'s declaration order.  The
+`6` and `2` literals need `Nat.AtLeastTwo` instance proofs, which Lean lifts
+into `_proof_*` auxiliaries that are reused only within a single module.  In
+`Challenge.lean` this definition reuses the two auxiliaries created just above;
+declaring it in a separate module makes it mint its own, and Palomar's
+elaborated-term comparison rejects the submission.
+-/
+noncomputable def _root_.Example41.standardMass (x : List Bool) : ℝ :=
+  if x.isEmpty then 0
+  else (6 / Real.pi ^ 2) * (x.length : ℝ) ^ (-2 : ℝ) / (2 : ℝ) ^ x.length
 
 theorem example41Exponent_lt_neg_one {ε : ℝ} (hε : 0 < ε) :
     example41Exponent ε < -1 := by

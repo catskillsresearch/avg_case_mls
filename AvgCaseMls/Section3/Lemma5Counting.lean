@@ -17,7 +17,6 @@ noncomputable def badPartialAssignments
 
 theorem partial_unsat_agree_on_clauseVar
     {D : Finset (Fin n)} {C : Clause n}
-    (_hord : IsOrdinaryClause C)
     {f g : PartialAssignment D}
     (hf : ¬ PartialSatisfiesClause f C)
     (hg : ¬ PartialSatisfiesClause g C)
@@ -43,8 +42,7 @@ theorem partial_unsat_agree_on_clauseVar
 does not satisfy `C`, values on `D ∩ E(C)` are forced, leaving at most
 `2^(|D|-|D∩E(C)|)` choices. -/
 theorem badPartialAssignments_card_le
-    (D : Finset (Fin n)) (C : Clause n)
-    (_hord : IsOrdinaryClause C) :
+    (D : Finset (Fin n)) (C : Clause n) :
     (badPartialAssignments D C).card ≤
       2 ^ (D.card - (D ∩ clauseVarSet C).card) := by
   classical
@@ -57,7 +55,7 @@ theorem badPartialAssignments_card_le
     apply Subtype.ext
     funext x
     by_cases hx : x.val ∈ clauseVarSet C
-    · exact partial_unsat_agree_on_clauseVar _hord
+    · exact partial_unsat_agree_on_clauseVar
         (by simpa [badPartialAssignments] using
           (Finset.mem_filter.mp f.property).2)
         (by simpa [badPartialAssignments] using

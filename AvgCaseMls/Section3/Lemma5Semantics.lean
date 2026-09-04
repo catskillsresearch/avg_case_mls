@@ -235,6 +235,22 @@ theorem exactSpecialDomain_card
     (by simpa [specialSets] using
       (Finset.mem_filter.mp S.property).2))).2.1
 
+theorem exactSpecialDomain_sdiff_card
+    (F : Fin m → Clause n) (a : ℝ) (s : Nat)
+    (S : {S // S ∈ specialSets F a s}) (ha : 0 ≤ a)
+    (hfloor : ⌊(a / 32) * s⌋₊ ≤ s) :
+    (S.val \ exactSpecialDomain F a s S ha).card =
+      ⌊(a / 32) * s⌋₊ := by
+  classical
+  have hScard : S.val.card = s := by
+    have hmem := S.property
+    simpa [specialSets] using
+      (Finset.mem_powersetCard.mp (Finset.mem_filter.mp hmem).1).2
+  rw [Finset.card_sdiff_of_subset
+    (exactSpecialDomain_subset F a s S ha),
+    exactSpecialDomain_card, specialDomainSize, hScard]
+  exact Nat.sub_sub_self hfloor
+
 theorem exactSpecialDomain_special
     (F : Fin m → Clause n) (a : ℝ) (s : Nat)
     (S : {S // S ∈ specialSets F a s}) (ha : 0 ≤ a) :

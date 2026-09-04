@@ -5,23 +5,24 @@ Authors: Lars Warren Ericson, Catskills Research Company
 -/
 
 import AvgCaseMls.Foundation.Distribution
+import AvgCaseMls.Foundation.Codec
 
 namespace AvgCaseMls.Foundation
 
-/-- Canonical unary output convention for natural-valued machine computations. -/
-def encodeNat (n : Nat) : Bitstring := List.replicate n true
+def ComputesWithin (program : Program) (f : Bitstring → Bitstring)
+    (T : Nat → Nat) : Prop :=
+  ∀ x, ∃ r, program.eval (T (len x)) x = some r ∧ r.output = f x
 
-def ComputesWithin (M : Machine) (f : Bitstring → Bitstring) (T : Nat → Nat) : Prop :=
-  ∀ x, ∃ r, eval M (T (len x)) x = some r ∧ r.output = f x
-
-def ComputesNatWithin (M : Machine) (f : Bitstring → Nat) (T : Nat → Nat) : Prop :=
-  ComputesWithin M (fun x => encodeNat (f x)) T
+def ComputesNatWithin (program : Program) (f : Bitstring → Nat)
+    (T : Nat → Nat) : Prop :=
+  ComputesWithin program (fun x => encodeNat (f x)) T
 
 def PolynomialTimeComputable (f : Bitstring → Bitstring) : Prop :=
-  ∃ M T, IsPolynomial T ∧ ComputesWithin M f T
+  ∃ program T, IsPolynomial T ∧ Monotone T ∧ ComputesWithin program f T
 
 def PolynomialTimeComputableNat (f : Bitstring → Nat) : Prop :=
-  ∃ M T, IsPolynomial T ∧ ComputesNatWithin M f T
+  ∃ program T, IsPolynomial T ∧ Monotone T ∧
+    ComputesNatWithin program f T
 
 /--
 Algorithmic rankability: the exact rank function (not merely an upper bound) is
@@ -36,7 +37,8 @@ def HasPolynomialRankBound (μ : Subprobability) : Prop :=
 
 theorem IsPolynomialTimeRankable.has_computer {μ : Subprobability}
     (h : IsPolynomialTimeRankable μ) :
-    ∃ M T, IsPolynomial T ∧ ComputesNatWithin M μ.rank T :=
+    ∃ program T, IsPolynomial T ∧ Monotone T ∧
+      ComputesNatWithin program μ.rank T :=
   h
 
 end AvgCaseMls.Foundation

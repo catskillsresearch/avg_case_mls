@@ -237,13 +237,6 @@ theorem stepsMLS_pos (f : Formula) : 0 < stepsMLS f := by
 
 /-! ### Phase 3B — syntax mass and polynomial encoding bounds -/
 
-def termNodes : Term → Nat
-  | .var _ => 1
-  | .empty => 1
-  | .union t1 t2 => 1 + termNodes t1 + termNodes t2
-  | .inter t1 t2 => 1 + termNodes t1 + termNodes t2
-  | .diff t1 t2 => 1 + termNodes t1 + termNodes t2
-
 def maxVarTerm : Term → Nat
   | .var n => n
   | .empty => 0
@@ -251,25 +244,11 @@ def maxVarTerm : Term → Nat
   | .inter t1 t2 => max (maxVarTerm t1) (maxVarTerm t2)
   | .diff t1 t2 => max (maxVarTerm t1) (maxVarTerm t2)
 
-def relationNodes : Relation → Nat
-  | .mem t1 t2 => 1 + termNodes t1 + termNodes t2
-  | .not_mem t1 t2 => 1 + termNodes t1 + termNodes t2
-  | .eq t1 t2 => 1 + termNodes t1 + termNodes t2
-  | .neq t1 t2 => 1 + termNodes t1 + termNodes t2
-
 def maxVarRelation : Relation → Nat
   | .mem t1 t2 => max (maxVarTerm t1) (maxVarTerm t2)
   | .not_mem t1 t2 => max (maxVarTerm t1) (maxVarTerm t2)
   | .eq t1 t2 => max (maxVarTerm t1) (maxVarTerm t2)
   | .neq t1 t2 => max (maxVarTerm t1) (maxVarTerm t2)
-
-def formulaNodes : Formula → Nat
-  | .rel r => 1 + relationNodes r
-  | .not f => 1 + formulaNodes f
-  | .and f1 f2 => 1 + formulaNodes f1 + formulaNodes f2
-  | .or f1 f2 => 1 + formulaNodes f1 + formulaNodes f2
-  | .imp f1 f2 => 1 + formulaNodes f1 + formulaNodes f2
-  | .iff f1 f2 => 1 + formulaNodes f1 + formulaNodes f2
 
 def maxVarFormula : Formula → Nat
   | .rel r => maxVarRelation r

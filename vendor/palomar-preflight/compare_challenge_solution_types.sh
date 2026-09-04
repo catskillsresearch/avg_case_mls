@@ -180,7 +180,7 @@ print("\n".join(ordered))
 PY
 )
 
-if [[ ${#BODY_NAMES[@]} -eq 0 ]]; then
+if [[ ${#BODY_NAMES[@]} -eq 0 || -z "${BODY_NAMES[0]}" ]]; then
   echo "OK: no definition bodies to compare yet."
   exit 0
 fi

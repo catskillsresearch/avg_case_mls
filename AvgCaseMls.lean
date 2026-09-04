@@ -1,8 +1,11 @@
 import AvgCaseMls.MLS
 import AvgCaseMls.SAT
 import AvgCaseMls.MLSInReduction
+import AvgCaseMls.MLSCodec
+import AvgCaseMls.COP90
 import AvgCaseMls.EMLSReduction
 import AvgCaseMls.FPILP
+import AvgCaseMls.FPILPCodec
 import AvgCaseMls.EMLS
 import AvgCaseMls.DecideMLS
 import AvgCaseMls.Serialization
@@ -19,3 +22,4 @@ import AvgCaseMls.HonestReduction
 import AvgCaseMls.Tests
 import AvgCaseMls.Foundation
 import AvgCaseMls.Section3
+import AvgCaseMls.Section4

@@ -127,4 +127,37 @@ noncomputable def evalFormula (env : Env) : Formula → Prop
   | Formula.imp f1 f2                    => evalFormula env f1 → evalFormula env f2
   | Formula.iff f1 f2                    => evalFormula env f1 ↔ evalFormula env f2
 
+/-!
+### Structural node counts
+
+These live here, immediately after `evalFormula`, to mirror `Challenge.lean`'s
+declaration order.  Lean reuses a structurally identical `match` auxiliary only
+within a single module, so a pattern match's `match_1` is named after whichever
+earlier declaration in the same module first claimed it.  `formulaNodes` occurs
+in Theorem 5.1's statement, so Palomar compares its elaborated value: moving
+these into a module that first matches on `Formula` elsewhere silently changes
+the auxiliary they reference and the comparator rejects the submission.
+-/
+
+def termNodes : Term → Nat
+  | .var _ => 1
+  | .empty => 1
+  | .union t1 t2 => 1 + termNodes t1 + termNodes t2
+  | .inter t1 t2 => 1 + termNodes t1 + termNodes t2
+  | .diff t1 t2 => 1 + termNodes t1 + termNodes t2
+
+def relationNodes : Relation → Nat
+  | .mem t1 t2 => 1 + termNodes t1 + termNodes t2
+  | .not_mem t1 t2 => 1 + termNodes t1 + termNodes t2
+  | .eq t1 t2 => 1 + termNodes t1 + termNodes t2
+  | .neq t1 t2 => 1 + termNodes t1 + termNodes t2
+
+def formulaNodes : Formula → Nat
+  | .rel r => 1 + relationNodes r
+  | .not f => 1 + formulaNodes f
+  | .and f1 f2 => 1 + formulaNodes f1 + formulaNodes f2
+  | .or f1 f2 => 1 + formulaNodes f1 + formulaNodes f2
+  | .imp f1 f2 => 1 + formulaNodes f1 + formulaNodes f2
+  | .iff f1 f2 => 1 + formulaNodes f1 + formulaNodes f2
+
 end MLS

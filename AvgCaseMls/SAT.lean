@@ -42,7 +42,21 @@ Structural size of a CNF: one node for the conjunction, one for each clause,
 and one for each literal.
 -/
 def size (φ : CNF) : Nat :=
-  1 + φ.length + (φ.map List.length).sum
+  1 + φ.length + (φ.map List.length).foldr (· + ·) 0
+
+/--
+`size` adds clause widths with `foldr` rather than `List.sum` so that
+`Challenge` and `Solution` cannot elaborate the `Zero Nat` instance through
+different parent structures; Palomar compares elaborated terms, and the two
+import graphs reach `Zero Nat` by different routes.  This normalises the
+`foldr` form back to the `List.sum` API the downstream proofs are written
+against.
+-/
+@[simp] theorem foldr_add_eq_sum (l : List Nat) :
+    l.foldr (· + ·) 0 = l.sum := by
+  induction l with
+  | nil => simp
+  | cons a l ih => simp [ih]
 
 @[simp] theorem evalClause_nil (a : Assignment) : ¬ evalClause a [] := by
   simp [evalClause]

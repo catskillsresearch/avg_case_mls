@@ -14,6 +14,9 @@ import AvgCaseMls.Section3.PropertyQ
 import AvgCaseMls.Section3.Lemma4
 import AvgCaseMls.Section3.Lemma5
 import AvgCaseMls.Section3.Unsatisfiability
+import AvgCaseMls.Section3.Projection
+import AvgCaseMls.Section3.ResolutionCompleteness
+import AvgCaseMls.Section3.TR1995
 
 /-!
 # Foundations for TR1995 / Chvátal--Szemerédi Section 3

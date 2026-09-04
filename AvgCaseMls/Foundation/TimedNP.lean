@@ -17,14 +17,15 @@ def pair (x certificate : Bitstring) : Bitstring :=
   simp [pair]
   omega
 
-def VerifiesWithin (M : Machine) (x certificate : Bitstring)
+def VerifiesWithin (program : Program) (x certificate : Bitstring)
     (time : Nat → Nat) : Prop :=
-  ∃ r, eval M (time (len (pair x certificate))) (pair x certificate) = some r ∧
+  ∃ r, program.eval (time (len (pair x certificate))) (pair x certificate) = some r ∧
     r.accept = true
 
-theorem verifiesWithin_iff {M : Machine} {accepted : Set Bitstring}
-    {time : Nat → Nat} (h : DecidesWithin M accepted time) (x certificate : Bitstring) :
-    VerifiesWithin M x certificate time ↔ pair x certificate ∈ accepted := by
+theorem verifiesWithin_iff {program : Program} {accepted : Set Bitstring}
+    {time : Nat → Nat} (h : DecidesWithin program accepted time)
+    (x certificate : Bitstring) :
+    VerifiesWithin program x certificate time ↔ pair x certificate ∈ accepted := by
   obtain ⟨r, hr, hcorrect⟩ := h (pair x certificate)
   constructor
   · rintro ⟨r', hr', haccept⟩
@@ -39,7 +40,7 @@ Timed NP verification has both polynomial certificate size and polynomial fuel
 for the concrete verifier execution.
 -/
 def InTimedNP (L : Set Bitstring) : Prop :=
-  ∃ verifier acceptedPairs certificateBound timeBound,
+  ∃ verifier : Program, ∃ acceptedPairs certificateBound timeBound,
     IsPolynomial certificateBound ∧
     IsPolynomial timeBound ∧
     DecidesWithin verifier acceptedPairs timeBound ∧

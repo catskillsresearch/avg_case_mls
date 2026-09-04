@@ -1,5 +1,5 @@
 /-
-Runnable gist for arxiv.md, displayed with the third collapse theorem.
+Runnable snippet for arxiv.md, displayed with the third collapse theorem.
 
 `AvCom.DistTime` reads
 
@@ -15,7 +15,7 @@ Checked against AvgCaseMls.ComplexityAxioms.
 -/
 import AvgCaseMls.ComplexityAxioms
 
-namespace Gists.AvPVacuous
+namespace Exposition.AvPVacuous
 
 open AvCom
 
@@ -53,4 +53,4 @@ theorem no_theory_separates (theory : AverageCaseCollapseTheory) :
     ¬ theory.NEXP_neq_EXP :=
   fun hsep => hsep (collapse_forces_NEXP_eq_EXP theory)
 
-end Gists.AvPVacuous
+end Exposition.AvPVacuous

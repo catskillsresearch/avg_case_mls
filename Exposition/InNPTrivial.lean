@@ -1,5 +1,5 @@
 /-
-Runnable gist for arxiv.md, displayed with the proof that the report's
+Runnable snippet for arxiv.md, displayed with the proof that the report's
 membership condition is vacuous.
 
 `AvCom.InNP` quantifies over an arbitrary function
@@ -11,7 +11,7 @@ Checked against AvgCaseMls.AvCom.
 -/
 import AvgCaseMls.AvCom
 
-namespace Gists.InNPTrivial
+namespace Exposition.InNPTrivial
 
 open AvCom
 
@@ -25,4 +25,4 @@ theorem inNP_trivial (L : Set Bitstring) : InNP L := by
   exact ⟨fun hx => ⟨[], by simp [len], by simpa using hx⟩,
          fun ⟨_, _, hv⟩ => by simpa using hv⟩
 
-end Gists.InNPTrivial
+end Exposition.InNPTrivial

@@ -1,5 +1,5 @@
 /-
-Runnable gist for arxiv.md, displayed with Example 4.1.
+Runnable snippet for arxiv.md, displayed with Example 4.1.
 
 The report's Example 4.1 puts the standard law
 `μ(x) = (6/π²)|x|⁻² 2^(-|x|)` against a decider running in `|x|²` steps and
@@ -17,7 +17,7 @@ Checked against AvgCaseMls.TR1995 and AvgCaseMls.Example41.
 import AvgCaseMls.TR1995
 import AvgCaseMls.Example41
 
-namespace Gists.Example41
+namespace Exposition.Example41
 
 /-! ## The shell exponent -/
 
@@ -59,4 +59,4 @@ example {ε : ℝ} (hε : 0 < ε) :
 example : Example41.standardDistribution.mass = 1 :=
   Example41.standardDistribution_mass
 
-end Gists.Example41
+end Exposition.Example41

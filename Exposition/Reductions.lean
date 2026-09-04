@@ -1,5 +1,5 @@
 /-
-Runnable gist for arxiv.md, displayed with the three SAT reductions.
+Runnable snippet for arxiv.md, displayed with the three SAT reductions.
 
 All three are stated in the same four-part form -- correctness, injectivity, an
 explicit left inverse, and an exact size identity -- which is precisely the
@@ -18,7 +18,7 @@ import AvgCaseMls.MLSInReduction
 import AvgCaseMls.EMLSReduction
 import AvgCaseMls.FPILP
 
-namespace Gists.Reductions
+namespace Exposition.Reductions
 
 open MLS
 
@@ -84,4 +84,4 @@ theorem reduction_5_3 :
    @TR1995.FPILPSource.satToFPILP_injective,
    TR1995.FPILPSource.satToFPILP_constraint_count⟩
 
-end Gists.Reductions
+end Exposition.Reductions

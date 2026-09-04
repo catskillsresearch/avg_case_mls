@@ -1,5 +1,5 @@
 /-
-Runnable gist for arxiv.md.  Displayed alongside the discussion of the two
+Runnable snippet for arxiv.md.  Displayed alongside the discussion of the two
 degenerate laws that drive the collapse results.
 
 Both layers bound total mass by `1` rather than fixing it at `1`, and both
@@ -12,7 +12,7 @@ Checked against AvgCaseMls.AvCom and AvgCaseMls.Section4.
 import AvgCaseMls.AvCom
 import AvgCaseMls.Section4
 
-namespace Gists.DegenerateLaws
+namespace Exposition.DegenerateLaws
 
 /-! ## The untimed layer -/
 
@@ -68,4 +68,4 @@ theorem zeroLaw_rankable : IsPolynomialTimeRankable zeroLaw := by
 
 end Timed
 
-end Gists.DegenerateLaws
+end Exposition.DegenerateLaws

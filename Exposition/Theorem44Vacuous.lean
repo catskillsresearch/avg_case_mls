@@ -1,5 +1,5 @@
 /-
-Runnable gist for arxiv.md, displayed with the corollary that the report's
+Runnable snippet for arxiv.md, displayed with the corollary that the report's
 Theorem 4.4 carries no content in its own vocabulary.
 
 The hypotheses of the report's Theorem 4.4 are that the reduction is
@@ -13,7 +13,7 @@ Checked against AvgCaseMls.EncodingCollapse and AvgCaseMls.HonestReduction.
 import AvgCaseMls.EncodingCollapse
 import AvgCaseMls.HonestReduction
 
-namespace Gists.Theorem44Vacuous
+namespace Exposition.Theorem44Vacuous
 
 open AvCom AvgCaseMls.EncodingCollapse
 
@@ -37,4 +37,4 @@ theorem theorem_4_4_uses_only_correctness {L₁ L₂ : Set Bitstring}
     TR1995.IsNPAverageCompleteLanguage L₂ :=
   npAverageCompleteLanguage_of_reduces r.map r.reduces h₁
 
-end Gists.Theorem44Vacuous
+end Exposition.Theorem44Vacuous

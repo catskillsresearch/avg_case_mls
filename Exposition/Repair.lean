@@ -1,5 +1,5 @@
 /-
-Runnable gist for arxiv.md, displayed with the two repairs.
+Runnable snippet for arxiv.md, displayed with the two repairs.
 
 Repair 1 requires target laws to be probability measures.  That excludes the
 degenerate law and makes the domination inequality a genuine numeric
@@ -14,7 +14,7 @@ Checked against AvgCaseMls.Repair.
 -/
 import AvgCaseMls.Repair
 
-namespace Gists.Repair
+namespace Exposition.Repair
 
 open AvgCaseMls.Foundation AvgCaseMls.Section4 AvgCaseMls.Repair
 
@@ -77,4 +77,4 @@ theorem inAverageP_has_decider {p : DistributionalProblem}
   obtain ⟨d, -⟩ := h
   exact ⟨d⟩
 
-end Gists.Repair
+end Exposition.Repair

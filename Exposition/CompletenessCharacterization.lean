@@ -1,5 +1,5 @@
 /-
-Runnable gist for arxiv.md, displayed with the first collapse theorem.
+Runnable snippet for arxiv.md, displayed with the first collapse theorem.
 
 Language-level NP-average completeness in the report's untimed vocabulary is
 equivalent to the language being neither empty nor everything.  The degenerate
@@ -11,7 +11,7 @@ Checked against AvgCaseMls.EncodingCollapse.
 -/
 import AvgCaseMls.EncodingCollapse
 
-namespace Gists.CompletenessCharacterization
+namespace Exposition.CompletenessCharacterization
 
 open AvCom AvgCaseMls.EncodingCollapse
 
@@ -49,4 +49,4 @@ theorem npAverageCompleteLanguage_iff_nontrivial (L : Set Bitstring) :
     · -- Domination is `0 ≤ _`, because the target rank is identically zero.
       exact ⟨1, 1, one_pos, one_pos, fun x => by simp⟩
 
-end Gists.CompletenessCharacterization
+end Exposition.CompletenessCharacterization

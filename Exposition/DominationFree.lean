@@ -1,5 +1,5 @@
 /-
-Runnable gist for arxiv.md, displayed with the second collapse theorem.
+Runnable snippet for arxiv.md, displayed with the second collapse theorem.
 
 Moving to the timed model repairs the verifier and the reduction map, but not
 the domination condition.  Language-level completeness there is *equivalent* to
@@ -14,7 +14,7 @@ Checked against AvgCaseMls.DominationCollapse.
 -/
 import AvgCaseMls.DominationCollapse
 
-namespace Gists.DominationFree
+namespace Exposition.DominationFree
 
 open AvgCaseMls.Foundation AvgCaseMls.Section4
 
@@ -37,4 +37,4 @@ theorem isNPAverageCompleteLanguage_iff (L : Set Bitstring) :
     obtain ⟨r⟩ := hhard source hsource
     exact ⟨zeroLaw, zeroLaw_rankable, ⟨r.toZeroLaw⟩⟩
 
-end Gists.DominationFree
+end Exposition.DominationFree

@@ -1,5 +1,5 @@
 /-
-Runnable gist for arxiv.md, displayed with the resolution lower bound.
+Runnable snippet for arxiv.md, displayed with the resolution lower bound.
 
 These are the two headline statements of the report's Section 3, formalizing
 the Chvatal-Szemeredi bound and its averaged corollary.  The density
@@ -14,7 +14,7 @@ Checked against AvgCaseMls.Section3.
 -/
 import AvgCaseMls.Section3
 
-namespace Gists.ResolutionLowerBound
+namespace Exposition.ResolutionLowerBound
 
 open AvgCaseMls.Section3
 
@@ -61,4 +61,4 @@ example {n m : Nat} {a b : ℝ} {H : Hypergraph n m} {F : Fin m → Clause n}
       resolutionComplexity F :=
   cs87_lemma5 hbased hP hQ ha hb0 hb1 hba hrefutes
 
-end Gists.ResolutionLowerBound
+end Exposition.ResolutionLowerBound

@@ -81,7 +81,7 @@ def expand_includes(text: str) -> tuple[str, set[str]]:
 
 
 def normalize_lean_path(rel_path: str) -> str | None:
-    if rel_path.startswith("AvgCaseMls/"):
+    if rel_path.startswith("AvgCaseMls/") or rel_path.startswith("Exposition/"):
         return rel_path
     if rel_path.endswith(".lean") and "/" not in rel_path:
         candidate = f"AvgCaseMls/{rel_path}"

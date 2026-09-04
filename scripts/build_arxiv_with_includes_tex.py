@@ -172,7 +172,7 @@ def pandoc_to_latex(markdown: str) -> str:
         [
             "pandoc",
             "-f",
-            "markdown+tex_math_dollars+raw_tex+smart",
+            "markdown+tex_math_dollars+tex_math_single_backslash+raw_tex+smart",
             "-t",
             "latex",
             "--wrap=none",

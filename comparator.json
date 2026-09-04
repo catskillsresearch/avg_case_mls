@@ -2,14 +2,22 @@
   "challenge_module": "Challenge",
   "solution_module": "Solution",
   "theorem_names": [
-    "AvgCasePalomar.paper_theorem_4_1",
-    "AvgCasePalomar.paper_theorem_4_4",
+    "AvgCasePalomar.paper_collapse_inNP_trivial",
+    "AvgCasePalomar.paper_collapse_completeness_characterization",
+    "AvgCasePalomar.paper_collapse_theorem44_vacuous",
+    "AvgCasePalomar.paper_collapse_avP_characterization",
+    "AvgCasePalomar.paper_collapse_no_theory_separates",
     "AvgCasePalomar.paper_example_4_1",
     "AvgCasePalomar.paper_theorem_5_1_reduction_core",
     "AvgCasePalomar.paper_theorem_5_2_reduction_core",
     "AvgCasePalomar.paper_theorem_5_3_reduction_core"
   ],
-  "definition_names": [],
+  "definition_names": [
+    "MLSInReduction.fromMLS",
+    "EMLSReduction.sourceBits",
+    "EMLSReduction.toEMLS",
+    "EMLSReduction.fromEMLS"
+  ],
   "permitted_axioms": [
     "propext",
     "Quot.sound",

@@ -3,11 +3,14 @@ import Mathlib
 /-!
 # TR1995-711: explicit statement of record
 
-This Mathlib-only file records the six paper-numbered/core results selected for
-Palomar: Theorems 4.1 and 4.4, Example 4.1, and the constructive cores of
-Theorems 5.1--5.3. Every notion occurring in those statements is defined
-concretely below. The only `sorry`s are the six theorem proof holes required by
-the Challenge/Solution protocol.
+This Mathlib-only file records the revisit paper's canon: Example 4.1, the
+three SAT reduction cores (Theorems 5.1--5.3), and five encoding-collapse
+diagnostics proved against this untimed vocabulary.  Vacuous TR1995 Theorems
+4.1 and 4.4 in this layer are omitted; the timed Theorem 4.4 and repairs live
+in the implementation library (`AvgCaseMls/Section4`, `AvgCaseMls/Repair`).
+
+Every notion below is defined concretely.  The only `sorry`s are theorem proof
+holes (and `encodeSATCNF`, listed as a definition hole in `comparator.json`).
 -/
 
 namespace AvCom
@@ -44,6 +47,32 @@ def IsTRankable (V : Nat → Nat) (μ : Distribution) : Prop :=
 def IsPolRankable (μ : Distribution) : Prop :=
   ∃ V : Nat → Nat, IsPolynomial V ∧ IsTRankable V μ
 
+partial def T_invAux (T : Nat → Nat) (m n : Nat) : Nat :=
+  if T n ≥ m then n else T_invAux T m (n + 1)
+
+def T_inv (T : Nat → Nat) (m : Nat) : Nat :=
+  if m = 0 then 0 else T_invAux T m 0
+
+noncomputable def rankLe (μ : Distribution) (l : Nat) : Finset Bitstring :=
+  μ.support.filter (fun x => rank μ x ≤ l)
+
+def IsAvTime (T : Nat → Nat) (f : Bitstring → Nat) (μ : Distribution) : Prop :=
+  ∀ l : Nat, l ≥ 1 →
+    (rankLe μ l).sum (fun x => (T_inv T (f x) : Real) / (lenBot x : Real)) ≤ (l : Real)
+
+def DistTime (T : Nat → Nat) (prob : DistributionalProblem) : Prop :=
+  ∃ f : Bitstring → Nat, IsAvTime T f prob.μ
+
+def AvP (prob : DistributionalProblem) : Prop :=
+  IsPolRankable prob.μ ∧ ∃ T : Nat → Nat, IsPolynomial T ∧ DistTime T prob
+
+def zeroDistribution : Distribution where
+  support := ∅
+  prob := fun _ => 0
+  prob_nonneg := fun _ => le_refl 0
+  prob_zero_outside := fun _ _ => rfl
+  prob_sum_le_one := by simp
+
 def InNP (L : Set Bitstring) : Prop :=
   ∃ (verify : Bitstring → Bitstring → Bool) (bound : Nat → Nat),
     IsPolynomial bound ∧
@@ -64,6 +93,23 @@ def IsNPDistributionallyComplete (target : DistributionalProblem) : Prop :=
     ∀ source, InDistNP source → DistributionalReduction source target
 
 end AvCom
+
+open AvCom
+
+structure AverageCaseCollapseTheory where
+  NEXP_eq_EXP : Prop
+  distNP_subseteq_AvP_iff_NEXP_eq_EXP :
+    (∀ p, InDistNP p → AvP p) ↔ NEXP_eq_EXP
+  AvP_pullback {source target : DistributionalProblem}
+    (hAvP : AvP target) (hRed : DistributionalReduction source target) :
+    AvP source
+
+namespace AverageCaseCollapseTheory
+
+def NEXP_neq_EXP (theory : AverageCaseCollapseTheory) : Prop :=
+  ¬ theory.NEXP_eq_EXP
+
+end AverageCaseCollapseTheory
 
 namespace TR1995
 
@@ -308,6 +354,27 @@ def toMLS : SAT.CNF → Formula
 def MLSSatisfiable (f : Formula) : Prop :=
   ∃ env, evalFormula env f
 
+def literalFromMLS : Formula → Option SAT.Literal
+  | .rel (.mem (.var 0) (.var (i + 1))) => some (.pos i)
+  | .rel (.not_mem (.var 0) (.var (i + 1))) => some (.neg i)
+  | _ => none
+
+def clauseFromMLS : Formula → Option SAT.Clause
+  | .rel (.mem (.var 0) (.var 0)) => some []
+  | .or f rest => do
+      let l ← literalFromMLS f
+      let c ← clauseFromMLS rest
+      pure (l :: c)
+  | _ => none
+
+def fromMLS : Formula → Option SAT.CNF
+  | .rel (.not_mem (.var 0) (.var 0)) => some []
+  | .and f rest => do
+      let c ← clauseFromMLS f
+      let φ ← fromMLS rest
+      pure (c :: φ)
+  | _ => none
+
 end MLSInReduction
 
 namespace EMLSReduction
@@ -362,6 +429,44 @@ def semanticCore (φ : SAT.CNF) : Conjunct :=
 
 def literalCount (φ : SAT.CNF) : Nat :=
   (φ.map List.length).sum
+
+/-- Serialized SAT source bits; implemented by the library's injective codec. -/
+def sourceBits (φ : SAT.CNF) : List Bool := sorry
+
+def provenanceHeader (count : Nat) : Literal :=
+  .eqOp (count + 4) (count + 4) (count + 4) .union
+
+def provenanceBit : Bool → Literal
+  | false => .eqOp 0 0 0 .union
+  | true => .eqOp 1 1 1 .union
+
+def provenanceBits (bits : List Bool) : Conjunct :=
+  bits.map provenanceBit
+
+def provenance (φ : SAT.CNF) : Conjunct :=
+  provenanceHeader (sourceBits φ).length :: provenanceBits (sourceBits φ)
+
+def toEMLS (φ : SAT.CNF) : Conjunct :=
+  provenance φ ++ semanticCore φ
+
+private def decodeProvenanceBits : Nat → Conjunct → Option (List Bool × Conjunct)
+  | 0, rest => some ([], rest)
+  | count + 1, .eqOp 0 0 0 .union :: rest => do
+      let (bits, suffix) ← decodeProvenanceBits count rest
+      some (false :: bits, suffix)
+  | count + 1, .eqOp 1 1 1 .union :: rest => do
+      let (bits, suffix) ← decodeProvenanceBits count rest
+      some (true :: bits, suffix)
+  | _, _ => none
+
+def decodeProvenance : Conjunct → Option (List Bool × Conjunct)
+  | .eqOp x y z .union :: rest =>
+      if _h : x = y ∧ y = z ∧ 4 ≤ x then
+        decodeProvenanceBits (x - 4) rest
+      else none
+  | _ => none
+
+def fromEMLS (conjunct : Conjunct) : Option SAT.CNF := sorry
 
 end EMLSReduction
 
@@ -435,23 +540,32 @@ namespace AvgCasePalomar
 
 open AvCom MLS EMLS
 
-theorem paper_theorem_4_1 :
-    ∀ {L : Set Bitstring} {ρ : Distribution},
-      IsNPDistributionallyComplete ⟨L, ρ⟩ → TR1995.IsNPAverageCompleteLanguage L := by
+theorem paper_collapse_inNP_trivial (L : Set Bitstring) : InNP L := by
   sorry
 
-theorem paper_theorem_4_4 :
-    ∀ {L₁ L₂ : Set Bitstring},
-      HonestReduction.FaithfulReduction L₁ L₂ →
-      TR1995.IsNPAverageCompleteLanguage L₁ →
-      InNP L₂ →
-      TR1995.IsNPAverageCompleteLanguage L₂ := by
+theorem paper_collapse_completeness_characterization (L : Set Bitstring) :
+    TR1995.IsNPAverageCompleteLanguage L ↔ (L ≠ ∅ ∧ L ≠ Set.univ) := by
+  sorry
+
+theorem paper_collapse_theorem44_vacuous {L₁ L₂ : Set Bitstring}
+    (map : Bitstring → Bitstring)
+    (reduces : ∀ x, x ∈ L₁ ↔ map x ∈ L₂)
+    (h₁ : TR1995.IsNPAverageCompleteLanguage L₁) (h₂ : InNP L₂) :
+    TR1995.IsNPAverageCompleteLanguage L₂ := by
+  sorry
+
+theorem paper_collapse_avP_characterization (p : DistributionalProblem) :
+    AvP p ↔ IsPolRankable p.μ := by
+  sorry
+
+theorem paper_collapse_no_theory_separates (theory : AverageCaseCollapseTheory) :
+    ¬ theory.NEXP_neq_EXP := by
   sorry
 
 theorem paper_example_4_1 :
     ∀ {ε : ℝ}, 0 < ε →
-      ∃ C : ℝ, 0 < C ∧
-        Summable (Example41.levinShellSeries ε) ∧
+      let C := max (∑' n : Nat, Example41.levinShellSeries ε n) 1
+      0 < C ∧ Summable (Example41.levinShellSeries ε) ∧
         (∑' n : Nat, Example41.levinShellSeries ε n / C) ≤ 1 := by
   sorry
 
@@ -459,6 +573,7 @@ theorem paper_theorem_5_1_reduction_core :
     (∀ φ : SAT.CNF,
         SAT.Satisfiable φ ↔ MLSInReduction.MLSSatisfiable (MLSInReduction.toMLS φ)) ∧
     Function.Injective MLSInReduction.toMLS ∧
+    (∀ φ : SAT.CNF, MLSInReduction.fromMLS (MLSInReduction.toMLS φ) = some φ) ∧
     ∀ φ : SAT.CNF,
       formulaNodes (MLSInReduction.toMLS φ) + 1 = 5 * SAT.size φ := by
   sorry
@@ -466,10 +581,13 @@ theorem paper_theorem_5_1_reduction_core :
 theorem paper_theorem_5_2_reduction_core :
     (∀ φ : SAT.CNF,
         SAT.Satisfiable φ ↔
-          EMLSReduction.EMLSSatisfiable (EMLSReduction.semanticCore φ)) ∧
+          EMLSReduction.EMLSSatisfiable (EMLSReduction.toEMLS φ)) ∧
+    Function.Injective EMLSReduction.toEMLS ∧
+    (∀ φ : SAT.CNF, EMLSReduction.fromEMLS (EMLSReduction.toEMLS φ) = some φ) ∧
     ∀ φ : SAT.CNF,
-      (EMLSReduction.semanticCore φ).length =
-        1 + 3 * EMLSReduction.literalCount φ + φ.length := by
+      (EMLSReduction.toEMLS φ).length =
+        (EMLSReduction.sourceBits φ).length + 2 +
+          3 * EMLSReduction.literalCount φ + φ.length := by
   sorry
 
 theorem paper_theorem_5_3_reduction_core :

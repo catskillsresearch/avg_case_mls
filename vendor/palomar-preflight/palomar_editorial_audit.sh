@@ -19,7 +19,9 @@ pick_python() {
     return
   fi
   python3 -m venv .venv-editorial
-  .venv-editorial/bin/pip install -r "$TOOLKIT_ROOT/requirements-editorial.txt"
+  # `pick_python` is consumed by command substitution below, so setup chatter
+  # must not become part of the executable path.
+  .venv-editorial/bin/pip install -r "$TOOLKIT_ROOT/requirements-editorial.txt" >&2
   echo .venv-editorial/bin/python
 }
 

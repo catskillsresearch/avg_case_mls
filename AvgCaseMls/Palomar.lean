@@ -10,53 +10,77 @@ import AvgCaseMls.HonestReduction
 import AvgCaseMls.MLSInReduction
 import AvgCaseMls.EMLSReduction
 import AvgCaseMls.FPILP
+import AvgCaseMls.EncodingCollapse
+import AvgCaseMls.HardnessCollapse
+import AvgCaseMls.ComplexityAxioms
 
 /-!
-Palomar-facing proofs of the six directly stated paper-numbered/core claims,
-without the project's open completeness/reduction assumptions.
+Palomar-facing proofs of the revisit-paper canon: Example 4.1, the three SAT
+reduction cores, and five encoding-collapse diagnostics.  Vacuous TR1995
+Theorems 4.1 and 4.4 in the untimed layer are omitted.
 -/
 
 namespace AvgCasePalomar
 
 open AvCom MLS EMLS
 
-theorem paper_theorem_4_1 :
-  ∀ {L : Set Bitstring} {ρ : Distribution},
-    IsNPDistributionallyComplete ⟨L, ρ⟩ → TR1995.IsNPAverageCompleteLanguage L :=
-  fun h => TR1995.theorem_4_1 h
+theorem paper_collapse_inNP_trivial (L : Set Bitstring) : InNP L :=
+  AvgCaseMls.EncodingCollapse.inNP_trivial L
 
-theorem paper_theorem_4_4 :
-  ∀ {L₁ L₂ : Set Bitstring},
-    HonestReduction.FaithfulReduction L₁ L₂ →
-    TR1995.IsNPAverageCompleteLanguage L₁ →
-    InNP L₂ →
+theorem paper_collapse_completeness_characterization (L : Set Bitstring) :
+    TR1995.IsNPAverageCompleteLanguage L ↔ (L ≠ ∅ ∧ L ≠ Set.univ) :=
+  AvgCaseMls.EncodingCollapse.npAverageCompleteLanguage_iff_nontrivial L
+
+theorem paper_collapse_theorem44_vacuous {L₁ L₂ : Set Bitstring}
+    (map : Bitstring → Bitstring)
+    (reduces : ∀ x, x ∈ L₁ ↔ map x ∈ L₂)
+    (h₁ : TR1995.IsNPAverageCompleteLanguage L₁) (h₂ : InNP L₂) :
     TR1995.IsNPAverageCompleteLanguage L₂ :=
-  HonestReduction.npAverageCompleteLanguage_of_faithfulReduction
+  AvgCaseMls.EncodingCollapse.npAverageCompleteLanguage_of_reduces map reduces h₁
+
+theorem paper_collapse_avP_characterization (p : DistributionalProblem) :
+    AvP p ↔ IsPolRankable p.μ :=
+  AvgCaseMls.HardnessCollapse.avP_iff_polRankable p
+
+theorem paper_collapse_no_theory_separates (theory : AverageCaseCollapseTheory) :
+    ¬ theory.NEXP_neq_EXP :=
+  AvgCaseMls.HardnessCollapse.no_theory_separates theory
 
 theorem paper_example_4_1 :
   ∀ {ε : ℝ}, 0 < ε →
-    ∃ C : ℝ, 0 < C ∧
-      Summable (Example41.levinShellSeries ε) ∧
-      (∑' n : Nat, Example41.levinShellSeries ε n / C) ≤ 1 :=
-  fun hε => Example41.normalized_levin_bound hε
+    let C := max (∑' n : Nat, Example41.levinShellSeries ε n) 1
+    0 < C ∧ Summable (Example41.levinShellSeries ε) ∧
+      (∑' n : Nat, Example41.levinShellSeries ε n / C) ≤ 1 := by
+  intro ε hε
+  let S := ∑' n : Nat, Example41.levinShellSeries ε n
+  refine ⟨lt_of_lt_of_le zero_lt_one (le_max_right S 1),
+    Example41.summable_levinShellSeries hε, ?_⟩
+  rw [tsum_div_const]
+  exact (div_le_one (lt_of_lt_of_le zero_lt_one (le_max_right S 1))).2
+    (le_max_left S 1)
 
 theorem paper_theorem_5_1_reduction_core :
   (∀ φ : SAT.CNF,
       SAT.Satisfiable φ ↔ MLSInReduction.MLSSatisfiable (MLSInReduction.toMLS φ)) ∧
   Function.Injective MLSInReduction.toMLS ∧
+  (∀ φ : SAT.CNF, MLSInReduction.fromMLS (MLSInReduction.toMLS φ) = some φ) ∧
   ∀ φ : SAT.CNF,
     formulaNodes (MLSInReduction.toMLS φ) + 1 = 5 * SAT.size φ :=
   ⟨MLSInReduction.satisfiable_iff, MLSInReduction.toMLS_injective,
-    MLSInReduction.formulaNodes_toMLS⟩
+    MLSInReduction.fromMLS_toMLS, MLSInReduction.formulaNodes_toMLS⟩
 
 theorem paper_theorem_5_2_reduction_core :
   (∀ φ : SAT.CNF,
       SAT.Satisfiable φ ↔
-        EMLSReduction.EMLSSatisfiable (EMLSReduction.semanticCore φ)) ∧
+        EMLSReduction.EMLSSatisfiable (EMLSReduction.toEMLS φ)) ∧
+  Function.Injective EMLSReduction.toEMLS ∧
+  (∀ φ : SAT.CNF, EMLSReduction.fromEMLS (EMLSReduction.toEMLS φ) = some φ) ∧
   ∀ φ : SAT.CNF,
-    (EMLSReduction.semanticCore φ).length =
-      1 + 3 * EMLSReduction.literalCount φ + φ.length :=
-  ⟨EMLSReduction.satisfiable_iff, EMLSReduction.semanticCore_length⟩
+    (EMLSReduction.toEMLS φ).length =
+      (EMLSReduction.sourceBits φ).length + 2 +
+        3 * EMLSReduction.literalCount φ + φ.length :=
+  ⟨EMLSReduction.toEMLS_satisfiable_iff, EMLSReduction.toEMLS_injective,
+    EMLSReduction.fromEMLS_toEMLS, EMLSReduction.toEMLS_length⟩
 
 theorem paper_theorem_5_3_reduction_core :
   (∀ {n : Nat} (φ : TR1995.FPILPSource.CNF n),

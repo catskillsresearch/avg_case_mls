@@ -64,20 +64,15 @@ parameters; the library contains no project-specific axioms.
 
 ## Palomar validation
 
-`Challenge.lean` selects only report-related claims and examples that are
-proved without project-specific axioms. `Solution.lean` exposes their checked
-implementations from `AvgCaseMls/Palomar.lean`. The selected surface now leads
-with numbered Theorems 4.1 and 4.4 (the latter under the documented
-finite-support specialization and an explicit independent `InNP L₂`
-hypothesis) and the full shell calculation of Example 4.1. It also
-covers the constructive reduction cores of Theorems 5.1–5.3: SAT-to-MLS,
-SAT-to-EMLS, and SAT-to-0/1-ILP. All three include semantic correctness and
-linear size results; the MLS and 0/1-ILP constructions also include
-injectivity. The EMLS selection deliberately omits the still-open
-size-accounted injectivity/inversion obligation. These six coherent
-paper-numbered/core declarations
-are stated directly in `Challenge.lean`; every underlying notion is given a
-concrete Mathlib-only definition and only theorem proofs are protocol holes.
+`Challenge.lean` selects claims proved without project-specific axioms, and
+`Solution.lean` exposes their implementations from `AvgCaseMls/Palomar.lean`.
+The selected surface contains five diagnostics of the repository's initial
+untimed encoding, the full shell calculation of Example 4.1, and the three
+constructive reduction cores of Theorems 5.1–5.3. All three reductions include
+semantic correctness and linear size results; MLS and EMLS also expose
+explicit left inverses, and all three are injective. These nine theorems are
+stated directly in `Challenge.lean`; inverse/codec implementations are listed
+as explicit definition holes in `comparator.json`.
 The examples in
 `AvgCaseMls/Tests.lean` are repository smoke tests rather than examples from
 TR1995-711, so they are not selected.

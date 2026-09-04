@@ -494,7 +494,7 @@ unaccounted natural-number variable.
 
 private abbrev SourceBits := AvgCaseMls.Foundation.Bitstring
 
-def sourceBits (φ : SAT.CNF) : SourceBits :=
+def sourceBits (φ : SAT.CNF) : List Bool :=
   AvgCaseMls.Section4.CookLevin.encodeSATCNF φ
 
 def provenanceHeader (count : Nat) : Literal :=

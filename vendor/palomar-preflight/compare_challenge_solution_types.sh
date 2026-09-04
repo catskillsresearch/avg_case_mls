@@ -161,8 +161,8 @@ def add(name: str) -> None:
         seen.add(name)
         ordered.append(name)
 
-for name in cfg.get("definition_names", []):
-    add(name)
+# Definition names are intentional holes: compare their kinds and types above,
+# but never diff their Challenge `sorry` bodies against Solution implementations.
 for extra in os.environ.get("PALOMAR_EXTRA_PRINT_NAMES", "").split():
     add(extra)
 for path in sys.argv[1:]:

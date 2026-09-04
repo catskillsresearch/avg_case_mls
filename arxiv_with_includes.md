@@ -6,7 +6,14 @@
 
 We revisit Cox, Ericson, and Mishra's 1995 Courant technical report TR1995-711 (*The average case complexity of multilevel syllogistic*) in Lean 4. The report's combinatorial core — the Chvátal–Szemerédi resolution lower bound and its averaged corollary — formalizes completely: 6,833 lines across eighteen modules, no `sorry`, no hypothesis packages. So do the three SAT-to-fragment reductions (Theorems 5.1–5.3), Example 4.1 with its explicit normalizing constant, and Theorem 4.4 on the timed layer when honest invertible reductions are taken seriously.
 
-Against that positive record, three independent defects in the Reischuk–Schindelhauer vocabulary the report inherits make several headline theorems carry no complexity content under faithful formalization. We prove these collapses constructively, supply two repairs, and re-prove Theorem 4.4 against the strengthened definitions. Every proof displayed below has a runnable Lean counterpart in [`Exposition/`](Exposition/).
+Against that positive record, three independent defects in this repository's
+initial untimed adaptation of the Reischuk–Schindelhauer vocabulary make
+several encoded theorems carry no complexity content. These are defects of the
+Lean adaptation: RS93 and TR1995 tie running time and NP membership to machines,
+conditions the adaptation omitted. We prove the resulting collapses
+constructively, supply repairs, and re-prove Theorem 4.4 against strengthened
+definitions. Every displayed proof has a runnable Lean counterpart in
+[`Exposition/`](Exposition/).
 
 ---
 
@@ -16,7 +23,7 @@ In the Correct Program Technology (CPT) vision of the 1970s–80s, programmers w
 
 TR1995-711 [CEM95] applies that theory to MLS satisfiability and related verification problems. It states theorems, not conjectures, for resolution lower bounds (Section 3), average-case completeness and transfer (Section 4), and polynomial-time reductions from SAT to MLS, EMLS, and FP/LP (Section 5).
 
-This note asks a narrower question: **what survives contact with a proof assistant?** We formalized the report's definitions and theorems in Lean 4 against Mathlib. The answer splits cleanly. The combinatorial and syntactic content is real and now verified. Several complexity-theoretic statements collapse because the encoding of Reischuk–Schindelhauer average-case completeness admits degenerate witnesses that the paper's prose never rules out.
+This note asks a narrower question: **what survives contact with a proof assistant?** We formalized the report's definitions and theorems in Lean 4 against Mathlib. The answer splits cleanly. The combinatorial and syntactic content is real and now verified. Several complexity-theoretic statements collapse because the repository's initial untimed encoding omits machine-time conditions and admits zero-mass witnesses.
 
 Our contribution is therefore twofold:
 
@@ -343,7 +350,7 @@ end Exposition.Reductions
 
 ## 3. What the formalization found
 
-Faithful encoding of the report's RS93-based vocabulary exposes three independent defects. Each admits a concrete degenerate witness; together they trivialize Theorems 4.1, 4.4 (in the untimed layer), and the entire conditional hardness chain.
+Auditing the repository's initial untimed approximation of the report's RS93-based vocabulary exposes three independent defects. Each admits a concrete degenerate witness; together they trivialize Theorems 4.1, 4.4 (in the untimed layer), and the entire conditional hardness chain.
 
 ### 3.1 Degenerate laws
 
@@ -684,11 +691,9 @@ Checked against AvgCaseMls.Repair.
 -/
 import AvgCaseMls.Repair
 
-namespace Exposition.Repair
+namespace Exposition.Repairs
 
-open AvgCaseMls.Foundation AvgCaseMls.Section4
-
-/-! ## Repair 1: probability measures as target laws -/
+open AvgCaseMls.Foundation AvgCaseMls.Section4 AvgCaseMls.Repair
 
 theorem zeroLaw_not_probability : ¬ Subprobability.IsProbability zeroLaw := by
   rw [Subprobability.IsProbability, zeroLaw_mass]
@@ -708,14 +713,11 @@ theorem theorem_4_4_strict {L₁ L₂ : Set Bitstring}
     IsNPAverageCompleteLanguageStrict L₂ :=
   AvgCaseMls.Repair.theorem_4_4_strict r hL₂NP hL₁
 
-/-! ## Repair 2: average time must refer to a decider -/
-
 theorem inAverageP_has_decider {p : DistributionalProblem}
-    (h : InAverageP p) : Nonempty (Decider p.language) := by
-  obtain ⟨d, -⟩ := h
-  exact ⟨d⟩
+    (h : InAverageP p) : Nonempty (Decider p.language) :=
+  AvgCaseMls.Repair.inAverageP_has_decider h
 
-end Exposition.Repair
+end Exposition.Repairs
 ```
 
 

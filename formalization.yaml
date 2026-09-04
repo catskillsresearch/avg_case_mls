@@ -6,9 +6,8 @@ project:
   description: >-
     A Lean 4.33.1 development revisiting Cox, Ericson, and Mishra's 1995
     technical report TR1995-711. The Palomar surface validates six
-    paper-numbered/core statements that are fully checked, including
-    paper-aligned
-    Theorem 4.1, a finite-support Theorem 4.4, the full shell calculation of
+    paper-numbered/core statements that are fully checked: finite-support
+    specializations of Theorems 4.1 and 4.4, the full shell calculation of
     Example 4.1, and concrete reduction cores from Theorems 5.1–5.3.
     It deliberately does not claim a completed
     proof of the report's NP-average-completeness corollary: the present
@@ -31,10 +30,14 @@ classification:
 status:
   scope: >-
     Six directly stated compared theorems validate the paper-numbered/core
-    results: Theorems 4.1 and 4.4 (the latter in the documented finite-support
-    specialization with an explicit target-language `InNP` hypothesis), the
-    full shell calculation of Example 4.1, and the constructive reduction
-    cores of Theorems 5.1--5.3. Challenge.lean gives concrete Mathlib-only
+    results: Theorems 4.1 and 4.4, both in the documented finite-support
+    distribution setting and the latter with an explicit target-language
+    `InNP` hypothesis, the full shell calculation of Example 4.1, and the
+    constructive reduction cores of Theorems 5.1--5.3. In Challenge.lean the
+    paper's "NP-distributional complete" is named
+    `AvCom.IsNPDistributionallyComplete` and the paper's language-level
+    "NP-average complete" is named `TR1995.IsNPAverageCompleteLanguage`.
+    Challenge.lean gives concrete Mathlib-only
     definitions for every notion in these statements; only its six theorem
     proofs are protocol holes. The implementation library has no sorry
     statements and no project-specific axioms. Unfinished constructions are
@@ -85,10 +88,17 @@ fidelity:
     The report uses unrestricted string distributions and full MLS decision
     and reduction machinery. The Lean development uses finite-support
     distributions, lenBot at the empty string, an explicit prefix encoding,
-    a restricted membership-free decision fragment, and abstract composition
-    lemmas. Both Lean and the report use non-strict probability comparison for
-    rank; Lean additionally returns rank zero off finite support. DistTime is
-    not linked to a decider.
+    and abstract composition lemmas. Both Lean and the report use non-strict
+    probability comparison for rank; Lean additionally returns rank zero off
+    finite support. DistTime is not linked to a decider. Separately, and
+    outside the six compared statements, the project's executable MLS
+    decision procedure is proved sound and complete only on a
+    membership-free, eqOp-free fragment; the compared Theorem 5.1 core is
+    about the membership fragment MLS-in and does not depend on that
+    procedure. Example 4.1's `≤ 1` conclusion carries an existentially
+    quantified positive constant, which is the report's "O(n^(1+epsilon))"
+    constant: the un-normalized shell sum is (6/pi^2) * zeta(3 - 2/(1+epsilon)),
+    which diverges as epsilon tends to 0 from above.
     These forks are documented in DEFINITION_FORKS.md. The selected Palomar
     claims validate those precise Lean statements, not the unfinished
     numbered average-completeness theorems.
@@ -186,7 +196,7 @@ limitations:
 alignment:
   namespace: "AvgCasePalomar"
   statements:
-    - source: "TR1995-711 Theorem 4.1, p. 12"
+    - source: "Finite-support specialization of TR1995-711 Theorem 4.1, p. 12"
       lean: "paper_theorem_4_1"
       module: "AvgCaseMls.Palomar"
       status: proved

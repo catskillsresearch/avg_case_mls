@@ -23,18 +23,18 @@ structure LevinNBHData where
   reduces : ∀ source : DistributionalProblem, InDistNP source →
     DistributionalReduction source nbhProb
 
-theorem nbhProb_NPAverageComplete (levin : LevinNBHData) :
-    IsNPAverageComplete nbhProb :=
-  IsNPAverageComplete.intro nbhProb_in_DistNP levin.reduces
+theorem nbhProb_NPDistributionallyComplete (levin : LevinNBHData) :
+    IsNPDistributionallyComplete nbhProb :=
+  IsNPDistributionallyComplete.intro nbhProb_in_DistNP levin.reduces
 
 /--
 Corollary 5.1 (adapted): [`satMLSProb`] is NP-average complete, via NBH completeness and
 [`nbhToSatMLS_red`].
 -/
-theorem satMLSProb_NPAverageComplete
+theorem satMLSProb_NPDistributionallyComplete
     (levin : LevinNBHData) (compiler : NBHToMLSData) :
-    IsNPAverageComplete satMLSProb :=
-  IsNPAverageComplete.of_reductor satMLSProb_in_DistNP
-    (nbhProb_NPAverageComplete levin) (nbhToSatMLS_red compiler)
+    IsNPDistributionallyComplete satMLSProb :=
+  IsNPDistributionallyComplete.of_reductor satMLSProb_in_DistNP
+    (nbhProb_NPDistributionallyComplete levin) (nbhToSatMLS_red compiler)
 
 end Completeness

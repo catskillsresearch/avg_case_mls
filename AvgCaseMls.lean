@@ -23,3 +23,5 @@ import AvgCaseMls.Tests
 import AvgCaseMls.Foundation
 import AvgCaseMls.Section3
 import AvgCaseMls.Section4
+import AvgCaseMls.EncodingCollapse
+import AvgCaseMls.DominationCollapse

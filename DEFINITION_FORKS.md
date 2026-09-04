@@ -165,13 +165,13 @@ obligations. No global compiler axiom remains.
 
 **Literature:** TR1995-711 Corollary 5.1 — MLS satisfiability is NP-average complete via NBH.
 
-**Lean fork — pipeline:** [`IsNPAverageComplete.of_reductor`] composes a complete intermediate problem with a distributional reduction; [`satMLSProb_NPAverageComplete`] applies this to [`nbhProb_NPAverageComplete`] and [`nbhToSatMLS_red`].
+**Lean fork — pipeline:** [`IsNPDistributionallyComplete.of_reductor`] composes a complete intermediate problem with a distributional reduction; [`satMLSProb_NPDistributionallyComplete`] applies this to [`nbhProb_NPDistributionallyComplete`] and [`nbhToSatMLS_red`].
 
 **Lean fork — Levin universal reduction:** [`LevinNBHData`] explicitly carries
 the reduction from every distNP problem to [`nbhProb`].
 
 **Proved:** [`DistributionalReduction.trans`],
-[`IsNPAverageComplete.of_reductor`], and [`satMLSProb_NPAverageComplete`] from
+[`IsNPDistributionallyComplete.of_reductor`], and [`satMLSProb_NPDistributionallyComplete`] from
 explicit `LevinNBHData` and `NBHToMLSData` arguments.
 
 **Rationale:** Compositional completeness logic is closed; the universal NBH
@@ -186,7 +186,7 @@ reduction remains an explicit external obligation.
 **Lean fork — target problem:** [`SatMLS_average_hard`] and [`exists_simple_rankable_not_AvP`] use [`satMLSProb`] / [`SatMLSChecker`] with [`simpleSatμ`] (= [`μ₁`]).
 
 **Proved conditionally:** [`AvP_of_distNP_of_complete_target`],
-[`NEXP_eq_EXP_of_AvP_complete`], [`not_AvP_of_NPAverageComplete`],
+[`NEXP_eq_EXP_of_AvP_complete`], [`not_AvP_of_NPDistributionallyComplete`],
 [`SatMLS_average_hard`], [`SatMLS_semantic_not_AvP`],
 [`exists_simple_rankable_not_AvP`], and [`nbhProb_not_AvP`] take explicit
 `AverageCaseCollapseTheory`, `LevinNBHData`, and/or `NBHToMLSData` arguments.

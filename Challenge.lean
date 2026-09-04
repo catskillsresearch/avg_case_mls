@@ -59,7 +59,7 @@ def DistributionalReduction (source target : DistributionalProblem) : Prop :=
     ∃ c0 c1 : Nat, 0 < c0 ∧ 0 < c1 ∧
       ∀ x, rank target.μ (f x) ≤ c0 * lenBot x ^ c1 * rank source.μ x
 
-def IsNPAverageComplete (target : DistributionalProblem) : Prop :=
+def IsNPDistributionallyComplete (target : DistributionalProblem) : Prop :=
   InDistNP target ∧
     ∀ source, InDistNP source → DistributionalReduction source target
 
@@ -437,7 +437,7 @@ open AvCom MLS EMLS
 
 theorem paper_theorem_4_1 :
     ∀ {L : Set Bitstring} {ρ : Distribution},
-      IsNPAverageComplete ⟨L, ρ⟩ → TR1995.IsNPAverageCompleteLanguage L := by
+      IsNPDistributionallyComplete ⟨L, ρ⟩ → TR1995.IsNPAverageCompleteLanguage L := by
   sorry
 
 theorem paper_theorem_4_4 :

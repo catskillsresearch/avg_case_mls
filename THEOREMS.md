@@ -30,7 +30,7 @@ of the focused six-theorem Palomar configuration.
 
 ## Not selected as completed results
 
-`Completeness.satMLSProb_NPAverageComplete`,
+`Completeness.satMLSProb_NPDistributionallyComplete`,
 `NonAvP.SatMLS_average_hard`, and related legacy NBH results are conditional
 on explicit compiler, universal-reduction, and collapse-theory arguments.
 They no longer depend on project axioms. The old

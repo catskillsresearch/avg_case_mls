@@ -253,8 +253,8 @@ example : reduceNBHToSatMLSStep (NBHInstance.encode trivialInstance) = satTarget
 open Completeness
 
 example (levin : LevinNBHData) (compiler : NBHToMLSData) :
-    IsNPAverageComplete satMLSProb :=
-  satMLSProb_NPAverageComplete levin compiler
+    IsNPDistributionallyComplete satMLSProb :=
+  satMLSProb_NPDistributionallyComplete levin compiler
 
 example : InDistNP satMLSProb := satMLSProb_in_DistNP
 

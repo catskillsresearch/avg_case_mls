@@ -42,7 +42,7 @@ def IsNPAverageCompleteLanguage (L : Set Bitstring) : Prop :=
 NP-distributional complete, then `L` is NP-average complete.
 -/
 theorem theorem_4_1 {L : Set Bitstring} {ρ : Distribution}
-    (h : IsNPAverageComplete ⟨L, ρ⟩) :
+    (h : IsNPDistributionallyComplete ⟨L, ρ⟩) :
     IsNPAverageCompleteLanguage L := by
   refine ⟨h.1.1, ?_⟩
   intro source hsource

@@ -47,7 +47,7 @@ Context and Lean infrastructure appear in **§§2–4**; Phase 1 (AvCom) is **§
 | **1A** | Inputs and distributions (§5) | `Bitstring`, `len`, `Distribution`, `DistributionalProblem`, `IsPolynomial` |
 | **1B** | Rank and inverse bounds | `rank`, `T_inv` (no `sorry`; finite-support or explicit fork) |
 | **1C** | Average time and dist-time classes | `IsAvTime`, `DistTime`, `AvDTime` |
-| **1D** | Classes, reductions, completeness | `AvP`, `InDistNP`, `DistributionalReduction`, `IsNPAverageComplete` |
+| **1D** | Classes, reductions, completeness | `AvP`, `InDistNP`, `DistributionalReduction`, `IsNPDistributionallyComplete` |
 
 *Exit criterion (Phase 1):* all subphase definitions compile without `sorry`; basic lemmas and toy distribution tests; forks documented in `DEFINITION_FORKS.md`.
 
@@ -336,7 +336,7 @@ Here we translate TR1995-711 §3.2 into Lean 4 using the RS93 rank-sum definitio
 * `T_inv` — partial search for $`\min\{ n \mid T(n) \ge m \}`$ from `n = 0` (Phase **1B**);
 * `IsAvTime`, `IsAv`, `rankLe` — RS93 rank-sum average time (Phase **1C**);
 * `IsTRankable`, `IsPolRankable`, `DistTime`, `AvDTime` — dist-time classes (Phase **1C**);
-* `AvP`, `InDistNP`, `DistributionalReduction`, `IsNPAverageComplete` — average classes and reductions (Phase **1D**).
+* `AvP`, `InDistNP`, `DistributionalReduction`, `IsNPDistributionallyComplete` — average classes and reductions (Phase **1D**).
 
 All Phase **1** AvCom scaffolding is in [`AvCom.lean`](AvgCaseMls/AvCom.lean). Later phases connect MLS (§6–§8) and hardness (§8).
 
@@ -508,7 +508,7 @@ We represent this structurally in Lean 4:
 | **1A** | `Bitstring`, `len`, `lenBot`, `Distribution`, `DistributionalProblem`, `IsPolynomial` (§5); finite-support fork in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md) | Proofs check |
 | **1B** | `rank`, `T_inv` without `sorry`; finite-support rank + partial `T_inv` in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md) | Proofs check |
 | **1C** | `IsAvTime`, `rankLe`, `DistTime`, `AvDTime`, `IsTRankable`; forks in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md) | Proofs check |
-| **1D** | `AvP`, `InDistNP`, `DistributionalReduction`, `IsNPAverageComplete`; forks in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md) | Proofs check |
+| **1D** | `AvP`, `InDistNP`, `DistributionalReduction`, `IsNPDistributionallyComplete`; forks in [`DEFINITION_FORKS.md`](DEFINITION_FORKS.md) | Proofs check |
 | **2A** | MLS syntax + Mathlib ZFC semantics (§6) | Proofs check |
 | **2B** | `Literal`, `literalToFormula`, `conjunctToFormula`, `Literal.holds` (§6) | Proofs check |
 | **2C** | `decideMLSSat`, FOS80 Steps 2–4; sound + partial completeness on sound fragment (§7) | Restricted proofs check; a checked counterexample refutes global completeness of the current partial function |
@@ -517,8 +517,8 @@ We represent this structurally in Lean 4:
 | **3B** | `encodingBound`, `formulaSize_le_encodingBound`, `encodingBound_poly` (§8) | Proofs check |
 | **4A** | `NBHChecker_in_NP`, `μ₀_polRankable`, `nbhProb_in_DistNP`, codec round-trip (§8) | Proofs check |
 | **4B** | `nbhToSatMLS_red`, `reduce_domination`, `reduce_correct` (§8) | Open compiler obligations are explicit `NBHToMLSData` arguments |
-| **4C** | `satMLSProb_NPAverageComplete`, `IsNPAverageComplete.of_reductor`, `DistributionalReduction.trans` (§8) | Composition is proved; universal NBH reduction is explicit `LevinNBHData` |
-| **5A** | `not_AvP_of_NPAverageComplete`, `NEXP_eq_EXP_of_AvP_complete`, `nbhProb_not_AvP` (§8) | Conditional derivations take `AverageCaseCollapseTheory` explicitly |
+| **4C** | `satMLSProb_NPDistributionallyComplete`, `IsNPDistributionallyComplete.of_reductor`, `DistributionalReduction.trans` (§8) | Composition is proved; universal NBH reduction is explicit `LevinNBHData` |
+| **5A** | `not_AvP_of_NPDistributionallyComplete`, `NEXP_eq_EXP_of_AvP_complete`, `nbhProb_not_AvP` (§8) | Conditional derivations take `AverageCaseCollapseTheory` explicitly |
 | **5B** | `SatMLS_average_hard`, `SatMLS_semantic_not_AvP`, `exists_simple_rankable_not_AvP` (§8) | Conditional on explicit Phase 4–5 interfaces; no project axioms |
 
 The Palomar package selects the axiom-free Theorem 4.1, finite-support

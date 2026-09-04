@@ -48,7 +48,7 @@ numbered theorems, but not their still-missing average-completeness premises.
 
 ## Formalized but not independently validated as report theorems
 
-- `Completeness.satMLSProb_NPAverageComplete` follows compositionally from
+- `Completeness.satMLSProb_NPDistributionallyComplete` follows compositionally from
   explicit `LevinNBHData` and `NBHToMLSData` arguments.
 - `NonAvP.SatMLS_average_hard` and its semantic/existential variants take an
   explicit `AverageCaseCollapseTheory` argument.

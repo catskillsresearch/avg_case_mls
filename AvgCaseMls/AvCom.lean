@@ -20,7 +20,7 @@ Extracted from [`arxiv.md`](../arxiv.md) §5.
 
 **Phase 1C:** `IsAvTime`, `DistTime`, `AvDTime`, rankability predicates.
 
-**Phase 1D:** `AvP`, `InDistNP`, `DistributionalReduction`, `IsNPAverageComplete`.
+**Phase 1D:** `AvP`, `InDistNP`, `DistributionalReduction`, `IsNPDistributionallyComplete`.
 
 **Phase 2+:** MLS hardness — proofs open in later modules.
 -/
@@ -490,14 +490,14 @@ theorem same_μ {L L' : Set Bitstring} {μ : Distribution} :
 end AvP
 
 /-- NP-average (distNP) completeness: in `distNP` and hard for all of `distNP`. -/
-def IsNPAverageComplete (target : DistributionalProblem) : Prop :=
+def IsNPDistributionallyComplete (target : DistributionalProblem) : Prop :=
   InDistNP target ∧ ∀ source, InDistNP source → DistributionalReduction source target
 
-namespace IsNPAverageComplete
+namespace IsNPDistributionallyComplete
 
 theorem intro {target : DistributionalProblem} (h : InDistNP target)
     (hred : ∀ source, InDistNP source → DistributionalReduction source target) :
-    IsNPAverageComplete target :=
+    IsNPDistributionallyComplete target :=
   ⟨h, hred⟩
 
 /--
@@ -505,12 +505,12 @@ If `mid` is NP-average complete and `mid` reduces to `target`, then `target` is 
 Corollary 5.1 pipeline: distNP-complete NBH core → MLS target.
 -/
 theorem of_reductor {mid target : DistributionalProblem}
-    (hTarget : InDistNP target) (hMid : IsNPAverageComplete mid)
+    (hTarget : InDistNP target) (hMid : IsNPDistributionallyComplete mid)
     (hRed : DistributionalReduction mid target) :
-    IsNPAverageComplete target :=
+    IsNPDistributionallyComplete target :=
   intro hTarget fun source hsource =>
     DistributionalReduction.trans (hMid.2 source hsource) hRed
 
-end IsNPAverageComplete
+end IsNPDistributionallyComplete
 
 end AvCom

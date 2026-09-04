@@ -21,43 +21,43 @@ open Completeness Reduction AvCom NBH MLS
 
 theorem AvP_of_distNP_of_complete_target (theory : AverageCaseCollapseTheory)
     {target : DistributionalProblem}
-    (hComplete : IsNPAverageComplete target) (hAvP : AvP target) :
+    (hComplete : IsNPDistributionallyComplete target) (hAvP : AvP target) :
     ∀ source, InDistNP source → AvP source := by
   intro source hdist
   exact theory.AvP_pullback hAvP (hComplete.2 source hdist)
 
 theorem all_distNP_in_AvP_of_complete_target (theory : AverageCaseCollapseTheory)
     {target : DistributionalProblem}
-    (hComplete : IsNPAverageComplete target) (hAvP : AvP target) :
+    (hComplete : IsNPDistributionallyComplete target) (hAvP : AvP target) :
     ∀ p, InDistNP p → AvP p :=
   AvP_of_distNP_of_complete_target theory hComplete hAvP
 
 theorem NEXP_eq_EXP_of_AvP_complete (theory : AverageCaseCollapseTheory)
     {target : DistributionalProblem}
-    (hComplete : IsNPAverageComplete target) (hAvP : AvP target) :
+    (hComplete : IsNPDistributionallyComplete target) (hAvP : AvP target) :
     theory.NEXP_eq_EXP :=
   theory.distNP_subseteq_AvP_iff_NEXP_eq_EXP.mp
     (all_distNP_in_AvP_of_complete_target theory hComplete hAvP)
 
-theorem not_AvP_of_NPAverageComplete (theory : AverageCaseCollapseTheory)
+theorem not_AvP_of_NPDistributionallyComplete (theory : AverageCaseCollapseTheory)
     {target : DistributionalProblem}
-    (hComplete : IsNPAverageComplete target) (h : theory.NEXP_neq_EXP) :
+    (hComplete : IsNPDistributionallyComplete target) (h : theory.NEXP_neq_EXP) :
     ¬ AvP target :=
   fun hAvP => h (NEXP_eq_EXP_of_AvP_complete theory hComplete hAvP)
 
 theorem nbhProb_not_AvP (theory : AverageCaseCollapseTheory)
     (levin : LevinNBHData) (h : theory.NEXP_neq_EXP) : ¬ AvP nbhProb :=
-  not_AvP_of_NPAverageComplete theory (nbhProb_NPAverageComplete levin) h
+  not_AvP_of_NPDistributionallyComplete theory (nbhProb_NPDistributionallyComplete levin) h
 
 theorem satMLSProb_not_AvP (theory : AverageCaseCollapseTheory)
     (levin : LevinNBHData) (compiler : NBHToMLSData)
     (h : theory.NEXP_neq_EXP) : ¬ AvP satMLSProb :=
-  not_AvP_of_NPAverageComplete theory
-    (satMLSProb_NPAverageComplete levin compiler) h
+  not_AvP_of_NPDistributionallyComplete theory
+    (satMLSProb_NPDistributionallyComplete levin compiler) h
 
 theorem nbhProb_not_AvP_via_complete (theory : AverageCaseCollapseTheory)
     (levin : LevinNBHData) (h : theory.NEXP_neq_EXP) : ¬ AvP nbhProb :=
-  not_AvP_of_NPAverageComplete theory (nbhProb_NPAverageComplete levin) h
+  not_AvP_of_NPDistributionallyComplete theory (nbhProb_NPDistributionallyComplete levin) h
 
 /-- Simple POL-rankable distribution from Phase **4B** (uniform on [`satTargetEnc`]). -/
 noncomputable def simpleSatμ : Distribution := μ₁

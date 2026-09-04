@@ -22,7 +22,7 @@ open AvCom MLS EMLS
 
 theorem paper_theorem_4_1 :
   ∀ {L : Set Bitstring} {ρ : Distribution},
-    IsNPAverageComplete ⟨L, ρ⟩ → TR1995.IsNPAverageCompleteLanguage L :=
+    IsNPDistributionallyComplete ⟨L, ρ⟩ → TR1995.IsNPAverageCompleteLanguage L :=
   fun h => TR1995.theorem_4_1 h
 
 theorem paper_theorem_4_4 :

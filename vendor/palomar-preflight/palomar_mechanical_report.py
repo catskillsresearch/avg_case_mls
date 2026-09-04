@@ -8,14 +8,14 @@ import hashlib
 import json
 import re
 import subprocess
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
-IMPLEMENTATION_SOURCES = tuple(
-    str(path.relative_to(ROOT))
-    for path in sorted((ROOT / "AvgCaseMls").rglob("*.lean"))
-)
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from palomar_paths import project_root
+
+ROOT = project_root()
 
 
 def sha256_file(path: Path) -> str:
@@ -26,33 +26,17 @@ def sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
-def git_state() -> tuple[str | None, bool]:
+def git_head() -> str | None:
     try:
-        dirty = subprocess.check_output(
-            ["git", "status", "--porcelain"],
-            cwd=ROOT,
-            stderr=subprocess.DEVNULL,
-            text=True,
-        )
         out = subprocess.check_output(
             ["git", "rev-parse", "HEAD"],
             cwd=ROOT,
             stderr=subprocess.DEVNULL,
             text=True,
         )
-        return out.strip(), not bool(dirty.strip())
+        return out.strip()
     except (subprocess.CalledProcessError, FileNotFoundError):
-        return None, False
-
-
-def source_bundle_sha256(paths: dict[str, Path]) -> str:
-    h = hashlib.sha256()
-    for name, path in sorted(paths.items()):
-        h.update(name.encode("utf-8"))
-        h.update(b"\0")
-        h.update(path.read_bytes())
-        h.update(b"\0")
-    return h.hexdigest()
+        return None
 
 
 def challenge_imports() -> list[str]:
@@ -67,7 +51,7 @@ def load_comparator() -> dict:
 
 def build_report() -> dict:
     cfg = load_comparator()
-    base_commit, clean = git_state()
+    commit = git_head()
     theorems = cfg["theorem_names"]
     definitions = cfg.get("definition_names", [])
     paths = {
@@ -81,20 +65,12 @@ def build_report() -> dict:
         paths["lakefile.toml"] = ROOT / "lakefile.toml"
     elif (ROOT / "lakefile.lean").is_file():
         paths["lakefile.lean"] = ROOT / "lakefile.lean"
-    implementation_paths = {
-        name: ROOT / name for name in IMPLEMENTATION_SOURCES
-    }
-    paths.update(implementation_paths)
-    bundle_hash = source_bundle_sha256(implementation_paths)
 
     return {
-        "schema": "avg-case-mls-local-mechanical-report-v1",
+        "schema": "palomar-local-mechanical-report-v1",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "repository": {
-            "commit": base_commit if clean else None,
-            "base_commit": base_commit,
-            "working_tree_clean": clean,
-            "immutable_source_bundle_sha256": bundle_hash,
+            "commit": commit,
             "comparator_config": "comparator.json",
         },
         "comparator": {
@@ -106,15 +82,9 @@ def build_report() -> dict:
         },
         "declarations_checked_order": theorems + definitions,
         "challenge_imports": challenge_imports(),
-        "artifact_hashes": {
-            name: sha256_file(path) for name, path in paths.items() if path.is_file()
-        },
-        "implementation_sources": list(IMPLEMENTATION_SOURCES),
-        "unselected_open_proof_holes": [
-            "MLS.decideMLSSat_complete"
-        ],
+        "artifact_hashes": {name: sha256_file(path) for name, path in paths.items() if path.is_file()},
         "preflight": {
-            "mechanical_steps": "comparator, imports, build, type-compare, selected-source sorry-scan, target axiom audit",
+            "mechanical_steps": "comparator-config, imports, build, type-compare, pinned-comparator, sorry-scan, axioms",
             "status": "passed_before_report",
         },
     }

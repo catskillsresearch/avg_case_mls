@@ -14,6 +14,8 @@ from pathlib import Path
 UPSTREAM = "PalomarRegistry/PalomarPolicy"
 DEFAULT_BRANCH = "main"
 RAW_BASE = f"https://raw.githubusercontent.com/{UPSTREAM}"
+
+# Editorial audit inputs referenced by rubric.json.
 POLICY_PATHS = [
     "rubric.json",
     "CONTRIBUTING.md",
@@ -49,18 +51,21 @@ def upstream_head_sha() -> str:
 def read_pin(pin_path: Path) -> str | None:
     if not pin_path.is_file():
         return None
-    return pin_path.read_text(encoding="utf-8").strip() or None
+    pin = pin_path.read_text(encoding="utf-8").strip()
+    return pin or None
 
 
 def download_policy(commit: str, root: Path) -> None:
     for rel in POLICY_PATHS:
         dest = root / rel
         dest.parent.mkdir(parents=True, exist_ok=True)
-        dest.write_text(fetch_text(f"{RAW_BASE}/{commit}/{rel}"), encoding="utf-8")
+        url = f"{RAW_BASE}/{commit}/{rel}"
+        dest.write_text(fetch_text(url), encoding="utf-8")
 
 
 def write_vendor_readme(root: Path, commit: str) -> None:
-    (root / "README.md").write_text(
+    readme = root / "README.md"
+    readme.write_text(
         f"""# Vendored PalomarPolicy snapshot
 
 Source: https://github.com/{UPSTREAM}
@@ -90,25 +95,21 @@ currently committed snapshot without contacting upstream.
     )
 
 
-def diff_summary(
-    old_root: Path | None, new_root: Path, old_pin: str | None, new_pin: str
-) -> list[str]:
+def diff_summary(old_root: Path | None, new_root: Path, old_pin: str | None, new_pin: str) -> list[str]:
     lines: list[str] = []
     if old_pin and old_pin != new_pin:
         lines.append(f"policy pin: {old_pin} -> {new_pin}")
     if old_root is None or not old_root.is_dir():
         lines.append(f"installed {len(POLICY_PATHS)} policy files at {new_root}")
         return lines
-    changed = [
-        rel for rel in POLICY_PATHS
-        if (
-            (old_root / rel).read_text(encoding="utf-8")
-            if (old_root / rel).is_file() else None
-        ) != (
-            (new_root / rel).read_text(encoding="utf-8")
-            if (new_root / rel).is_file() else None
-        )
-    ]
+    changed: list[str] = []
+    for rel in POLICY_PATHS:
+        old_path = old_root / rel
+        new_path = new_root / rel
+        old_text = old_path.read_text(encoding="utf-8") if old_path.is_file() else None
+        new_text = new_path.read_text(encoding="utf-8") if new_path.is_file() else None
+        if old_text != new_text:
+            changed.append(rel)
     if changed:
         lines.append("changed files:")
         lines.extend(f"  {path}" for path in changed)
@@ -120,7 +121,8 @@ def main() -> int:
     parser.add_argument("--root", type=Path, default=Path("vendor/palomar-policy"))
     parser.add_argument("--pin", type=Path, default=Path("vendor/PALOMAR_POLICY_PIN"))
     parser.add_argument(
-        "--no-sync", action="store_true",
+        "--no-sync",
+        action="store_true",
         help="skip upstream check; require existing vendored policy",
     )
     args = parser.parse_args()
@@ -155,6 +157,7 @@ def main() -> int:
             shutil.rmtree(backup_root)
         shutil.copytree(root, backup_root)
     old_root = backup_root if backup_root.is_dir() else None
+
     root.mkdir(parents=True, exist_ok=True)
     try:
         download_policy(latest, root)

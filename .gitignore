@@ -1,6 +1,7 @@
 .vscode
 .lake
 .cache/palomar-editorial/
+.cache/palomar-comparator/
 .venv-editorial/
 .venv-ocr
 vendor/palomar-policy.sync-backup/

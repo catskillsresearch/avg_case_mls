@@ -5,14 +5,18 @@ from __future__ import annotations
 
 import json
 import re
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from palomar_paths import project_root
 
 try:
     import yaml
 except ImportError:
     yaml = None  # type: ignore[assignment]
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = project_root()
 
 AI_NAME_PATTERNS = re.compile(
     r"(?i)\b("
@@ -21,6 +25,7 @@ AI_NAME_PATTERNS = re.compile(
     r"copilot|gemini|deepseek"
     r")\b"
 )
+
 QUALIFIED_NAME = re.compile(r"[A-Za-z][A-Za-z0-9_']*\.[A-Za-z_][A-Za-z0-9_']*")
 
 # Optional per-theorem source hints when a compared result needs an extra
@@ -31,6 +36,7 @@ SORRY_DEF = re.compile(
     r"^(?:noncomputable\s+)?def\s+(\w+)\b[\s\S]*?:=\s*sorry",
     re.MULTILINE,
 )
+
 THEOREM_BODY = re.compile(
     r"(?:/--[\s\S]*?-/\s*\n\s*)?"
     r"theorem\s+{name}\b([\s\S]*?):=\s*by\s+sorry",
@@ -41,7 +47,8 @@ THEOREM_BODY = re.compile(
 def load_formalization(path: Path) -> dict:
     if yaml is None:
         raise SystemExit("PyYAML is required: pip install pyyaml")
-    doc = yaml.safe_load(path.read_text(encoding="utf-8"))
+    text = path.read_text(encoding="utf-8")
+    doc = yaml.safe_load(text)
     if not isinstance(doc, dict):
         raise SystemExit(f"{path} must contain one top-level mapping")
     return doc
@@ -77,9 +84,7 @@ def check_license(formalization: dict) -> list[str]:
 def check_required_fields(formalization: dict) -> list[str]:
     errors: list[str] = []
     if formalization.get("version") != "v0.4":
-        errors.append(
-            f"formalization.yaml version must be v0.4, got {formalization.get('version')!r}"
-        )
+        errors.append(f"formalization.yaml version must be v0.4, got {formalization.get('version')!r}")
     project = formalization.get("project", {})
     for key in ("name", "description", "authors", "license", "responsible_maintainers"):
         if key not in project:
@@ -91,10 +96,12 @@ def check_required_fields(formalization: dict) -> list[str]:
     arxiv = classification.get("arxiv")
     if not isinstance(arxiv, list) or not arxiv:
         errors.append("classification.arxiv must be a nonempty list")
-    methods = formalization.get("automation", {}).get("methods")
+    automation = formalization.get("automation", {})
+    methods = automation.get("methods")
     if not isinstance(methods, list) or not methods:
         errors.append("automation.methods must be a nonempty list")
-    if not formalization.get("review", {}).get("status"):
+    review = formalization.get("review", {})
+    if not review.get("status"):
         errors.append("review.status must be nonempty")
     sources = formalization.get("sources")
     if not isinstance(sources, list) or not sources:
@@ -143,8 +150,7 @@ def check_alignment(formalization: dict, challenge_text: str, cfg: dict) -> list
             continue
         if token not in challenge_text:
             errors.append(
-                f"alignment statement lean name {lean!r} (token {token!r}) "
-                "not found in Challenge.lean"
+                f"alignment statement lean name {lean!r} (token {token!r}) not found in Challenge.lean"
             )
     return errors
 
@@ -155,9 +161,7 @@ def sorry_qualified_defs(challenge_text: str) -> set[str]:
     for ns_match in re.finditer(r"^namespace\s+(\S+)\s*$", challenge_text, re.MULTILINE):
         ns = ns_match.group(1)
         start = ns_match.end()
-        end_match = re.search(
-            rf"^end\s+{re.escape(ns)}\s*$", challenge_text[start:], re.MULTILINE
-        )
+        end_match = re.search(rf"^end\s+{re.escape(ns)}\s*$", challenge_text[start:], re.MULTILINE)
         if not end_match:
             continue
         block = challenge_text[start : start + end_match.start()]
@@ -215,18 +219,19 @@ def check_scope_comparator_sync(formalization: dict, cfg: dict) -> list[str]:
             "comparator theorem_names not listed in status.main_results: "
             + ", ".join(missing_from_main)
         )
+
     count_match = re.search(r"(\d+)\s+compared (?:theorem|result)", scope.lower())
     if count_match:
         claimed = int(count_match.group(1))
         actual = len(theorems)
         if claimed != actual:
             errors.append(
-                f"status.scope claims {claimed} compared results but "
-                f"comparator.json lists {actual}"
+                f"status.scope claims {claimed} compared results but comparator.json lists {actual}"
             )
+
     limitations = " ".join(str(x) for x in formalization.get("limitations", []) or [])
-    if "Solution.lean imports" in limitations and "AvgCaseMls" not in limitations:
-        errors.append("limitations should mention Solution.lean imports AvgCaseMls proofs")
+    if "Solution.lean imports" in limitations and "Scott1964" not in limitations:
+        errors.append("limitations should mention Solution.lean imports Scott1964 proofs")
     return errors
 
 
@@ -247,16 +252,18 @@ def check_compared_sources(formalization: dict, cfg: dict) -> list[str]:
 
 
 def main() -> int:
-    formalization = load_formalization(ROOT / "formalization.yaml")
-    cfg = load_comparator(ROOT / "comparator.json")
-    challenge_text = (ROOT / "Challenge.lean").read_text(encoding="utf-8")
+    formalization_path = ROOT / "formalization.yaml"
+    comparator_path = ROOT / "comparator.json"
+    challenge_path = ROOT / "Challenge.lean"
+
+    formalization = load_formalization(formalization_path)
+    cfg = load_comparator(comparator_path)
+    challenge_text = challenge_path.read_text(encoding="utf-8")
 
     errors: list[str] = []
     errors.extend(check_required_fields(formalization))
     errors.extend(
-        check_human_only(
-            formalization.get("project", {}).get("authors", []), "project.authors"
-        )
+        check_human_only(formalization.get("project", {}).get("authors", []), "project.authors")
     )
     errors.extend(
         check_human_only(

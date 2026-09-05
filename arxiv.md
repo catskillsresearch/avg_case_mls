@@ -96,7 +96,7 @@ Package this as an injective distributional reduction into `(L₂, r.transport �
 
 ### Theorems 5–7 (SAT reductions; TR1995 Theorems 5.1–5.3)
 
-All three reductions are stated uniformly: **correctness** (satisfiability ↔ target satisfiability), **injectivity**, an explicit **left inverse** (decoder), and an **exact size identity**. This is precisely the hypothesis package Theorem 4 consumes.
+All three reductions include **correctness** (satisfiability ↔ target satisfiability), **injectivity**, and an **exact size identity**. MLS and EMLS also expose an explicit **left inverse** (decoder). The FPILP core does not yet state a decoder.
 
 **Theorem 5 (SAT → MLS-in).** A distinguished variable `x` (index `0`) represents an element; propositional variable `i` becomes set variable `i+1`. Literal `v_i` becomes `x ∈ s(i)`; literal `¬v_i` becomes `x ∉ s(i)`. The empty clause encodes as `x ∈ x` (foundation-false); the empty CNF as `x ∉ x` (foundation-true, since equality atoms are unavailable in the fragment). Output size: `5 · |φ| - 1` formula nodes.
 

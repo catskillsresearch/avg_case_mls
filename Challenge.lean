@@ -9,8 +9,9 @@ diagnostics proved against this untimed vocabulary.  Vacuous TR1995 Theorems
 4.1 and 4.4 in this layer are omitted; the timed Theorem 4.4 and repairs live
 in the implementation library (`AvgCaseMls/Section4`, `AvgCaseMls/Repair`).
 
-Every notion below is defined concretely.  The only `sorry`s are theorem proof
-holes (and `encodeSATCNF`, listed as a definition hole in `comparator.json`).
+Every notion below is defined concretely except the four protocol holes listed
+in `comparator.json`: `MLSInReduction.fromMLS`, `EMLSReduction.sourceBits`,
+`EMLSReduction.toEMLS`, and `EMLSReduction.fromEMLS`.
 -/
 
 namespace AvCom
@@ -367,13 +368,8 @@ def clauseFromMLS : Formula → Option SAT.Clause
       pure (l :: c)
   | _ => none
 
-def fromMLS : Formula → Option SAT.CNF
-  | .rel (.not_mem (.var 0) (.var 0)) => some []
-  | .and f rest => do
-      let c ← clauseFromMLS f
-      let φ ← fromMLS rest
-      pure (c :: φ)
-  | _ => none
+/-- Syntactic left inverse of `toMLS`. Solution implements the decoder. -/
+def fromMLS : Formula → Option SAT.CNF := sorry
 
 end MLSInReduction
 
@@ -446,8 +442,8 @@ def provenanceBits (bits : List Bool) : Conjunct :=
 def provenance (φ : SAT.CNF) : Conjunct :=
   provenanceHeader (sourceBits φ).length :: provenanceBits (sourceBits φ)
 
-def toEMLS (φ : SAT.CNF) : Conjunct :=
-  provenance φ ++ semanticCore φ
+/-- Tagged injective SAT→EMLS map. Solution implements provenance + semantic core. -/
+def toEMLS (φ : SAT.CNF) : Conjunct := sorry
 
 private def decodeProvenanceBits : Nat → Conjunct → Option (List Bool × Conjunct)
   | 0, rest => some ([], rest)

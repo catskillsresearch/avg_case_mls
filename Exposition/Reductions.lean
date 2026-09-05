@@ -1,10 +1,9 @@
 /-
 Runnable snippet for arxiv.md, displayed with the three SAT reductions.
 
-All three are stated in the same four-part form -- correctness, injectivity, an
-explicit left inverse, and an exact size identity -- which is precisely the
-hypothesis package that the repaired Theorem 4.4 consumes.  Stating them
-uniformly is what makes them composable with the transfer theorem.
+MLS and EMLS are stated in four-part form -- correctness, injectivity, an
+explicit left inverse, and an exact size identity.  The FPILP core states
+correctness, injectivity, and constraint count, without a decoder.
 
 Note on the second one: the bare semantic core is *not* injective, because the
 complement gadget for a literal ignores its polarity.  Tagging the output with

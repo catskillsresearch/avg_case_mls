@@ -28,8 +28,9 @@ status:
   scope: >-
     Nine directly compared theorems validate the revisit canon: five
     encoding-collapse diagnostics (`paper_collapse_*`), Example 4.1, and the
-    three SAT reduction cores with uniform correctness/injectivity/inverse/size
-    statements. Challenge.lean gives concrete Mathlib-only definitions for
+    three SAT reduction cores. All three include correctness, injectivity, and
+    size; MLS and EMLS also include an explicit left inverse. Challenge.lean
+    gives concrete Mathlib-only definitions for
     every notion; only theorem proofs and four inverse/codec boundary
     definitions (`MLSInReduction.fromMLS`, `EMLSReduction.sourceBits`,
     `EMLSReduction.toEMLS`, and `EMLSReduction.fromEMLS`) are protocol holes.

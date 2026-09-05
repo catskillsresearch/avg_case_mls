@@ -7,28 +7,32 @@ syllogistic*, Courant Institute Technical Report CS-TR 711 (1995),
 
 ## Palomar outcome
 
-The mechanical preflight passes for the six selected paper-numbered/core
-statements: Challenge and Solution types match, the selected proof source has
-no `sorry`, and target axiom audits use only `propext`, `Quot.sound`, and
-`Classical.choice`. `Challenge.lean` now gives every proposition and material
-underlying notion a concrete Mathlib-only body; its only holes are the six
-protocol-required theorem proofs.
+The mechanical preflight passes for the nine selected statements: Challenge and
+Solution types match, the selected proof source has no `sorry`, and target
+axiom audits use only `propext`, `Quot.sound`, and `Classical.choice`.
+`Challenge.lean` gives every compared notion a concrete Mathlib-only body
+except four protocol definition holes (`MLSInReduction.fromMLS`,
+`EMLSReduction.sourceBits`, `EMLSReduction.toEMLS`, `EMLSReduction.fromEMLS`)
+and the nine theorem proof holes.
 
-The prior twelve-target editorial surface mixed these results with six routine
-support declarations. The current configuration removes those support targets
-and centers the audit on Theorems 4.1, 4.4, Example 4.1, and the reduction
-cores of Theorems 5.1--5.3.
+The current Comparator surface is five encoding-collapse diagnostics, Example
+4.1, and the constructive reduction cores of Theorems 5.1--5.3. Vacuous
+TR1995 Theorems 4.1 and 4.4 in the untimed AvCom layer are not selected;
+those live in the implementation library.
 
 ## Palomar-validated statements
 
 | Report location | Lean statement | Validation boundary |
 |---|---|---|
-| Theorem 4.1, p. 12 | `AvgCasePalomar.paper_theorem_4_1` | Proved for the current finite-support distribution and reduction notions |
-| Theorem 4.4, p. 14 | `AvgCasePalomar.paper_theorem_4_4` | Explicit injective/invertible/honest finite-support transport with exact rank preservation, plus a separate `InNP L₂` hypothesis because no machine-time model derives target NP membership |
+| Revisit: untimed `InNP` is vacuous | `AvgCasePalomar.paper_collapse_inNP_trivial` | Encoding-collapse diagnostic of the untimed AvCom layer |
+| Revisit: untimed completeness ↔ nontrivial language | `AvgCasePalomar.paper_collapse_completeness_characterization` | Encoding-collapse diagnostic |
+| Revisit: untimed Theorem 4.4 uses only correctness | `AvgCasePalomar.paper_collapse_theorem44_vacuous` | Encoding-collapse diagnostic |
+| Revisit: `AvP` ↔ rankability | `AvgCasePalomar.paper_collapse_avP_characterization` | Encoding-collapse diagnostic |
+| Revisit: conditional hardness chain vacuous | `AvgCasePalomar.paper_collapse_no_theory_separates` | Encoding-collapse diagnostic |
 | Example 4.1, pp. 8–9 | `AvgCasePalomar.paper_example_4_1` | Full shell p-series calculation and normalized big-O constant |
-| Theorem 5.1, p. 15 | `AvgCasePalomar.paper_theorem_5_1_reduction_core` | Constructive SAT-to-MLS substitution: correctness, injectivity, exact linear AST size |
-| Theorem 5.2, pp. 16–17 | `AvgCasePalomar.paper_theorem_5_2_reduction_core` | Constructive SAT-to-EMLS semantic gadgets: correctness and exact linear conjunct count; no uncharged provenance encoding |
-| Theorem 5.3, p. 18 | `AvgCasePalomar.paper_theorem_5_3_reduction_core` | Constructive SAT-to-0/1-ILP reduction: correctness, injectivity, exact linear constraint size |
+| Theorem 5.1, p. 15 | `AvgCasePalomar.paper_theorem_5_1_reduction_core` | SAT-to-MLS: correctness, injectivity, left inverse, exact linear AST size |
+| Theorem 5.2, pp. 16–17 | `AvgCasePalomar.paper_theorem_5_2_reduction_core` | SAT-to-EMLS via tagged `toEMLS`: correctness, injectivity, left inverse, exact linear conjunct count |
+| Theorem 5.3, p. 18 | `AvgCasePalomar.paper_theorem_5_3_reduction_core` | SAT-to-0/1-ILP: correctness, injectivity, exact linear constraint size; no decoder |
 
 The reduction-core selections prove the constructive content used by the
 numbered theorems, but not their still-missing average-completeness premises.

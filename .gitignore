@@ -1,4 +1,5 @@
 .vscode
+/.cursor/plans/
 .lake
 .cache/palomar-editorial/
 .cache/palomar-comparator/

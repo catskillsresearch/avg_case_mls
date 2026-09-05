@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Exec shared Palomar preflight from ../palomar-preflight (or CI checkout / legacy vendor).
+# Exec shared Palomar preflight from ../palomar-preflight (or CI checkout).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
@@ -8,8 +8,7 @@ find_toolkit() {
   for d in \
     "${PALOMAR_PREFLIGHT_ROOT:-}" \
     "$(dirname "$root")/palomar-preflight" \
-    "$root/palomar-preflight" \
-    "$root/vendor/palomar-preflight"; do
+    "$root/palomar-preflight"; do
     [[ -n "$d" && -f "$d/palomar_preflight.sh" ]] && {
       cd "$d" && pwd
       return 0

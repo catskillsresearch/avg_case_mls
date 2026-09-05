@@ -1,0 +1,356 @@
+{
+  "policy_commit": "4ed67de4fd69df383badb7857dff97e2fb734ab0",
+  "provider": "cursor_sdk",
+  "models": {
+    "primary_default": "gpt-5.6-sol",
+    "economy_default": "composer-2.5",
+    "by_step": {
+      "classification": "composer-2.5",
+      "metadata": "composer-2.5",
+      "statement_alignment": "gpt-5.6-sol",
+      "definition_fidelity": "gpt-5.6-sol",
+      "literature_notability": "gpt-5.6-sol",
+      "synthesis": "gpt-5.6-sol"
+    }
+  },
+  "checks": [
+    {
+      "step": "classification",
+      "outcome": "neutral",
+      "summary": "All submitted arXiv and MSC2020 codes plausibly describe the average-case complexity, MLS/EMLS logic, and formalization content of the compared surface; no egregious classification mismatch.",
+      "findings": [],
+      "scores": {
+        "classification": 5
+      },
+      "trust_level": null,
+      "sources_checked": [
+        "formalization_metadata",
+        "challenge_source"
+      ],
+      "declarations_checked": [],
+      "codes_checked": [
+        "arxiv:cs.CC",
+        "arxiv:cs.LO",
+        "msc2020:68Q15",
+        "msc2020:68Q17",
+        "msc2020:03B35"
+      ],
+      "internal_notes": [
+        {
+          "evidence": "arxiv:cs.CC; formalization_metadata classification and main_results; Challenge.lean AvCom (AvP, InNP, InDistNP, DistributionalReduction, IsNPAverageCompleteLanguage) and collapse diagnostics",
+          "message": "cs.CC fits the submission\u2019s core topic: average-case and distributional complexity, NP membership, completeness characterizations, and SAT-to-MLS/EMLS/FPILP reduction cores."
+        },
+        {
+          "evidence": "arxiv:cs.LO; Challenge.lean MLS/EMLS syntax, evalFormula over ZFSet, MLSSatisfiable/EMLSSatisfiable, and SAT correctness encodings",
+          "message": "cs.LO fits the multilevel syllogistic decision fragment, set-theoretic semantics, and logic-in-computer-science formalization layer; Lean mechanization alone is not the basis for acceptance but the underlying logic content is on-topic."
+        },
+        {
+          "evidence": "msc2020:68Q15; Challenge.lean AvP, InDistNP, distributional reductions, and paper_collapse_* theorems on completeness and class collapse",
+          "message": "68Q15 (complexity classes) matches distributional NP, average polynomial time, and encoding-collapse results about class structure."
+        },
+        {
+          "evidence": "msc2020:68Q17; Challenge.lean paper_theorem_5_1/5_2/5_3_reduction_core and SAT satisfiability equivalences",
+          "message": "68Q17 (computational difficulty) matches the constructive SAT reduction cores and average-case hardness scaffolding in the compared theorems."
+        },
+        {
+          "evidence": "msc2020:03B35; Challenge.lean MLS.Formula, Relation, evalTerm/evalFormula, EMLS literals, and Example 4.1 set-theoretic mass calculations",
+          "message": "03B35 is acceptable under the permissive screen: MLS/EMLS is a set-theoretic logical fragment with model-theoretic semantics; not egregiously off-topic even if cs.LO/68Q codes are the primary fit."
+        }
+      ]
+    },
+    {
+      "step": "metadata",
+      "outcome": "neutral",
+      "summary": "Structured metadata, scope, provenance, automation disclosure, and review status align with the pinned comparator configuration and repository evidence; human authorship and maintainership are correctly separated from AI assistance.",
+      "findings": [],
+      "scores": {
+        "clarity": 4,
+        "provenance": 4
+      },
+      "trust_level": null,
+      "sources_checked": [
+        "formalization_metadata",
+        "63a09940d1f659697bdd2a0d4e0215f2f36824b0:formalization.yaml",
+        "63a09940d1f659697bdd2a0d4e0215f2f36824b0:comparator.json",
+        "63a09940d1f659697bdd2a0d4e0215f2f36824b0:Challenge.lean",
+        "63a09940d1f659697bdd2a0d4e0215f2f36824b0:Solution.lean",
+        "63a09940d1f659697bdd2a0d4e0215f2f36824b0:README.md",
+        "63a09940d1f659697bdd2a0d4e0215f2f36824b0:PROVENANCE.md",
+        "63a09940d1f659697bdd2a0d4e0215f2f36824b0:arxiv.md",
+        "63a09940d1f659697bdd2a0d4e0215f2f36824b0:sources/TR1995-711.pdf",
+        "63a09940d1f659697bdd2a0d4e0215f2f36824b0:sources/README.md"
+      ],
+      "declarations_checked": [],
+      "codes_checked": [],
+      "internal_notes": [
+        {
+          "evidence": "formalization.yaml project.authors and project.responsible_maintainers",
+          "message": "Both identity fields name only Lars Warren Ericson; automation.methods records Cursor GPT-5.6 Sol agent assistance under author direction, satisfying the human-only authorship rule."
+        },
+        {
+          "evidence": "formalization.yaml status.scope, limitations, and comparator.json theorem_names/definition_names",
+          "message": "The nine compared theorems and four codec/inverse definition hooks match Challenge.lean and the mechanical report; known gaps, untimed divergences, and Palomar boundaries are explicitly disclosed."
+        },
+        {
+          "evidence": "AvgCaseMls/**/*.lean sorry scan and Challenge.lean",
+          "message": "The implementation library contains no sorry statements; Challenge.lean sorries are deliberate protocol holes whose proofs live in AvgCaseMls/Palomar.lean, consistent with status.sorry_count 0 and limitations."
+        },
+        {
+          "evidence": "formalization.yaml review.status and review.notes",
+          "message": "Review is accurately labeled self-assessed with an explicit statement that no external formal review occurred."
+        },
+        {
+          "evidence": "formalization.yaml sources id sources/TR1995-711.pdf and arxiv.md",
+          "message": "Pinned primary report PDF and revisit narrative resolve at the submission commit."
+        },
+        {
+          "evidence": "formalization.yaml fidelity.divergences",
+          "message": "The divergences paragraph refers to encodeSATCNF alongside fromEMLS as holes, but the compared Palomar boundary uses EMLSReduction.sourceBits; scope and comparator.json already name the correct surface hooks, so this is non-material wording drift."
+        },
+        {
+          "evidence": "formalization.yaml classification.arxiv and classification.msc2020",
+          "message": "cs.CC, cs.LO, 68Q15, 68Q17, and 03B35 are plausibly relevant to average-case complexity and MLS/set-theoretic formalization; no egregious off-topic mismatch."
+        },
+        {
+          "evidence": "README.md Palomar validation section",
+          "message": "Submission-specific README prose accurately describes the nine-theorem Palomar surface and does not overclaim full TR1995-711 certification; broader repository accomplishments are project-level context."
+        }
+      ]
+    },
+    {
+      "step": "statement_alignment",
+      "outcome": "neutral",
+      "summary": "All selected declarations express the presented collapse diagnostics, Example 4.1 shell result, and SAT reduction cores without material mismatch.",
+      "findings": [],
+      "scores": {
+        "statement_alignment": 4
+      },
+      "trust_level": null,
+      "sources_checked": [
+        "challenge_source",
+        "repository@63a09940d1f659697bdd2a0d4e0215f2f36824b0:Challenge.lean",
+        "repository@63a09940d1f659697bdd2a0d4e0215f2f36824b0:Solution.lean",
+        "repository@63a09940d1f659697bdd2a0d4e0215f2f36824b0:formalization.yaml",
+        "repository@63a09940d1f659697bdd2a0d4e0215f2f36824b0:README.md",
+        "repository@63a09940d1f659697bdd2a0d4e0215f2f36824b0:arxiv.md",
+        "repository@63a09940d1f659697bdd2a0d4e0215f2f36824b0:AvgCaseMls/Palomar.lean",
+        "repository@63a09940d1f659697bdd2a0d4e0215f2f36824b0:AvgCaseMls/Example41.lean",
+        "repository@63a09940d1f659697bdd2a0d4e0215f2f36824b0:AvgCaseMls/MLSInReduction.lean",
+        "repository@63a09940d1f659697bdd2a0d4e0215f2f36824b0:AvgCaseMls/EMLSReduction.lean",
+        "repository@63a09940d1f659697bdd2a0d4e0215f2f36824b0:Exposition/Example41.lean",
+        "repository@63a09940d1f659697bdd2a0d4e0215f2f36824b0:REPORT_CLAIM_AUDIT.md",
+        "repository@63a09940d1f659697bdd2a0d4e0215f2f36824b0:DEFINITION_FORKS.md",
+        "repository@63a09940d1f659697bdd2a0d4e0215f2f36824b0:THEOREMS.md",
+        "repository@63a09940d1f659697bdd2a0d4e0215f2f36824b0:PROVENANCE.md"
+      ],
+      "declarations_checked": [
+        "AvgCasePalomar.paper_collapse_inNP_trivial",
+        "AvgCasePalomar.paper_collapse_completeness_characterization",
+        "AvgCasePalomar.paper_collapse_theorem44_vacuous",
+        "AvgCasePalomar.paper_collapse_avP_characterization",
+        "AvgCasePalomar.paper_collapse_no_theory_separates",
+        "AvgCasePalomar.paper_example_4_1",
+        "AvgCasePalomar.paper_theorem_5_1_reduction_core",
+        "AvgCasePalomar.paper_theorem_5_2_reduction_core",
+        "AvgCasePalomar.paper_theorem_5_3_reduction_core",
+        "MLSInReduction.fromMLS",
+        "EMLSReduction.sourceBits",
+        "EMLSReduction.toEMLS",
+        "EMLSReduction.fromEMLS"
+      ],
+      "codes_checked": [],
+      "internal_notes": [
+        {
+          "evidence": "repository@63a09940d1f659697bdd2a0d4e0215f2f36824b0:arxiv.md and repository@63a09940d1f659697bdd2a0d4e0215f2f36824b0:Challenge.lean",
+          "message": "The five collapse declarations match the stated consequences of the untimed definitions: unrestricted verifier cost, zero-runtime witness, and the resulting completeness and hardness collapses."
+        },
+        {
+          "evidence": "repository@63a09940d1f659697bdd2a0d4e0215f2f36824b0:AvgCaseMls/Example41.lean and repository@63a09940d1f659697bdd2a0d4e0215f2f36824b0:AvgCaseMls/Palomar.lean",
+          "message": "The selected Example 4.1 theorem exactly states shell-series summability and normalization by a positive constant. The stronger decider-linked result is separately proved in the implementation library, so project-level prose describing it does not overstate this Comparator selection."
+        },
+        {
+          "evidence": "repository@63a09940d1f659697bdd2a0d4e0215f2f36824b0:arxiv.md and repository@63a09940d1f659697bdd2a0d4e0215f2f36824b0:AvgCaseMls/Palomar.lean",
+          "message": "The three reduction declarations contain the advertised satisfiability equivalences, injectivity, exact size identities, and left inverses for MLS and EMLS only. Empty CNFs and clauses are explicitly encoded consistently with the prose."
+        },
+        {
+          "evidence": "repository@63a09940d1f659697bdd2a0d4e0215f2f36824b0:AvgCaseMls/MLSInReduction.lean and repository@63a09940d1f659697bdd2a0d4e0215f2f36824b0:AvgCaseMls/EMLSReduction.lean",
+          "message": "The four selected definitions implement the advertised decoder and codec boundaries: fromMLS decodes the recursive MLS image, sourceBits uses the injective SAT codec, toEMLS prepends provenance to the semantic core, and fromEMLS validates both decoded provenance and the semantic suffix."
+        }
+      ]
+    },
+    {
+      "step": "definition_fidelity",
+      "outcome": "neutral",
+      "summary": "The selected definitions faithfully support the disclosed diagnostic and reduction-core claims, and all material dependencies are auditable from pinned evidence.",
+      "findings": [],
+      "scores": {
+        "definition_fidelity": 4,
+        "auditability": 4
+      },
+      "trust_level": "high",
+      "sources_checked": [
+        "challenge_source",
+        "catskillsresearch/avg_case_mls@63a09940d1f659697bdd2a0d4e0215f2f36824b0:Challenge.lean",
+        "catskillsresearch/avg_case_mls@63a09940d1f659697bdd2a0d4e0215f2f36824b0:Solution.lean",
+        "catskillsresearch/avg_case_mls@63a09940d1f659697bdd2a0d4e0215f2f36824b0:AvgCaseMls/Palomar.lean",
+        "catskillsresearch/avg_case_mls@63a09940d1f659697bdd2a0d4e0215f2f36824b0:AvgCaseMls/EncodingCollapse.lean",
+        "catskillsresearch/avg_case_mls@63a09940d1f659697bdd2a0d4e0215f2f36824b0:AvgCaseMls/HardnessCollapse.lean",
+        "catskillsresearch/avg_case_mls@63a09940d1f659697bdd2a0d4e0215f2f36824b0:AvgCaseMls/Example41.lean",
+        "catskillsresearch/avg_case_mls@63a09940d1f659697bdd2a0d4e0215f2f36824b0:AvgCaseMls/MLSInReduction.lean",
+        "catskillsresearch/avg_case_mls@63a09940d1f659697bdd2a0d4e0215f2f36824b0:AvgCaseMls/EMLSReduction.lean",
+        "catskillsresearch/avg_case_mls@63a09940d1f659697bdd2a0d4e0215f2f36824b0:AvgCaseMls/FPILP.lean",
+        "catskillsresearch/avg_case_mls@63a09940d1f659697bdd2a0d4e0215f2f36824b0:AvgCaseMls/Section4/CookLevin/SATCodec.lean",
+        "catskillsresearch/avg_case_mls@63a09940d1f659697bdd2a0d4e0215f2f36824b0:AvgCaseMls/Foundation/Machine.lean",
+        "catskillsresearch/avg_case_mls@63a09940d1f659697bdd2a0d4e0215f2f36824b0:AvgCaseMls/Foundation/Codec.lean",
+        "catskillsresearch/avg_case_mls@63a09940d1f659697bdd2a0d4e0215f2f36824b0:AvgCaseMls/MLS.lean",
+        "catskillsresearch/avg_case_mls@63a09940d1f659697bdd2a0d4e0215f2f36824b0:AvgCaseMls/SAT.lean",
+        "catskillsresearch/avg_case_mls@63a09940d1f659697bdd2a0d4e0215f2f36824b0:AvgCaseMls/TR1995.lean",
+        "catskillsresearch/avg_case_mls@63a09940d1f659697bdd2a0d4e0215f2f36824b0:README.md",
+        "catskillsresearch/avg_case_mls@63a09940d1f659697bdd2a0d4e0215f2f36824b0:REPORT_CLAIM_AUDIT.md",
+        "catskillsresearch/avg_case_mls@63a09940d1f659697bdd2a0d4e0215f2f36824b0:DEFINITION_FORKS.md",
+        "catskillsresearch/avg_case_mls@63a09940d1f659697bdd2a0d4e0215f2f36824b0:THEOREMS.md",
+        "catskillsresearch/avg_case_mls@63a09940d1f659697bdd2a0d4e0215f2f36824b0:arxiv.md",
+        "catskillsresearch/avg_case_mls@63a09940d1f659697bdd2a0d4e0215f2f36824b0:sources/TR1995-711.pdf",
+        "catskillsresearch/avg_case_mls@63a09940d1f659697bdd2a0d4e0215f2f36824b0:sources/TR1995-711_vision.md",
+        "catskillsresearch/avg_case_mls@63a09940d1f659697bdd2a0d4e0215f2f36824b0:comparator.json",
+        "catskillsresearch/avg_case_mls@63a09940d1f659697bdd2a0d4e0215f2f36824b0:formalization.yaml",
+        "catskillsresearch/avg_case_mls@63a09940d1f659697bdd2a0d4e0215f2f36824b0:lakefile.toml",
+        "catskillsresearch/avg_case_mls@63a09940d1f659697bdd2a0d4e0215f2f36824b0:lean-toolchain"
+      ],
+      "declarations_checked": [
+        "AvgCasePalomar.paper_collapse_inNP_trivial",
+        "AvgCasePalomar.paper_collapse_completeness_characterization",
+        "AvgCasePalomar.paper_collapse_theorem44_vacuous",
+        "AvgCasePalomar.paper_collapse_avP_characterization",
+        "AvgCasePalomar.paper_collapse_no_theory_separates",
+        "AvgCasePalomar.paper_example_4_1",
+        "AvgCasePalomar.paper_theorem_5_1_reduction_core",
+        "AvgCasePalomar.paper_theorem_5_2_reduction_core",
+        "AvgCasePalomar.paper_theorem_5_3_reduction_core",
+        "MLSInReduction.fromMLS",
+        "EMLSReduction.sourceBits",
+        "EMLSReduction.toEMLS",
+        "EMLSReduction.fromEMLS"
+      ],
+      "codes_checked": [],
+      "internal_notes": [
+        {
+          "evidence": "Challenge.lean defines InNP without verifier-runtime constraints, Distribution permits mass at most one, rank is zero at zero probability, and DistTime existentially quantifies an unlinked runtime function; EncodingCollapse.lean and HardnessCollapse.lean exhibit the corresponding witnesses.",
+          "message": "The five collapse statements diagnose reachable behavior of the disclosed untimed encoding rather than presenting it as the literature definition."
+        },
+        {
+          "evidence": "HardnessCollapse.distTime_trivial uses f x = 0, and AvCom.T_inv unfolds immediately to 0 when its second argument is 0.",
+          "message": "The partial T_invAux search is never entered in the selected AvP-collapse argument, so its possible divergence is excluded exactly by the zero runtime witness."
+        },
+        {
+          "evidence": "Challenge.lean sets standardMass [] and levinShellSeries \u03b5 0 to zero and uses lenBot = max 1 length; Example41.lean proves nonnegativity, shell summability, total mass one, and the normalized bound under 0 < \u03b5.",
+          "message": "Division-at-empty and real-power edge cases are harmless under the selected Example 4.1 definitions and hypothesis."
+        },
+        {
+          "evidence": "MLSInReduction.lean defines fromMLS by structurally decoding the distinguished membership translation and proves fromMLS (toMLS \u03c6) = some \u03c6; MLS.lean interprets x \u2208 x as false through Mathlib ZFSet foundation.",
+          "message": "The MLS decoder does not manufacture semantic correctness; it supplies a genuine syntactic left inverse, while the empty-clause and empty-CNF encodings have the claimed semantics."
+        },
+        {
+          "evidence": "EMLSReduction.lean defines sourceBits as the injective encodeSATCNF codec, toEMLS as provenance \u03c6 ++ semanticCore \u03c6, and fromEMLS by decoding the prefix and checking the remaining semantic core. Each provenance literal is an idempotence equality x = x \u222a x, proved valid for every environment.",
+          "message": "The disclosed provenance tag establishes injectivity without changing satisfiability, and its one-literal-per-source-bit cost is included explicitly in the selected size equality."
+        },
+        {
+          "evidence": "Foundation/Codec.lean proves decodeNat? (encodeNat n ++ rest) = some (n,rest), and Section4/CookLevin/SATCodec.lean proves decodeSATCNF? (encodeSATCNF \u03c6) = some \u03c6 and accounts for structural and variable-index bits.",
+          "message": "The EMLS source serialization and decoder are inspectable and injective; no source syntax is hidden in an unaccounted natural-number field."
+        },
+        {
+          "evidence": "FPILP.lean uses Fin n literals, emits both 0 \u2264 x_i and 1-x_i \u2265 0, and quantifies integer assignments, forcing every variable to 0 or 1 before reflecting each clause inequality.",
+          "message": "The theorem 5.3 equivalence excludes unconstrained-variable and non-Boolean integer witnesses by construction."
+        },
+        {
+          "evidence": "Challenge.lean imports only Mathlib, while every selected protocol implementation and its codec dependencies are present at commit 63a09940d1f659697bdd2a0d4e0215f2f36824b0.",
+          "message": "The mechanically selected surface has high trust and its material definitions are fully auditable from pinned repository sources."
+        }
+      ]
+    },
+    {
+      "step": "literature_notability",
+      "outcome": "neutral",
+      "summary": "The selected formal audit and reconstruction clear the research-interest floor, with a credible audience in formal methods, logic, and complexity theory and no material literature defect found.",
+      "findings": [],
+      "scores": {
+        "notability": 4,
+        "literature": 4
+      },
+      "trust_level": null,
+      "sources_checked": [
+        "repository@63a09940d1f659697bdd2a0d4e0215f2f36824b0:Challenge.lean",
+        "repository@63a09940d1f659697bdd2a0d4e0215f2f36824b0:Solution.lean",
+        "repository@63a09940d1f659697bdd2a0d4e0215f2f36824b0:formalization.yaml",
+        "repository@63a09940d1f659697bdd2a0d4e0215f2f36824b0:arxiv.md",
+        "repository@63a09940d1f659697bdd2a0d4e0215f2f36824b0:README.md",
+        "repository@63a09940d1f659697bdd2a0d4e0215f2f36824b0:REPORT_CLAIM_AUDIT.md",
+        "repository@63a09940d1f659697bdd2a0d4e0215f2f36824b0:DEFINITION_FORKS.md",
+        "repository@63a09940d1f659697bdd2a0d4e0215f2f36824b0:THEOREMS.md",
+        "repository@63a09940d1f659697bdd2a0d4e0215f2f36824b0:sources/TR1995-711.pdf",
+        "repository@63a09940d1f659697bdd2a0d4e0215f2f36824b0:sources/TR1995-711_vision.md",
+        "https://cs.nyu.edu/dynamic/reports/?year=1995",
+        "https://arxiv.org/abs/2606.16134",
+        "https://isa-afp.org/entries/MLSS_Decision_Proc.html"
+      ],
+      "declarations_checked": [
+        "AvgCasePalomar.paper_collapse_inNP_trivial",
+        "AvgCasePalomar.paper_collapse_completeness_characterization",
+        "AvgCasePalomar.paper_collapse_theorem44_vacuous",
+        "AvgCasePalomar.paper_collapse_avP_characterization",
+        "AvgCasePalomar.paper_collapse_no_theory_separates",
+        "AvgCasePalomar.paper_example_4_1",
+        "AvgCasePalomar.paper_theorem_5_1_reduction_core",
+        "AvgCasePalomar.paper_theorem_5_2_reduction_core",
+        "AvgCasePalomar.paper_theorem_5_3_reduction_core",
+        "MLSInReduction.fromMLS",
+        "EMLSReduction.sourceBits",
+        "EMLSReduction.toEMLS",
+        "EMLSReduction.fromEMLS"
+      ],
+      "codes_checked": [],
+      "internal_notes": [
+        {
+          "evidence": "repository@63a09940d1f659697bdd2a0d4e0215f2f36824b0:arxiv.md \u00a7\u00a72\u20134 and Challenge.lean",
+          "message": "The five collapse declarations expose substantive failures caused by omitted machine-time links and degenerate laws, while Example 4.1 and the three reduction cores provide the positive reconstruction. Together they form a coherent serious-note contribution for formal-methods and complexity audiences; novelty is not needed for this conclusion."
+        },
+        {
+          "evidence": "repository@63a09940d1f659697bdd2a0d4e0215f2f36824b0:sources/TR1995-711_vision.md \u00a7\u00a74\u20135 and https://cs.nyu.edu/dynamic/reports/?year=1995",
+          "message": "The original report's authorship, provenance, average-case framework, Example 4.1, and SAT-to-MLS/EMLS/FPILP claims agree with the submission's substantive literature account."
+        },
+        {
+          "evidence": "https://isa-afp.org/entries/MLSS_Decision_Proc.html and repository@63a09940d1f659697bdd2a0d4e0215f2f36824b0:REPORT_CLAIM_AUDIT.md",
+          "message": "The relevant 2023 Isabelle/HOL MLSS formalization is disclosed accurately as a sound, complete tableau development for the richer singleton fragment, distinct from this repository's MLS work."
+        },
+        {
+          "evidence": "repository@63a09940d1f659697bdd2a0d4e0215f2f36824b0:arxiv.md reference [RS93], formalization.yaml source metadata, and sources/TR1995-711_vision.md reference [RS93]",
+          "message": "The manuscript labels RS93 as STOC, whereas the other pinned evidence identifies STACS 1993, LNCS 665. This is a minor bibliographic slip without a material consequence."
+        },
+        {
+          "evidence": "Attempted inspection of https://doi.org/10.1007/978-3-031-38499-8_28 returned HTTP 406; https://isa-afp.org/entries/MLSS_Decision_Proc.html supplies its title, venue, pages, DOI, and substantive relationship.",
+          "message": "The publisher page was inaccessible to reviewer tooling; this is not an author-facing defect."
+        },
+        {
+          "evidence": "The tree of repository@63a09940d1f659697bdd2a0d4e0215f2f36824b0 contains no CONTRIBUTING.md.",
+          "message": "The referenced repository-local notability anchors could not be inspected. The available substantive evidence nevertheless affirmatively establishes a serious-note-scale result and identifiable research audience."
+        }
+      ]
+    }
+  ],
+  "synthesis": {
+    "outcome": "neutral",
+    "summary": "Mechanical verification passed, and all completed checks found no blocking or material deficiencies.",
+    "scores": {
+      "classification": 5,
+      "clarity": 4,
+      "provenance": 4,
+      "statement_alignment": 4,
+      "definition_fidelity": 4,
+      "auditability": 4,
+      "notability": 4,
+      "literature": 4
+    },
+    "warnings": [],
+    "requested_changes": []
+  }
+}

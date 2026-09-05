@@ -25,7 +25,7 @@ Full preflight runs:
    - **Lighter passes**: **`composer-2.5`**
      — `classification`, `metadata`, optional `proof_account`
 
-Output: `.cache/palomar-editorial/review-draft.json` (gitignored).
+Output: `.cache/palomar-editorial/review-draft.json` (tracked with the other preflight report files).
 
 Preflight is green only when synthesis outcome is **`neutral`**.
 When the working tree is not yet committed, the local mechanical report binds

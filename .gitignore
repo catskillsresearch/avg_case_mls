@@ -1,7 +1,10 @@
 .vscode
 /.cursor/plans/
 .lake
-.cache/palomar-editorial/
+.cache/palomar-editorial/*
+!.cache/palomar-editorial/preflight-run.json
+!.cache/palomar-editorial/mechanical-report.json
+!.cache/palomar-editorial/review-draft.json
 .cache/palomar-comparator/
 .venv-editorial/
 .venv-ocr

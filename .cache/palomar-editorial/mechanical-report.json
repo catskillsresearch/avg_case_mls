@@ -1,0 +1,64 @@
+{
+  "schema": "palomar-local-mechanical-report-v1",
+  "generated_at": "2026-09-05T14:00:55.774033+00:00",
+  "repository": {
+    "commit": "63a09940d1f659697bdd2a0d4e0215f2f36824b0",
+    "comparator_config": "comparator.json"
+  },
+  "comparator": {
+    "challenge_module": "Challenge",
+    "solution_module": "Solution",
+    "theorem_names": [
+      "AvgCasePalomar.paper_collapse_inNP_trivial",
+      "AvgCasePalomar.paper_collapse_completeness_characterization",
+      "AvgCasePalomar.paper_collapse_theorem44_vacuous",
+      "AvgCasePalomar.paper_collapse_avP_characterization",
+      "AvgCasePalomar.paper_collapse_no_theory_separates",
+      "AvgCasePalomar.paper_example_4_1",
+      "AvgCasePalomar.paper_theorem_5_1_reduction_core",
+      "AvgCasePalomar.paper_theorem_5_2_reduction_core",
+      "AvgCasePalomar.paper_theorem_5_3_reduction_core"
+    ],
+    "definition_names": [
+      "MLSInReduction.fromMLS",
+      "EMLSReduction.sourceBits",
+      "EMLSReduction.toEMLS",
+      "EMLSReduction.fromEMLS"
+    ],
+    "permitted_axioms": [
+      "propext",
+      "Quot.sound",
+      "Classical.choice"
+    ]
+  },
+  "declarations_checked_order": [
+    "AvgCasePalomar.paper_collapse_inNP_trivial",
+    "AvgCasePalomar.paper_collapse_completeness_characterization",
+    "AvgCasePalomar.paper_collapse_theorem44_vacuous",
+    "AvgCasePalomar.paper_collapse_avP_characterization",
+    "AvgCasePalomar.paper_collapse_no_theory_separates",
+    "AvgCasePalomar.paper_example_4_1",
+    "AvgCasePalomar.paper_theorem_5_1_reduction_core",
+    "AvgCasePalomar.paper_theorem_5_2_reduction_core",
+    "AvgCasePalomar.paper_theorem_5_3_reduction_core",
+    "MLSInReduction.fromMLS",
+    "EMLSReduction.sourceBits",
+    "EMLSReduction.toEMLS",
+    "EMLSReduction.fromEMLS"
+  ],
+  "challenge_imports": [
+    "Mathlib"
+  ],
+  "artifact_hashes": {
+    "comparator.json": "ee627d53892ec260c7f763608f0ce537a9d3d5c34007ee8afdf9cc85d3a408a5",
+    "Challenge.lean": "5d439493a90f493937b7560c566b6fd05a081e497ee02319847a6b71b2610554",
+    "Solution.lean": "00c37890441e493d09909fd454895d281fd5fd9a7497cdf48d05086c7f0921d9",
+    "formalization.yaml": "dbdc531dc900babae84d5c4618467663285a59b53a539427b1a3015b7dcf3bb2",
+    "lean-toolchain": "3aac669c7a910ec2389f4e4f921b605adf6ebf2d1e0c9b9cd0be4d33f3f5db71",
+    "lakefile.toml": "3918d7b142ac00c9e591202bcf7b65dc4ebfec82da1e57bcaa59ec01bc476a44"
+  },
+  "preflight": {
+    "mechanical_steps": "comparator-config, imports, build, type-compare, pinned-comparator, sorry-scan, axioms",
+    "status": "passed_before_report"
+  }
+}
